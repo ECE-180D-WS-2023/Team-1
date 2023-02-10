@@ -118,13 +118,14 @@ print(colors)
 
 # tolerances for thresholding, can be changed
 htol = 5
-stol = 30
-vtol = 30
+stol = 25
+vtol = 25
+orange_hue_tol = 3 # found that orange can get confused with skin tone, give lower threshold
 
-c1_lower, c1_upper = threshold(colors['c1'], htol, stol, vtol)
-c2_lower, c2_upper = threshold(colors['c2'], htol, stol, vtol)
-c3_lower, c3_upper = threshold(colors['c3'], htol, stol, vtol)
-c4_lower, c4_upper = threshold(colors['c4'], htol, stol, vtol)
+c1_lower, c1_upper = threshold(colors['c1'], htol, stol, vtol) # red
+c2_lower, c2_upper = threshold(colors['c2'], orange_hue_tol, stol, vtol) # orange
+c3_lower, c3_upper = threshold(colors['c3'], htol, stol, vtol) # green
+c4_lower, c4_upper = threshold(colors['c4'], htol, stol, vtol) # blue
 
 calibrated = True
 
