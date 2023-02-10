@@ -79,7 +79,7 @@ def threshold(HSV, htol, stol, vtol):
 calibrated = False
 color = 0
 colors = {} # dict to store colors
-cap = cv2.VideoCapture(0) # start webcam capture
+cap = cv2.VideoCapture(0) # start webcam capture (0 for onboard camera, 1 for USB camera)
 
 print("Please calibrate in the order Red, Orange, Green, Blue ******************")
 print("Press 'c' to enter color")
@@ -116,6 +116,7 @@ while color < 4:
         # update plot
 print(colors)
 
+# tolerances for thresholding, can be changed
 htol = 5
 stol = 30
 vtol = 30
@@ -255,7 +256,8 @@ while(calibrated):
         order = dict(sorted(order.items(), key=lambda x:x[1], reverse=True))
         color_order = list(order.keys())
         print('Color order is: ', color_order)
-    flip = cv2.flip(frame,1)
+
+    flip = cv2.flip(frame,1) # mirror frame for visual understanding
     cv2.imshow("Multiple Color Detection in Real-Time", flip)
     if cv2.waitKey(10) & 0xFF == ord('q'):
         break
