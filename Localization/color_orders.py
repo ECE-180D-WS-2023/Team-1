@@ -79,7 +79,7 @@ def threshold(HSV, htol, stol, vtol):
 calibrated = False
 color = 0
 colors = {} # dict to store colors
-cap = cv2.VideoCapture(0) # start webcam capture (0 for onboard camera, 1 for USB camera)
+cap = cv2.VideoCapture(1) # start webcam capture (0 for onboard camera, 1 for USB camera)
 
 print("Please calibrate in the order Red, Orange, Green, Blue ******************")
 print("Press 'c' to enter color")
