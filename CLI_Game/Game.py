@@ -1,11 +1,11 @@
 from Button import Button
 from Settings import ROWS, COLS, KEYS
 import random
-import string
+import pygame
 
+DELAY_AFTER_CLICK = 800 # ms
 # should contain all the game logic that has internal grid and then eventually
 # in main.py updates the print grid... or maybe combine... hmm
-# TODO: HIGH PRIO, PAUSE THE GAME FOR LIKE 1 s AFTER EVERY KEY PRESS SO THEY CAN SEE RESULTS
 
 # TODO: also probably print some line that indicates where you have to click the button maybe <--- arrow to the
 # right of the correct line
@@ -21,6 +21,8 @@ class Game:
     
     # existing buttons in the game
     existing_buttons = []
+
+    score = 0
     
     def __init__(self, difficulty=3):
         self.difficulty = difficulty
@@ -32,7 +34,11 @@ class Game:
             button.set_row(button.get_row() + 1)
             
         # if the button exceeds the max row / col, then remove from existing button list
-        # TODO: THIS SHOULD ALSO BE WHERE SCORE IS DECREMENTED
+        for button in self.existing_buttons:
+            if (button.get_row() >= ROWS):
+                self.score -= 1
+                print("Missed button!")
+                pygame.time.wait(DELAY_AFTER_CLICK)
         self.existing_buttons = [button for button in self.existing_buttons if not (button.get_row() >= ROWS)]
         
         # then spawn buttons
@@ -59,6 +65,17 @@ class Game:
         for button in self.get_buttons():
             if button.get_row() == row:
                 return button
+
+    # get button in the lowest row
+    def __button_in_lowest_row(self):
+        lowest_row = -1
+        lowest_row_button = None
+        for button in self.get_buttons():
+            if (button.get_row() > lowest_row):
+                lowest_row_button = button
+                lowest_row = button.get_row()
+        return lowest_row_button
+
 
     # when key gets pressed, update the game
     # returns True/False, col, row
@@ -95,7 +112,16 @@ class Game:
                     correct = False
             else: 
                 # valid key pressed but no button in last two rows
+                lowest_button = self.__button_in_lowest_row()
+                button_row = lowest_button.get_row()
+                button_col = lowest_button.get_col()
+                self.existing_buttons.remove(lowest_button)
                 correct = -1
-            return correct, button_row, button_col
         else:
+            lowest_button = self.__button_in_lowest_row()
+            button_row = lowest_button.get_row()
+            button_col = lowest_button.get_col()
+            self.existing_buttons.remove(lowest_button)
+            correct = -1
             print("Invalid Button Pressed")
+        return correct, button_row, button_col
