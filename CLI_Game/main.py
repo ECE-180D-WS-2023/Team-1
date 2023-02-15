@@ -52,7 +52,7 @@ def evaluate_press(correct, row, col, grid):
     if correct == False:
         print("Wrong Key Pressed!")
     elif correct == -1:
-        print("Invalid Key Pressed")
+        print("Wrong Key Pressed!")
     elif correct == True:
         print("Nice!")
     

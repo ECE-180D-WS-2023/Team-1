@@ -123,5 +123,4 @@ class Game:
             button_col = lowest_button.get_col()
             self.existing_buttons.remove(lowest_button)
             correct = -1
-            print("Invalid Button Pressed")
         return correct, button_row, button_col
