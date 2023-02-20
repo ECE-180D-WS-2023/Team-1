@@ -129,7 +129,7 @@ c4_lower, c4_upper = threshold(colors['c4'], htol, stol, vtol) # blue
 
 calibrated = True
 
-atol = 500 # area tolerance
+atol = 1000 # area tolerance
 
 while(calibrated):
     # Reading the video from the webcam in image frames
