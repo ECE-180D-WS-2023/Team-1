@@ -7,29 +7,28 @@ DELAY_AFTER_CLICK = 800 # ms
 # should contain all the game logic that has internal grid and then eventually
 # in main.py updates the print grid... or maybe combine... hmm
 
-# TODO: also probably print some line that indicates where you have to click the button maybe <--- arrow to the
-# right of the correct line
-
-# TODO: make it so that buttons dont spawn every round and maybe its like random # --> spawn but
-# the spawn chance is like a function of game difficulty
-# maybe make game difficulty a setting or BASED ON SONG BPM
-
-# TODO LOW PRIO: make sure that if i spawn multiple buttons, the buttons don't appear in the same row
-
 class Game:
     difficulty = None
 
+    # flag for starting game
+    start = False
+
     # for bpm button spawning
-    bpm = 40
+    bpm = 50
     last_spawned = 0
+
+    # for game duration CURRENTLY UNUSED
+    duration = -1
     
     # existing buttons in the game
     existing_buttons = []
 
     score = 0
     
-    def __init__(self, difficulty=3):
+    def __init__(self, difficulty=3, bpm = 40, duration = 30):
         self.difficulty = difficulty
+        self.bpm = bpm
+        self.duration = duration
 
     # corresponds to one game cycle
     def update(self):
@@ -115,8 +114,9 @@ class Game:
                 button_row = lowest_button.get_row()
                 button_col = lowest_button.get_col()
                 self.existing_buttons.remove(lowest_button)
-                correct = -1
+                correct = -2
         else:
+            # invalid key pressed
             lowest_button = self.__button_in_lowest_row()
             button_row = lowest_button.get_row()
             button_col = lowest_button.get_col()
