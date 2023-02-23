@@ -6,17 +6,6 @@ import pygame_menu
 
 pygame.init()
 
-# TODO!!!
-# create option class, should have location + selection ability
-# ie. currently selected button will be lighter
-# can switch between options via arrow keys
-# press enter to select key
-# make a "current option" button and set it to whatever is currently selected
-# then switch what it is according to arrow keys
-# write more functions! maybe something about state, option state as in light or dark
-# maybe add a member to the option class which says where they point to (ie. what page they open)
-
-
 # create game window
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -61,43 +50,8 @@ while go:
     
     pygame.display.update()
 
-
-
-
-
-
-
-##############
-
-# game loop
-run = False
-while run:
-    menu = pygame_menu.Menu('Welcome', 400, 300,
-                       theme=pygame_menu.themes.THEME_BLUE)
-    
-    screen.fill((0, 0, 0))
-    draw_text("Hi!!!", font, TEXT_COL, 160, 250)
-    
-    #event handler
-    # stores the (x, y) coordinates into
-    # the variable as a tuple
-    mouse = pygame.mouse.get_pos()
-    for event in pygame.event.get():
-        
-        #if the mouse is clicked on the 
-        # button the game is terminated 
-        if SCREEN_WIDTH/2 <= mouse[0] <= SCREEN_WIDTH/2+140 and SCREEN_HEIGHT/2 <= mouse[1] <= SCREEN_HEIGHT/2+40: 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pygame.quit()
-        if event.type == pygame.QUIT:
-            game_paused = True
-    if SCREEN_WIDTH/2 <= mouse[0] <= SCREEN_WIDTH/2+140 and SCREEN_HEIGHT/2 <= mouse[1] <= SCREEN_HEIGHT/2+40: 
-        pygame.draw.rect(screen,button_light,[SCREEN_WIDTH/3,SCREEN_HEIGHT/3,150,40]) 
-    else: 
-        pygame.draw.rect(screen,button_dark,[SCREEN_WIDTH/3,SCREEN_HEIGHT/3,150,40]) 
-    pygame.display.update()
-    
 pygame.quit()
+
 #menu outline:
 #TODO generate menu with scrolling options (?), be able to select one of them
 #TODO maybe print out song name and then they can press left or right arrows to scroll
