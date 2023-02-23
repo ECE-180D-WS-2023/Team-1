@@ -22,19 +22,30 @@ def draw_text (text, font, text_col, x, y):
 def draw_background():
     screen.fill((255, 255, 255))
 
+# song selection
+
+# settings
+Settings = pygame_menu.Menu("Settings", x, y, theme=pygame_menu.themes.THEME_BLUE)
+Settings.add.button('Calibration')
+mode_button = Settings.add.dropselect(
+    title='Mode?',
+    items=[('One team', 0),
+           ('Multiplayer', 1)],
+    font_size=24,
+    selection_option_font_size=24
+)
+
 # menu
 go = True
 
 # main menu
 mymenu = pygame_menu.Menu("Human Guitar Hero!", x, y, theme=pygame_menu.themes.THEME_BLUE)
 mymenu.add.button('Start game!')
-mymenu.add.button('Settings')
+#TODO on click make a start flag and set it to true
+#TODO jonathan will do game animation
+mymenu.add.button('Settings', Settings)
 mymenu.add.button('Quit', pygame_menu.events.EXIT)
 
-# settings
-settings = pygame_menu.Menu("Settings", x, y, theme=pygame_menu.themes.THEME_BLUE)
-settings.add.button('Calibration')
-settings.add.button("Mode")
 
 while go:
     draw_background()
