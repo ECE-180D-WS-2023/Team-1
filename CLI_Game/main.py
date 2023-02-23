@@ -40,7 +40,7 @@ score = 0
 def evaluate_press(correct, row, col, grid):
     global score
 
-    if correct == -1 or correct == False:
+    if correct < 0 or correct == False:
         grid.set_point(row, col, '-')
         score -= 1
     elif correct == True:
@@ -55,6 +55,8 @@ def evaluate_press(correct, row, col, grid):
         print("Wrong Key Pressed!")
     elif correct == True:
         print("Nice!")
+    elif correct == -2:
+        print("Pressed Too Early!")
     
     pygame.time.wait(DELAY_AFTER_CLICK)
 
