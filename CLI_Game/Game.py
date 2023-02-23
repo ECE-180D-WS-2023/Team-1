@@ -7,25 +7,28 @@ DELAY_AFTER_CLICK = 800 # ms
 # should contain all the game logic that has internal grid and then eventually
 # in main.py updates the print grid... or maybe combine... hmm
 
-# TODO: also probably print some line that indicates where you have to click the button maybe <--- arrow to the
-# right of the correct line
-
-# TODO: make it so that buttons dont spawn every round and maybe its like random # --> spawn but
-# the spawn chance is like a function of game difficulty
-# maybe make game difficulty a setting or BASED ON SONG BPM
-
-# TODO LOW PRIO: make sure that if i spawn multiple buttons, the buttons don't appear in the same row
-
 class Game:
     difficulty = None
+
+    # flag for starting game
+    start = False
+
+    # for bpm button spawning
+    bpm = 50
+    last_spawned = 0
+
+    # for game duration CURRENTLY UNUSED
+    duration = -1
     
     # existing buttons in the game
     existing_buttons = []
 
     score = 0
     
-    def __init__(self, difficulty=3):
+    def __init__(self, difficulty=3, bpm = 40, duration = 30):
         self.difficulty = difficulty
+        self.bpm = bpm
+        self.duration = duration
 
     # corresponds to one game cycle
     def update(self):
@@ -41,17 +44,12 @@ class Game:
                 pygame.time.wait(DELAY_AFTER_CLICK)
         self.existing_buttons = [button for button in self.existing_buttons if not (button.get_row() >= ROWS)]
         
-        # then spawn buttons
-        self.__button_spawner()
-
-    # helper function that calculates whether to spawns buttons
-    def __button_spawner(self):
-        # spawn button if there is less buttons than difficutly, for now spawn 1 button call
-        if (len(self.existing_buttons) < self.difficulty):
-            # spawn button in random column in the 0th row with random lowercase letter key
+        # then spawn button if time from last is > bpm
+        if ((pygame.time.get_ticks() - self.last_spawned)/1000 >= ((1/self.bpm)*60)):
             self.__spawn_button(row=0, col=random.randint(0,COLS-1), key=(random.choice(KEYS)))
+            self.last_spawned = pygame.time.get_ticks()
 
-    # helper function to steadily spawn buttons
+    # helper function to spawn buttons
     def __spawn_button(self, row, col, key):
         b = Button(row=row, col=col, key=key)
         self.existing_buttons.append(b)
@@ -116,11 +114,21 @@ class Game:
                 button_row = lowest_button.get_row()
                 button_col = lowest_button.get_col()
                 self.existing_buttons.remove(lowest_button)
-                correct = -1
+                correct = -2
         else:
+            # invalid key pressed
             lowest_button = self.__button_in_lowest_row()
             button_row = lowest_button.get_row()
             button_col = lowest_button.get_col()
             self.existing_buttons.remove(lowest_button)
             correct = -1
         return correct, button_row, button_col
+
+
+    # helper function that calculates whether to spawns buttons 
+    # this was an initial model
+    def __button_spawner_in_bursts(self):
+        # spawn button if there is less buttons than difficutly, for now spawn 1 button call
+        if (len(self.existing_buttons) < self.difficulty):
+            # spawn button in random column in the 0th row with random lowercase letter key
+            self.__spawn_button(row=0, col=random.randint(0,COLS-1), key=(random.choice(KEYS)))
