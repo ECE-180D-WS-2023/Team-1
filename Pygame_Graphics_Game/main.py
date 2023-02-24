@@ -8,14 +8,15 @@ from pygame.locals import (
     QUIT,
 )
 
+# TODO: add point system and text
+# TODO: add sprite for clearing success and bad
+# TODO: separate into 4 clear columns, have each columns' notes be different color
+
 # TODO: eventually combine note fall speed and also note update speed
     # currently update is called every update_time ms but also NOTE_FALL_SPEED is a parameter in Note
 # TODO: add hit zone text
-# TODO: add point system and text
-# TODO: add sprite for clearing success and bad
 
 # note that height grows downward, the top left is 0, 0 and bottom right is width, height
-
 # Initialize pygame
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -86,14 +87,16 @@ while running:
     for note in notes:
         screen.blit(note.surf, note.rect)
         screen.blit(key_font.render(note.letter, True, (255,255,255)), note.rect)
-    
-    screen.blit(result_font.render(key_press_result_text.text, True, (0,0,0)), key_press_result_text.rect)
 
     # display hit zone
     # horizontal line to indicate hit zone
     pygame.draw.line(screen, (0, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
+    # text for key press results
+    screen.blit(result_font.render(key_press_result_text.text, True, (0,0,0)), key_press_result_text.rect)
     
     # include text to indicate hit zone
+    # include text to indicate point record
+    # include vertical lines to divide into 4 columns/lanes
     
 
     # Update the display
