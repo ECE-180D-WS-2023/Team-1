@@ -1,12 +1,15 @@
 import pygame
 from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY
 from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, LETTER_FONT_SIZE, RESULT_FONT_SIZE
+from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
 from Text import Text
 from pygame.locals import (
     K_q,
     KEYDOWN,
     QUIT,
 )
+
+# lots of help from https://realpython.com/pygame-a-primer/#sprite-groups
 
 # TODO: add point system and text
 # TODO: add sprite for clearing success and bad
@@ -59,6 +62,9 @@ while running:
                 else:
                     key_press_result = "No Notes Yet!"
                 key_press_result_text.update(text=key_press_result)
+                
+                # calculate point here based on key_press_result 
+
         # Check for QUIT event. If QUIT, then set running to false.
         elif event.type == QUIT:
             running = False
@@ -83,21 +89,24 @@ while running:
     # get lowest note and process the key that was pressed
     # get_lowest_note(notes).process_key(pygame.key.name(pressed_keys.key))
 
+    # include text to indicate hit zone
+    # include text to indicate point record
+    # include vertical lines to divide into 4 columns/lanes
+    pygame.draw.line(screen, (0, 0, 0), (COLUMN_1, 0), (COLUMN_1, SCREEN_HEIGHT))
+    pygame.draw.line(screen, (0, 0, 0), (COLUMN_2, 0), (COLUMN_2, SCREEN_HEIGHT))
+    pygame.draw.line(screen, (0, 0, 0), (COLUMN_3, 0), (COLUMN_3, SCREEN_HEIGHT))
+    pygame.draw.line(screen, (0, 0, 0), (COLUMN_4, 0), (COLUMN_4, SCREEN_HEIGHT))
+    # display hit zone
+    # horizontal line to indicate hit zone
+    pygame.draw.line(screen, (0, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
+
     # draw all sprites
     for note in notes:
         screen.blit(note.surf, note.rect)
         screen.blit(key_font.render(note.letter, True, (255,255,255)), note.rect)
-
-    # display hit zone
-    # horizontal line to indicate hit zone
-    pygame.draw.line(screen, (0, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
+    
     # text for key press results
     screen.blit(result_font.render(key_press_result_text.text, True, (0,0,0)), key_press_result_text.rect)
-    
-    # include text to indicate hit zone
-    # include text to indicate point record
-    # include vertical lines to divide into 4 columns/lanes
-    
 
     # Update the display
     pygame.display.flip()
