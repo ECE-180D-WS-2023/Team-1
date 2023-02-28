@@ -19,8 +19,9 @@ https://www.geeksforgeeks.org/multiple-color-detection-in-real-time-using-python
 
 Only calibrating for red for this example
 """
-import numpy as np
 import cv2
+import numpy as np
+
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 
@@ -86,7 +87,7 @@ cap = cv2.VideoCapture(0) # start webcam capture (0 for onboard camera, 1 for US
 print("Please calibrate in the order Red, Orange, Green, Blue ******************")
 print("Press 'c' to enter color")
 
-while color < 1: 
+while color < 2:
     # Capture frame-by-frame
     ret, frame = cap.read()
     converted = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # convert frame to HSV
@@ -124,54 +125,68 @@ stol = 25
 vtol = 25
 
 c1_lower, c1_upper = threshold(colors['c1'], htol, stol, vtol) # red
+c2_lower, c2_upper = threshold(colors['c2'], htol, stol, vtol)
 
+tol = 10
 calibrated = True
 
-atol = 2000 # area tolerance
-
-while(calibrated):
-    # Reading the video from the webcam in image frames
+while (calibrated):
     _, frame = cap.read()
-  
-    # Convert the frame in BGR(RGB color space) to HSV(hue-saturation-value) color space
     hsvFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-  
-    # define masks
-    red_mask = cv2.inRange(hsvFrame, np.array(c1_lower, np.uint8), np.array(c1_upper, np.uint8))
-    
-    kernal = np.ones((5, 5), "uint8")
-      
-    # For red color
-    red_mask = cv2.erode(red_mask, kernal, iterations=2)
-    red_mask = cv2.dilate(red_mask, kernal, iterations=2)
-    res_red = cv2.bitwise_and(frame, frame, 
-                              mask = red_mask)
-    
-    frame = red_mask
-    # Bools to store if we see a certain color:
-    red = False
+    mask = cv2.inRange(hsvFrame, np.array(c1_lower, np.uint8), np.array(c1_upper, np.uint8))
+    kernel = np.ones((5, 5), np.uint8)
+    mask = cv2.erode(mask, kernel, iterations=2)
+    mask = cv2.dilate(mask, kernel, iterations=2)
 
-    rx, ox, gx, bx = 0, 0, 0, 0
+    mask_2 = cv2.inRange(hsvFrame, np.array(c2_lower, np.uint8), np.array(c2_upper, np.uint8))
+    mask_2 = cv2.erode(mask, kernel, iterations=2)
+    mask_2 = cv2.dilate(mask, kernel, iterations=2)
 
-    # Creating contour to track red color
-    contours, hierarchy = cv2.findContours(red_mask,
-                                           cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
-      
+    contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     for pic, contour in enumerate(contours):
         area = cv2.contourArea(contour)
-        if(area > atol):
+        if(area > 1000):
+            red = True
             x, y, w, h = cv2.boundingRect(contour)
-            rx = x
-            frame = cv2.rectangle(frame, (x, y), 
-                                       (x + w, y + h), 
-                                       (0, 0, 255), 2)
-              
-            cv2.putText(frame, "Red Color", (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.0,
-                        (0, 0, 255))    
+            contours2, con2 = cv2.findContours(mask_2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            for pi, cnt in enumerate(contours2): #to_do make the sheet black around the eadges
+                x2, y2, w2, h2 = cv2.boundingRect(cnt)
+                if x2 > x - tol:
+                    print('green')
+                    rx = x
+                    frame = cv2.rectangle(frame, (x, y), 
+                                            (x + w, y + h), 
+                                            (0, 0, 255), 2)
+                    
+                    cv2.putText(frame, "Red Color", (x, y),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                                (0, 0, 255))
+                frame = cv2.rectangle(frame, (x2, y2), 
+                                        (x2 + w2, y2 + h2), 
+                                        (0, 255, 0), 2)
+                    
+                cv2.putText(frame, "Green Color", (x2, y2),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                            (0, 0, 255))
+    
+        # area = cv2.contourArea(cnt)
+        # epsilon = 0.1*cv2.arcLength(cnt,True)
+        # approx = cv2.approxPolyDP(cnt,epsilon,True)
+        # # approx = cv2.approxPolyDP(cnt, 0.02*cv2.arcLength(cnt, True), True)
+        # x = approx.ravel()[0]
+        # y = approx.ravel()[1]
 
-    flip = cv2.flip(frame,1) # mirror frame for visual understanding
+        # if area > 400:
+        #     cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
+        #     if len(approx) == 3:
+        #         cv2.putText(frame, "Triangle", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+        #     elif len(approx) == 4:
+        #         cv2.putText(frame, "Rectangle", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+        #     elif 10 < len(approx) < 20:
+        #         cv2.putText(frame, "Circle", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0))
+    
+    # flip = cv2.flip(mask_2,1) # mirror frame for visual understanding
+    flip = cv2.flip(frame,1) 
     cv2.imshow("Multiple Color Detection in Real-Time", flip)
     if cv2.waitKey(10) & 0xFF == ord('q'):
         break
