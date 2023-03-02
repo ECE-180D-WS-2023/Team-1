@@ -75,13 +75,18 @@ def threshold(HSV, htol, stol, vtol):
         high_threshold[2] = 255
 
     return low_threshold, high_threshold
+
+def in_border_range(tol, x, x2, y, y2, w, h):
+    if ((x2 > (x - tol)) and (x2 < (x + w + tol))) or ((y > (y- tol)) and (y < (y + h + tol))):
+        return True
+    return False
     
 # End of Helper Functions
 # ===========================================================================================
 
 calibrated = False
 colors = {} # dict to store colors
-cap = cv2.VideoCapture(1) # start webcam capture (0 for onboard camera, 1 for USB camera)
+cap = cv2.VideoCapture(0) # start webcam capture (0 for onboard camera, 1 for USB camera)
 
 print("Please calibrate in the order Red, Orange, Blue, Purple, Green (for border) ******************")
 print("Press 'c' to enter color")
@@ -134,7 +139,7 @@ c1_lower, c1_upper = threshold(colors['c1'], htol, stol, vtol) # red
 c2_lower, c2_upper = threshold(colors['c2'], orange_hue_tol, stol, vtol) # orange
 c3_lower, c3_upper = threshold(colors['c3'], htol, stol, vtol) # blue
 c4_lower, c4_upper = threshold(colors['c4'], htol, stol, vtol) # purple
-border_lower, border_upper = threshold(colors['c5'], htol, stol, vtol) # green
+border_lower, border_upper = threshold(colors['c5'], 10, stol, vtol) # green
 
 tol = 10 # border tolerance
 atol = 500 # area tolerance
@@ -193,7 +198,7 @@ while (calibrated):
             contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # detect green border
             for img, cnt in enumerate(contours2): 
                 x2, y2, w2, h2 = cv2.boundingRect(cnt) 
-                if x2 > (x - tol): # if green border is in vicinity of the color square, we have properly detected color
+                if in_border_range(tol, x, x2, y, y2, w, h): # if green border is in vicinity of the color square, we have properly detected color
                     rx = x
                     red = True
                     frame = cv2.rectangle(frame, (x, y), 
@@ -215,7 +220,7 @@ while (calibrated):
             contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             for img, cnt in enumerate(contours2): 
                 x2, y2, w2, h2 = cv2.boundingRect(cnt)
-                if x2 > (x - tol):
+                if in_border_range(tol, x, x2, y, y2, w, h):
                     ox = x
                     orange = True
                     frame = cv2.rectangle(frame, (x, y), 
@@ -237,7 +242,7 @@ while (calibrated):
             contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             for img, cnt in enumerate(contours2): 
                 x2, y2, w2, h2 = cv2.boundingRect(cnt)
-                if x2 > (x - tol):
+                if in_border_range(tol, x, x2, y, y2, w, h):
                     bx = x
                     blue = True
                     frame = cv2.rectangle(frame, (x, y),
@@ -260,12 +265,12 @@ while (calibrated):
             contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             for img, cnt in enumerate(contours2): 
                 x2, y2, w2, h2 = cv2.boundingRect(cnt)
-                if x2 > (x - tol):
+                if in_border_range(tol, x, x2, y, y2, w, h):
                     px = x
                     purple = True
                     frame = cv2.rectangle(frame, (x, y), 
                                             (x + w, y + h),
-                                            (0, 164, 255), 2)
+                                            (245, 0, 147), 2)
                     
                     cv2.putText(frame, "Purple Color", (x, y),
                                 cv2.FONT_HERSHEY_SIMPLEX, 
