@@ -99,7 +99,7 @@ while color < 2:
     # Capture frame-by-frame
     ret, frame = cap.read()
     flip = cv2.flip(frame,1)
-    if color == 0:
+    if color == 0:        
         cv2.putText(flip, "Red Color", (300, 100),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                 (0, 0, 255))
