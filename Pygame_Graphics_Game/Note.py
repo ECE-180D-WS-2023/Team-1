@@ -6,7 +6,7 @@ from globals import points
 
 SUCCESS = "Nice!"
 TOO_EARLY = "Too Early!"
-WRONG_KEY = "Wrong Key!"
+WRONG_KEY = "Wrong Motion!"
 
 TOO_LATE = "Too Late!"
 
@@ -45,13 +45,16 @@ class Note(pygame.sprite.Sprite):
     # Move the note downwards based on fall speed
     # Remove the note when it passes the bottom edge of the screen
     def update(self):
+        global points
         self.rect.move_ip(0, NOTE_FALL_SPEED)
         # if the note goes off the edge, return too_late to indicate that the note ran out
         if self.rect.top > SCREEN_HEIGHT:
-            global points
+            print(points)
             points -= 1
             self.kill()
     
+
+    # for keyboard clicking processing
     # use on key that is lowest
     # returns the result of the key press back to main
     def process_key(self, pressed_keys):
