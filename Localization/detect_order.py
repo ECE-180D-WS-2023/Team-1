@@ -77,7 +77,7 @@ def threshold(HSV, htol, stol, vtol):
     return low_threshold, high_threshold
 
 def in_border_range(tol, x, x2, y, y2, w, h):
-    if ((x2 > (x - tol)) and (x2 < (x + w + tol))) or ((y > (y- tol)) and (y < (y + h + tol))):
+    if ((x2 > (x - tol)) and (x2 < (x + w + tol))) and ((y > (y- tol)) and (y < (y + h + tol))):
         return True
     return False
     
@@ -86,7 +86,7 @@ def in_border_range(tol, x, x2, y, y2, w, h):
 
 calibrated = False
 colors = {} # dict to store colors
-cap = cv2.VideoCapture(0) # start webcam capture (0 for onboard camera, 1 for USB camera)
+cap = cv2.VideoCapture(1) # start webcam capture (0 for onboard camera, 1 for USB camera)
 
 print("Please calibrate in the order Red, Orange, Blue, Purple, Green (for border) ******************")
 print("Press 'c' to enter color")
@@ -129,19 +129,19 @@ print("Colors collected")
 print(colors)
 
 # tolerances for thresholding, can be changed
-htol = 5
-stol = 25
-vtol = 25
+htol = 2
+stol = 50
+vtol = 50
 orange_hue_tol = 3 # found that orange can get confused with skin tone, give lower threshold
 
 # Perform thresholding
-c1_lower, c1_upper = threshold(colors['c1'], htol, stol, vtol) # red
-c2_lower, c2_upper = threshold(colors['c2'], orange_hue_tol, stol, vtol) # orange
-c3_lower, c3_upper = threshold(colors['c3'], htol, stol, vtol) # blue
-c4_lower, c4_upper = threshold(colors['c4'], htol, stol, vtol) # purple
-border_lower, border_upper = threshold(colors['c5'], 10, stol, vtol) # green
+c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 170) # red
+c2_lower, c2_upper = threshold(colors['c2'], 2, 50, 50) # orange
+c3_lower, c3_upper = threshold(colors['c3'], 5, 50, 50) # blue
+c4_lower, c4_upper = threshold(colors['c4'], 5, stol, vtol) # purple
+border_lower, border_upper = threshold(colors['c5'], 3, 50, 60) # green
 
-tol = 10 # border tolerance
+tol = 3 # border tolerance
 atol = 500 # area tolerance
 
 calibrated = True # done calibrating
@@ -154,7 +154,7 @@ while (calibrated):
     # Convert the frame in BGR(RGB color space) to HSV(hue-saturation-value) color space
     hsvFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-    kernel = np.ones((5, 5), np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
 
     # define masks
     red_mask = cv2.inRange(hsvFrame, np.array(c1_lower, np.uint8), np.array(c1_upper, np.uint8))
@@ -176,6 +176,7 @@ while (calibrated):
     border_mask = cv2.inRange(hsvFrame, np.array(border_lower, np.uint8), np.array(border_upper, np.uint8))
     border_mask = cv2.erode(border_mask, kernel, iterations=2)
     border_mask = cv2.dilate(border_mask, kernel, iterations=2)
+    # flip = cv2.flip(border_mask,1) # for testing purposes
 
     # Bools to store if we see a certain color:
     red = False
