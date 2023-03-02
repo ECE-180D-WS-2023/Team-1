@@ -213,6 +213,6 @@ void loop()
 
 void pubMove(char move, int player) {
   char buf[32];
-  snprintf(buf, 32, "P:%d, M:%c", player, move); 
+  snprintf(buf, 32, "%d%c", player, move); 
   client.publish(topic, buf);
 }

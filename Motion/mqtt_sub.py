@@ -20,8 +20,11 @@ def on_disconnect(client, userdata, rc):
 def on_message(client, userdata, message):
   print('Received message: "' + str(message.payload) + '" on topic "' +
         message.topic + '" with QoS ' + str(message.qos))
- #store motion and time
- # set
+  if str(message.payload)[0:3] == "b'1":
+        player = 1
+        move = message.payload[4:4]
+        print(move)
+        return move
 
 # 1. create a client instance.
 client = mqtt.Client()
