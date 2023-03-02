@@ -199,9 +199,11 @@ while (calibrated):
 
     if red:
         position = 0
-        if (rx < 213):
+        if (rx < 160):
+            position = 4
+        elif(rx >= 160 and rx < 320):
             position = 3
-        elif (rx >= 213 and rx < 426):
+        elif (rx >= 320 and rx < 480):
             position = 2
         else:
             position = 1
@@ -211,15 +213,19 @@ while (calibrated):
     cv2.putText(flip, "zone 1", (10, 240),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                                 (0, 255, 0))
-    cv2.putText(flip, "zone 2", (223, 240),
+    cv2.putText(flip, "zone 2", (170, 240),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                                 (0, 255, 0))
-    cv2.putText(flip, "zone 3", (436, 240),
+    cv2.putText(flip, "zone 3", (330, 240),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                (0, 255, 0))
+    cv2.putText(flip, "zone 4", (490, 240),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                                 (0, 255, 0))
     line_thickness = 2
-    cv2.line(flip, (200, 0), (200, 480), (0, 255, 0), thickness=line_thickness)
-    cv2.line(flip, (400, 0), (400, 480), (0, 255, 0), thickness=line_thickness)
+    cv2.line(flip, (160, 0), (160, 480), (0, 255, 0), thickness=line_thickness)
+    cv2.line(flip, (320, 0), (320, 480), (0, 255, 0), thickness=line_thickness)
+    cv2.line(flip, (480, 0), (480, 480), (0, 255, 0), thickness=line_thickness)
     cv2.imshow("Multiple Color Detection in Real-Time", flip)
     if cv2.waitKey(10) & 0xFF == ord('q'):
         break
