@@ -3,10 +3,9 @@ Anna Anderson
 UID: 105296576
 180DA Capstone: Team 1 JAAK
 Game: Guitar Hero
-This script will be utilized for locating players based on color in accordance with our game.
-It utilizes cv2 to process webcam data.
+This script will be utilized 1 player color recognition
 Input: Camera data
-Output: Order of players (colors relative to certain regions)
+Output: What color they are holding up
 
 References:
 https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_gui/py_video_display/py_video_display.html
@@ -88,12 +87,15 @@ calibrated = False
 colors = {} # dict to store colors
 cap = cv2.VideoCapture(1) # start webcam capture (0 for onboard camera, 1 for USB camera)
 
+# Width of cap = 640
+# Height of cap = 480
+
 print("Please calibrate in the order Red, Orange, Blue, Purple, Green (for border) ******************")
-print("Input red color by aligning in central box and striking c key")
 
 # Calibration phase 
 color = 0
-while color < 5:
+print("Input red color by aligning in central box and striking c key")
+while color < 2:
     # Capture frame-by-frame
     ret, frame = cap.read()
     flip = cv2.flip(frame,1)
@@ -102,22 +104,10 @@ while color < 5:
                                 cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                 (0, 0, 255))
     if color == 1:
-        cv2.putText(flip, "Orange Color", (300, 100),
-                                cv2.FONT_HERSHEY_SIMPLEX, 
-                                1.0, (0, 164, 255))
-    if color == 2:
-        cv2.putText(flip, "Blue Color", (300, 100),
-                                cv2.FONT_HERSHEY_SIMPLEX,
-                                1.0, (255, 0, 0))
-    if color == 3:
-        cv2.putText(flip, "Purple Color", (300, 100),
-                                cv2.FONT_HERSHEY_SIMPLEX, 
-                                1.0, (245, 0, 147))
-    if color == 4:
         cv2.putText(flip, "Green Border Color", (300, 100),
                                 cv2.FONT_HERSHEY_SIMPLEX, 
                                 1.0, (0, 255, 0))
-    
+        
     converted = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # convert frame to HSV
 
     # create square of interest on screen
@@ -144,31 +134,15 @@ while color < 5:
         colors[color_key] = HSV_vals[0][0]
         color += 1
         if (color == 1):
-            print("Input orange color by aligning in central box and striking c key")
-        if (color == 2):
-            print("Input blue color by aligning in central box and striking c key")
-        if (color == 3):
-            print("Input purple color by aligning in central box and striking c key")
-        if (color == 4):
             print("Input green border color by aligning in central box and striking c key")
-            
 
 print("Colors collected")
 print(colors)
-cv2.destroyAllWindows()
 
-# tolerances for thresholding, can be changed
-htol = 2
-stol = 50
-vtol = 50
-orange_hue_tol = 3 # found that orange can get confused with skin tone, give lower threshold
 
 # Perform thresholding
 c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 170) # red
-c2_lower, c2_upper = threshold(colors['c2'], 2, 50, 50) # orange
-c3_lower, c3_upper = threshold(colors['c3'], 5, 50, 50) # blue
-c4_lower, c4_upper = threshold(colors['c4'], 5, stol, vtol) # purple
-border_lower, border_upper = threshold(colors['c5'], 3, 50, 60) # green
+border_lower, border_upper = threshold(colors['c2'], 3, 50, 60) # green
 
 tol = 3 # border tolerance
 atol = 500 # area tolerance
@@ -189,19 +163,6 @@ while (calibrated):
     red_mask = cv2.inRange(hsvFrame, np.array(c1_lower, np.uint8), np.array(c1_upper, np.uint8))
     red_mask = cv2.erode(red_mask, kernel, iterations=2)
     red_mask = cv2.dilate(red_mask, kernel, iterations=2)
-
-    orange_mask = cv2.inRange(hsvFrame, np.array(c2_lower, np.uint8), np.array(c2_upper, np.uint8))
-    orange_mask = cv2.erode(orange_mask, kernel, iterations=2)
-    orange_mask = cv2.dilate(orange_mask, kernel, iterations=2)
-
-    blue_mask = cv2.inRange(hsvFrame, np.array(c3_lower, np.uint8), np.array(c3_upper, np.uint8))
-    blue_mask = cv2.erode(blue_mask, kernel, iterations=2)
-    blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
-
-    purple_mask = cv2.inRange(hsvFrame, np.array(c4_lower, np.uint8), np.array(c4_upper, np.uint8))
-    purple_mask = cv2.erode(purple_mask, kernel, iterations=2)
-    purple_mask = cv2.dilate(purple_mask, kernel, iterations=2)
-
     border_mask = cv2.inRange(hsvFrame, np.array(border_lower, np.uint8), np.array(border_upper, np.uint8))
     border_mask = cv2.erode(border_mask, kernel, iterations=2)
     border_mask = cv2.dilate(border_mask, kernel, iterations=2)
@@ -209,11 +170,9 @@ while (calibrated):
 
     # Bools to store if we see a certain color:
     red = False
-    orange = False
-    blue = False
-    purple = False
+    
 
-    rx, ox, bx, px = 0, 0, 0, 0
+    rx = 0
 
 
     # Creating contour to track red color
@@ -237,83 +196,30 @@ while (calibrated):
                     cv2.putText(frame, "Red Color", (x, y),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                 (0, 0, 255))
-                    
-    # Creating contour to track orange color
-    contours, hierarchy = cv2.findContours(orange_mask,
-                                           cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
 
-    for pic, contour in enumerate(contours):
-        area = cv2.contourArea(contour)
-        if(area > atol):
-            x, y, w, h = cv2.boundingRect(contour)
-            contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            for img, cnt in enumerate(contours2): 
-                x2, y2, w2, h2 = cv2.boundingRect(cnt)
-                if in_border_range(tol, x, x2, y, y2, w, h):
-                    ox = x
-                    orange = True
-                    frame = cv2.rectangle(frame, (x, y), 
-                                            (x + w, y + h),
-                                            (0, 164, 255), 2)
-                    
-                    cv2.putText(frame, "Orange Color", (x, y),
-                                cv2.FONT_HERSHEY_SIMPLEX, 
-                                1.0, (0, 164, 255))
-
-    # Creating contour to track blue color
-    contours, hierarchy = cv2.findContours(blue_mask,
-                                           cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
-    for pic, contour in enumerate(contours):
-        area = cv2.contourArea(contour)
-        if(area > atol):
-            x, y, w, h = cv2.boundingRect(contour)
-            contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            for img, cnt in enumerate(contours2): 
-                x2, y2, w2, h2 = cv2.boundingRect(cnt)
-                if in_border_range(tol, x, x2, y, y2, w, h):
-                    bx = x
-                    blue = True
-                    frame = cv2.rectangle(frame, (x, y),
-                                            (x + w, y + h),
-                                            (255, 0, 0), 2)
-                    
-                    cv2.putText(frame, "Blue Color", (x, y),
-                                cv2.FONT_HERSHEY_SIMPLEX,
-                                1.0, (255, 0, 0))
-                    
-    # Creating contour to track purple color
-    contours, hierarchy = cv2.findContours(purple_mask,
-                                           cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
-
-    for pic, contour in enumerate(contours):
-        area = cv2.contourArea(contour)
-        if(area > atol):
-            x, y, w, h = cv2.boundingRect(contour)
-            contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            for img, cnt in enumerate(contours2): 
-                x2, y2, w2, h2 = cv2.boundingRect(cnt)
-                if in_border_range(tol, x, x2, y, y2, w, h):
-                    px = x
-                    purple = True
-                    frame = cv2.rectangle(frame, (x, y), 
-                                            (x + w, y + h),
-                                            (245, 0, 147), 2)
-                    
-                    cv2.putText(frame, "Purple Color", (x, y),
-                                cv2.FONT_HERSHEY_SIMPLEX, 
-                                1.0, (245, 0, 147))
-
-    order = {'r':rx, 'o':ox,'b':bx, 'p':px }
-
-    if red and orange and purple and blue:
-        order = dict(sorted(order.items(), key=lambda x:x[1], reverse=True))
-        color_order = list(order.keys())
-        print('Color order is: ', color_order)
+    if red:
+        position = 0
+        if (rx < 213):
+            position = 3
+        elif (rx >= 213 and rx < 426):
+            position = 2
+        else:
+            position = 1
+        print('Player position: ', position)
      
     flip = cv2.flip(frame,1) # mirror frame for visual understanding
+    cv2.putText(flip, "zone 1", (10, 240),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                (0, 255, 0))
+    cv2.putText(flip, "zone 2", (223, 240),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                (0, 255, 0))
+    cv2.putText(flip, "zone 3", (436, 240),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                (0, 255, 0))
+    line_thickness = 2
+    cv2.line(flip, (200, 0), (200, 480), (0, 255, 0), thickness=line_thickness)
+    cv2.line(flip, (400, 0), (400, 480), (0, 255, 0), thickness=line_thickness)
     cv2.imshow("Multiple Color Detection in Real-Time", flip)
     if cv2.waitKey(10) & 0xFF == ord('q'):
         break
