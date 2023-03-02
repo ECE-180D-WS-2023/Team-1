@@ -1,7 +1,9 @@
 import pygame
+import paho.mqtt.client as mqtt
+from mqtt import on_connect, on_disconnect, imu_action_received_flag, IMU_ACTION
 from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY
-from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, LETTER_FONT_SIZE, RESULT_FONT_SIZE
-from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
+from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion, LETTER_FONT_SIZE, RESULT_FONT_SIZE
+from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME
 from globals import points
 from Text import Text
 from pygame.locals import (
@@ -9,6 +11,18 @@ from pygame.locals import (
     KEYDOWN,
     QUIT,
 )
+
+# figure out how to move this out this one is bad here
+def on_message(client, userdata, message):
+  #print('Received message: "' + str(message.payload) + '" on topic "' +
+        #message.topic + '" with QoS ' + str(message.qos))
+    global IMU_ACTION
+    global imu_action_received_flag
+    if str(message.payload)[0:3] == "b'1":
+        player = 1
+        IMU_ACTION = str(message.payload)[3:4]
+        imu_action_received_flag = True
+        #print(IMU_ACTION)
 
 # note that height grows downward, the top left is 0, 0 and bottom right is width, height
 
@@ -29,6 +43,25 @@ class Game():
         # Initialize pygame
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        
+        # initialize mqtt
+        client = mqtt.Client()
+        client.on_connect = on_connect
+        client.on_disconnect = on_disconnect
+        client.on_message = on_message
+        client.connect_async('mqtt.eclipseprojects.io')
+        client.loop_start()
+        # for initialize mqtt
+        pygame.time.wait(MQTT_CALIBRATION_TIME)
+
+
+        # vars for gesture recognition
+        imu_action = None
+        # comes from mqtt setting True and then here, reset to False after processed
+        global imu_action_received_flag
+        # motion timer
+        last_motion = pygame.time.get_ticks()
+        
         # instantiate sprite groups
         notes = pygame.sprite.Group()
         # text stuff
@@ -60,7 +93,7 @@ class Game():
 
         # points printing
         global points
-    
+
         # Variable to keep the main loop running
         running = True
         while running:
@@ -90,21 +123,34 @@ class Game():
                     all_sprites.add(new_note)
                 # if we receive some action from imu
                 elif event.type == ACTION:
-                    # when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
-                    lowest_note = get_lowest_note(notes)
-                    # FILL IN NOTE'S process_action ONCE ACTIONS ARE KNOWN
-                    action_input_result = lowest_note.process_action(imu_action)
-                    self.__calc_points(action_input_result)
-                    points_text.update(text="Points: " + str(points))
+                    if (notes):
+                        print("should process action")
+                        # when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
+                        lowest_note = get_lowest_note(notes)
+                        # FILL IN NOTE'S process_action ONCE ACTIONS ARE KNOWN
+                        # process key works for now since it is just diff letters
+                        action_input_result = lowest_note.process_key(imu_action)
+                        self.__calc_points(action_input_result)
+                        points_text.update(text="Points: " + str(points))
+                    else:
+                        action_input_result = "No Notes Yet!"
+                    action_input_result_text.update(text=action_input_result)
 
             # FILL IN ONCE ACTIONS ARE KNOWN
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # then when imu_action_received is True, do the custom event post
             # in the loop above, when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
-            # if (imu_action_received_flag):
-                # pygame.event.post(pygame.event.Event(ACTION))
-                # imu_action = ___
+            if (imu_action_received_flag):
+                print("received action flag")
+                if (pygame.time.get_ticks() - last_motion > time_between_motion):
+                    print("action event triggered")
+                    pygame.event.post(pygame.event.Event(ACTION))
+                    imu_action = IMU_ACTION
+                    last_motion = pygame.time.get_ticks()
+                    imu_action_received_flag = False
+                else:
+                    imu_action_received_flag = False
 
             # update note positions
             if (pygame.time.get_ticks() - last_time > update_time):
@@ -113,12 +159,6 @@ class Game():
 
             # Fill the screen with black
             screen.fill((255, 255, 255))
-
-            # Get all of the keys currently pressed
-            # pressed_keys = pygame.key.get_pressed()
-            # process pressed_keys
-            # get lowest note and process the key that was pressed
-            # get_lowest_note(notes).process_key(pygame.key.name(pressed_keys.key))
 
             # include text to indicate hit zone
             # include text to indicate point record
