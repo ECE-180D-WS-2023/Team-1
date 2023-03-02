@@ -2,10 +2,13 @@ import pygame
 import random
 from Settings import NOTE_FALL_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, NOTE_WIDTH, NOTE_HEIGHT, KEYS, HIT_ZONE_LOWER
 from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
+from globals import points
 
 SUCCESS = "Nice!"
 TOO_EARLY = "Too Early!"
 WRONG_KEY = "Wrong Key!"
+
+TOO_LATE = "Too Late!"
 
 COLUMN_COLOR_1 = (100, 0 , 0)
 COLUMN_COLOR_2 = (0, 100 , 0)
@@ -43,7 +46,10 @@ class Note(pygame.sprite.Sprite):
     # Remove the note when it passes the bottom edge of the screen
     def update(self):
         self.rect.move_ip(0, NOTE_FALL_SPEED)
+        # if the note goes off the edge, return too_late to indicate that the note ran out
         if self.rect.top > SCREEN_HEIGHT:
+            global points
+            points -= 1
             self.kill()
     
     # use on key that is lowest
@@ -58,6 +64,11 @@ class Note(pygame.sprite.Sprite):
         else:
             self.kill()
             return WRONG_KEY
+
+    # FILL IN ONCE ACTIONS ARE KNOWN
+    # this is where action processed depending on what imu things we are registering
+    def process_action(self, action):
+        pass
 
 # calculates lowest key and returns that note
 def get_lowest_note(notes):
