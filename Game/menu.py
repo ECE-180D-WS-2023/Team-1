@@ -43,6 +43,9 @@ Gameplay = pygame_menu.Menu("Gameplay", x, y, theme=pygame_menu.themes.THEME_BLU
 # tutorial display window placeholder
 Tutorial = pygame_menu.Menu("Tutorial", x, y, theme=pygame_menu.themes.THEME_BLUE)
 
+# song menu display window
+Songs = pygame_menu.Menu("Song Selection", x, y, theme=pygame_menu.themes.THEME_BLUE)
+
 # menu
 go = True
 
@@ -50,8 +53,6 @@ go = True
 mymenu = pygame_menu.Menu("Human Guitar Hero!", x, y, theme=pygame_menu.themes.THEME_BLUE)
 mymenu.add.button('Start game!', Gameplay)
 mymenu.add.button('Tutorial', Tutorial)
-#TODO on click make a start flag and set it to true
-#TODO jonathan will do game animation
 mymenu.add.button('Settings', Settings)
 mymenu.add.button('Quit', pygame_menu.events.EXIT)
 
@@ -71,50 +72,3 @@ while go:
     pygame.display.update()
 
 pygame.quit()
-
-#menu outline:
-#TODO generate menu with scrolling options (?), be able to select one of them
-#TODO maybe print out song name and then they can press left or right arrows to scroll
-#TODO print selected song + tempo of selected song
-
-#tempo outline:
-#TODO get tempo from song files and add to bank
-#TODO audio processing heavy :(
-
-
-song_bank = {
-    "Antihero": 220,
-    "American Teenager": 180,
-    "Firework": 200,
-    "Joanne": 140,
-    "Cruel Summer": 170
-}
-
-#important: needs to be run as root user
-#TODO change to pygame instead
-#note for right now: pygame opens a window that will be blank, click on the window then type input
-#output will still be cli on terminal
-def generate_menu():
-    print("Use the arrow keys to browse songs and press enter to select a song!\n")
-    i = 0
-    while(True):
-        songs = list(song_bank)
-        #user_move = input(songs[i])
-        print(songs[i])
-        event = keyboard.read_event()
-        #if user_move == "a" and i > 0 :
-        if event.event_type == keyboard.KEY_DOWN and event.name == 'left' and i > 0:
-            i -= 1
-        #elif user_move == "d" and i < len(songs)-1:
-        elif event.event_type == keyboard.KEY_DOWN and event.name == 'right' and i < len(songs) - 1:
-            i += 1
-        #elif user_move == "s":
-        elif event.event_type == keyboard.KEY_DOWN and event.name == 'enter':
-            print("Song selected: {}".format(songs[i]))
-            return song_bank[songs[i]]
-        elif event.event_type == keyboard.KEY_DOWN and event.name == 'enter' == "q":
-            print("Quitting game!")
-            break
-
-song = generate_menu()
-print(song)
