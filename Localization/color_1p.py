@@ -141,7 +141,7 @@ print(colors)
 
 
 # Perform thresholding
-c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 170) # red
+c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 150) # red
 border_lower, border_upper = threshold(colors['c2'], 3, 50, 60) # green
 
 tol = 3 # border tolerance
@@ -166,7 +166,7 @@ while (calibrated):
     border_mask = cv2.inRange(hsvFrame, np.array(border_lower, np.uint8), np.array(border_upper, np.uint8))
     border_mask = cv2.erode(border_mask, kernel, iterations=2)
     border_mask = cv2.dilate(border_mask, kernel, iterations=2)
-    # flip = cv2.flip(border_mask,1) # for testing purposes
+    #flip = cv2.flip(red_mask,1) # for testing purposes
 
     # Bools to store if we see a certain color:
     red = False
