@@ -7,6 +7,7 @@ from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TI
 from globals import points
 from Text import Text
 from pygame.locals import (
+    RLEACCEL,
     K_q,
     KEYDOWN,
     QUIT,
@@ -36,7 +37,9 @@ class Game():
         if action_input_result == SUCCESS:
             points += 1
         elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY:
-            points -= 1
+            # allow players to try again as long as the thing is not gone yet
+            # no point deduction for too early or wrong motion
+            points -= 0
 
     def start(self):
         # setup vars
@@ -124,7 +127,7 @@ class Game():
                 # if we receive some action from imu
                 elif event.type == ACTION:
                     if (notes):
-                        print("should process action")
+                        #print("should process action")
                         # when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
                         lowest_note = get_lowest_note(notes)
                         # FILL IN NOTE'S process_action ONCE ACTIONS ARE KNOWN
@@ -142,9 +145,9 @@ class Game():
             # then when imu_action_received is True, do the custom event post
             # in the loop above, when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
             if (imu_action_received_flag):
-                print("received action flag")
+                #print("received action flag")
                 if (pygame.time.get_ticks() - last_motion > time_between_motion):
-                    print("action event triggered")
+                    #print("action event triggered")
                     pygame.event.post(pygame.event.Event(ACTION))
                     imu_action = IMU_ACTION
                     last_motion = pygame.time.get_ticks()
@@ -174,7 +177,7 @@ class Game():
             # draw all sprites
             for note in notes:
                 screen.blit(note.surf, note.rect)
-                screen.blit(key_font.render(note.letter, True, (255,255,255)), note.rect)
+                # screen.blit(key_font.render(note.letter, True, (255,255,255)), note.rect)
             
             # text for key press results
             screen.blit(result_font.render(action_input_result_text.text, True, (0,0,0)), action_input_result_text.rect)
