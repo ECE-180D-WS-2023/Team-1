@@ -2,6 +2,7 @@ from Grid_cp import Grid
 from Game_cp import Game
 import pygame
 import paho.mqtt.client as mqtt
+import re
 
 # also do a score check in Game -- 
 # because need to quick print grid 
@@ -112,7 +113,6 @@ def start_game():
 # and publish P1 game done
 # wait for P2 score 
 
-####### 
 
 # 0. define callbacks - functions that run when events happen.
 # The callback for when the client receives a CONNACK response from the server.
@@ -129,18 +129,24 @@ def on_disconnect(client, userdata, rc):
   else:
     print('Expected Disconnect')
 
+
+# flags
+p2_online = False
+gameplay = False
 # The default message callback.
 # (you can create separate callbacks per subscribed topic)
 def on_message(client, userdata, message):
     print('Received message: "' + str(message.payload) + '" on topic "' +
         message.topic + '" with QoS ' + str(message.qos))
-    #TODO
     # should parse message for flag
-    # maybe make separate message callbacks for start up and for gameplay?
     # if message = P2 online (use grep)
+    if re.search("P2 Online", str(message.payload)):
         # set P2 online flag to true
+        p2_online = True
     # else if message = P2 done
+    elif re.search("P2 Done", str(message.payload)):
         # set gameplay flag to true
+        gameplay = True
 
 # 1. create a client instance.
 client = mqtt.Client()
@@ -163,17 +169,15 @@ client.loop_start()
 client.publish("ktissad/test", "P1 Online", qos=1)
 
 #TODO if p2 online, start while loop:
-gameplay = True
-p2_online = True
-
-while True: 
-    if gameplay:
-        start_game() #start game publishes the score upon game completion
-        # set gameplay to false
-        gameplay = False
-    #TODO after game is over, publish score (might need to make game return score)
-    #TODO set p1 game flag to false
-    pass  # do your non-blocked other stuff here, like receive IMU data or something.
+if p2_online:
+    while True: 
+        if gameplay:
+            start_game() #start game publishes the score upon game completion
+            # set gameplay to false
+            gameplay = False
+        # publish p1 game flag as false
+        client.publish("ktissad/test", "P1 Done", qos=1)
+        pass  # do your non-blocked other stuff here, like receive IMU data or something.
 
 # use subscribe() to subscribe to a topic and receive messages.
 # use publish() to publish messages to the broker.
