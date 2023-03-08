@@ -14,5 +14,5 @@ Output: Order of players in multiplayer (colors relative to certain regions) or 
 
 from localize_class import localize
 
-local = localize()
+local = localize() # set camera=0 if no USB camera
 local.detect()
