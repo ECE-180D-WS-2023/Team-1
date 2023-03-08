@@ -2,7 +2,6 @@ import pygame
 import random
 from Settings import NOTE_FALL_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, NOTE_WIDTH, NOTE_HEIGHT, KEYS, HIT_ZONE_LOWER
 from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
-from pygame.locals import RLEACCEL
 import globals
 
 SUCCESS = "Nice!"
@@ -11,14 +10,14 @@ WRONG_KEY = "Wrong Motion!"
 
 TOO_LATE = "Too Late!"
 
-COLUMN_COLOR_1 = (100, 0 , 0)
-COLUMN_COLOR_2 = (0, 100 , 0)
-COLUMN_COLOR_3 = (0, 0 , 100)
-COLUMN_COLOR_4 = (200, 200 , 0)
+COLUMN_COLOR_1 = (255, 204, 203) #r
+COLUMN_COLOR_2 = (144, 238, 144) #g
+COLUMN_COLOR_3 = (173, 216, 230) #b
+COLUMN_COLOR_4 = (255,255,102) #y
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):
-    """
+    """ # legacy code where it just displays color
     def __init__(self):
         super(Note, self).__init__()
         self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
@@ -62,9 +61,6 @@ class Note(pygame.sprite.Sprite):
         elif (self.lane == COLUMN_4):
             self.surf.fill(COLUMN_COLOR_4)
 
-        up_image = pygame.image.load("sprites/up_40.png")
-        self.surf.blit(up_image, (0, 0))
-
         # self.surf.fill((0, 100, 100)) # default color
         self.rect = self.surf.get_rect(
             center=(
@@ -76,6 +72,21 @@ class Note(pygame.sprite.Sprite):
         # the letter assigned to note, randomly generated
         self.char = random.choice(KEYS)
         self.letter = self.char
+
+        # give the correct image accordingly
+        if (self.char == 'u'):
+            up_image = pygame.image.load("sprites/up_40.png")
+            self.surf.blit(up_image, (0, 0))
+        elif (self.char == 'l'):
+            left_image = pygame.image.load("sprites/left_40.png")
+            self.surf.blit(left_image, (0, 0))
+        elif (self.char == 'f'):
+            forward_image = pygame.image.load("sprites/cross_40.png")
+            self.surf.blit(forward_image, (0, 0))
+        elif (self.char == 'r'):
+            rotate_image = pygame.image.load("sprites/rotate_40.png")
+            self.surf.blit(rotate_image, (0, 0))
+        
 
     # Move the note downwards based on fall speed
     # Remove the note when it passes the bottom edge of the screen

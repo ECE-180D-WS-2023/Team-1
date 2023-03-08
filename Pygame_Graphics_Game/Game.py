@@ -1,6 +1,6 @@
 import pygame
 import paho.mqtt.client as mqtt
-from mqtt import on_connect, on_disconnect, imu_action_received_flag, IMU_ACTION
+from imu_mqtt import on_connect, on_disconnect, imu_action_received_flag, IMU_ACTION
 from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY
 from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
 from Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
@@ -8,12 +8,14 @@ from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TI
 import globals
 from Text import Text
 from pygame.locals import (
-    RLEACCEL,
     K_q,
     KEYDOWN,
     QUIT,
 )
 
+# SHOULD BE ABLE TO MOVE THIS ONE OUT WITH THE SAME WAY points work
+# SHOULD BE ABLE TO IMPORT imu_mqtt AND THEN ACCESS WITH imu_mqtt.imu_action_received_flag or whatever
+# OR even try imu_mqtt.on_message() for the on message function
 # figure out how to move this out this one is bad here
 def on_message(client, userdata, message):
   #print('Received message: "' + str(message.payload) + '" on topic "' +
