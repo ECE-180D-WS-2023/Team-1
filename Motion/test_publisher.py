@@ -2,6 +2,9 @@ import paho.mqtt.client as mqtt
 import numpy as np
 import time
 
+# THIS SCRIPT JUST PUBLISHES '1l', '1u', '1r', 1'f' in repeat every 2 seconds to ktanna/test
+
+
 # used code that the professor/TA posted, did not modify. Modified subscriber.py for team ping pong
 
 # 0. define callbacks - functions that run when events happen.
