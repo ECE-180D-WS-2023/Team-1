@@ -2,9 +2,10 @@ import pygame
 import paho.mqtt.client as mqtt
 from mqtt import on_connect, on_disconnect, imu_action_received_flag, IMU_ACTION
 from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY
-from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion, LETTER_FONT_SIZE, RESULT_FONT_SIZE
+from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
+from Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
 from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME
-from globals import points
+import globals
 from Text import Text
 from pygame.locals import (
     RLEACCEL,
@@ -33,13 +34,12 @@ class Game():
         pass
 
     def __calc_points(self, action_input_result):
-        global points
         if action_input_result == SUCCESS:
-            points += 1
+            globals.points += 1
         elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY:
             # allow players to try again as long as the thing is not gone yet
             # no point deduction for too early or wrong motion
-            points -= 0
+            globals.points -= 0
 
     def start(self):
         # setup vars
@@ -71,9 +71,11 @@ class Game():
         # texts = pygame.sprite.Group().add(Text())
         action_input_result_text = Text(text= "Good Luck!")
         points_text = Text(text= "Points: 0", rect= (SCREEN_WIDTH - (SCREEN_WIDTH/6), 70))
+        hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
         key_font = pygame.font.Font('fonts/arial.ttf', LETTER_FONT_SIZE)
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
+        hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
 
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
@@ -94,9 +96,6 @@ class Game():
         # variable to store result of key_press attempts
         action_input_result = ""
 
-        # points printing
-        global points
-
         # Variable to keep the main loop running
         running = True
         while running:
@@ -112,7 +111,6 @@ class Game():
                             lowest_note = get_lowest_note(notes)
                             action_input_result = lowest_note.process_key(pygame.key.name(event.key))
                             self.__calc_points(action_input_result)
-                            points_text.update(text="Points: " + str(points))
                         else:
                             action_input_result = "No Notes Yet!"
                         action_input_result_text.update(text=action_input_result)
@@ -134,7 +132,6 @@ class Game():
                         # process key works for now since it is just diff letters
                         action_input_result = lowest_note.process_key(imu_action)
                         self.__calc_points(action_input_result)
-                        points_text.update(text="Points: " + str(points))
                     else:
                         action_input_result = "No Notes Yet!"
                     action_input_result_text.update(text=action_input_result)
@@ -172,7 +169,7 @@ class Game():
             pygame.draw.line(screen, (0, 0, 0), (COLUMN_4, 0), (COLUMN_4, SCREEN_HEIGHT))
             # display hit zone
             # horizontal line to indicate hit zone
-            pygame.draw.line(screen, (0, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
+            pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
 
             # draw all sprites
             for note in notes:
@@ -182,7 +179,10 @@ class Game():
             # text for key press results
             screen.blit(result_font.render(action_input_result_text.text, True, (0,0,0)), action_input_result_text.rect)
             # text for points
+            points_text.update(text="Points: " + str(globals.points))
             screen.blit(points_font.render(points_text.text, True, (0,0,0)), points_text.rect)
+            # text for hitzone indicator
+            screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
 
             # Update the display
             pygame.display.flip()

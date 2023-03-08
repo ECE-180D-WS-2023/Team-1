@@ -2,8 +2,8 @@ import pygame
 import random
 from Settings import NOTE_FALL_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, NOTE_WIDTH, NOTE_HEIGHT, KEYS, HIT_ZONE_LOWER
 from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
-from globals import points
 from pygame.locals import RLEACCEL
+import globals
 
 SUCCESS = "Nice!"
 TOO_EARLY = "Too Early!"
@@ -80,12 +80,11 @@ class Note(pygame.sprite.Sprite):
     # Move the note downwards based on fall speed
     # Remove the note when it passes the bottom edge of the screen
     def update(self):
-        global points
         self.rect.move_ip(0, NOTE_FALL_SPEED)
         # if the note goes off the edge, return too_late to indicate that the note ran out
         if self.rect.top > SCREEN_HEIGHT:
             #print(points)
-            points -= 1
+            globals.points -= 1
             self.kill()
     
 
