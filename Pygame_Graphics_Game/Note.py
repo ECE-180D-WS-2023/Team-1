@@ -7,6 +7,7 @@ import globals
 SUCCESS = "Nice!"
 TOO_EARLY = "Too Early!"
 WRONG_KEY = "Wrong Motion!"
+WRONG_LANE = "Wrong Lane!"
 
 TOO_LATE = "Too Late!"
 
@@ -103,8 +104,10 @@ class Note(pygame.sprite.Sprite):
     # for keyboard clicking processing
     # use on key that is lowest
     # returns the result of the key press back to main
+    # if we only have keyboard
     def process_key(self, pressed_keys):
-        if (pressed_keys == self.char and self.rect.bottom > HIT_ZONE_LOWER):
+        # if the key press is correct and is also in the hit zone
+        if pressed_keys == self.char and self.rect.bottom > HIT_ZONE_LOWER:
             self.kill()
             return SUCCESS
         elif pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
@@ -112,10 +115,33 @@ class Note(pygame.sprite.Sprite):
         else:
             return WRONG_KEY
 
-    # FILL IN ONCE ACTIONS ARE KNOWN
-    # this is where action processed depending on what imu things we are registering
-    def process_action(self, action):
-        pass
+    # if we have <imu or keyboard> AND <localization>
+    def process_action_location(self, action, location):
+        # if the key press is correct and is also in the hit zone AND also in the correct column
+        if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location):
+            self.kill()
+            return SUCCESS
+        elif not self.correct_column(location):
+            return WRONG_LANE
+        elif action == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
+            return TOO_EARLY
+        else:
+            return WRONG_KEY
+    
+    # checks if the player is in the same column as the note
+    # note that the input column should be a string, either "1", "2", "3", or "4"
+    # this is based on what localization script outputs
+    def correct_column(self, column):
+        if self.lane == COLUMN_1 and column == "1":
+            return True
+        if self.lane == COLUMN_2 and column == "2":
+            return True
+        if self.lane == COLUMN_3 and column == "3":
+            return True
+        if self.lane == COLUMN_4 and column == "4":
+            return True
+        return False
+
 
 # calculates lowest key and returns that note
 def get_lowest_note(notes):

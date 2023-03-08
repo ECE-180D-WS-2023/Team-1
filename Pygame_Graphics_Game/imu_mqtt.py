@@ -8,11 +8,10 @@ ACTION_LEFT = 'l'
 ACTION_ROTATE = 'r'
 ACTION_FORWARD = 'f'
 
+SUBSCRIPTION = "ktanna/test"
 
-# SHOULD BE ABLE TO MOVE THIS ONE OUT WITH THE SAME WAY points work
-# SHOULD BE ABLE TO IMPORT imu_mqtt AND THEN ACCESS WITH imu_mqtt.imu_action_received_flag or whatever
-# OR even try imu_mqtt.on_message() for the on message function
-# figure out how to move this out this one is bad here
+# on mqtt message, update the flag and also store the action
+# the game loop will make the flag false for next action
 def imu_mqtt_on_message(client, userdata, message):
     # print('Received message: "' + str(message.payload) + '" on topic "' +
     #     message.topic + '" with QoS ' + str(message.qos))
@@ -28,7 +27,7 @@ def imu_mqtt_on_connect(client, userdata, flags, rc):
     print("Connection returned result: " + str(rc))
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
-    client.subscribe("ktanna/test", qos=1)
+    client.subscribe(SUBSCRIPTION, qos=1)
 
 # The callback of the client when it disconnects.
 def imu_mqtt_on_disconnect(client, userdata, rc):

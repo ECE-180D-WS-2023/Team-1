@@ -2,12 +2,17 @@ import pygame
 import paho.mqtt.client as mqtt
 from imu_mqtt import imu_mqtt_on_connect, imu_mqtt_on_disconnect, imu_mqtt_on_message
 import imu_mqtt
-from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY
+from localization_mqtt import localization_mqtt_on_connect, localization_mqtt_on_disconnect, localization_mqtt_on_message
+import localization_mqtt
+from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
 from Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
-from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME
+from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
 import globals
 from Text import Text
+# import sys
+# sys.path.append('../Localization')
+# from localize_class import localize
 
 from pygame.locals import (
     K_q,
@@ -18,14 +23,13 @@ from pygame.locals import (
 # note that height grows downward, the top left is 0, 0 and bottom right is width, height
 
 class Game():
-    # point system when good, increment, when bad, decrement
     def __init__(self):
         pass
 
     def __calc_points(self, action_input_result):
         if action_input_result == SUCCESS:
             globals.points += 1
-        elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY:
+        elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY or action_input_result == WRONG_LANE:
             # allow players to try again as long as the thing is not gone yet
             # no point deduction for too early or wrong motion
             globals.points -= 0
@@ -37,6 +41,8 @@ class Game():
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
         # initialize mqtt for imu
+        # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and rotate
+        # check imu_mqtt for which channel its listening to
         imu_mqtt_client = mqtt.Client()
         imu_mqtt_client.on_connect = imu_mqtt_on_connect
         imu_mqtt_client.on_disconnect = imu_mqtt_on_disconnect
@@ -46,13 +52,24 @@ class Game():
         # for initialize mqtt
         pygame.time.wait(MQTT_CALIBRATION_TIME)
 
+        # initialize and calibrate video feed
+        # this should output something like "1" for zone 1
+        # local = localize(camera=0)
+        # local.detect()
+        localization_mqtt_client = mqtt.Client()
+        localization_mqtt_client.on_connect = localization_mqtt_on_connect
+        localization_mqtt_client.on_disconnect = localization_mqtt_on_disconnect
+        localization_mqtt_client.on_message = localization_mqtt_on_message
+        localization_mqtt_client.connect_async('mqtt.eclipseprojects.io')
+        localization_mqtt_client.loop_start()
+        pygame.time.wait(LOCALIZATION_CALIBRATION_TIME)
+
         # motion timer
         last_motion = pygame.time.get_ticks()
         
         # instantiate sprite groups
         notes = pygame.sprite.Group()
-        # text stuff
-        # texts = pygame.sprite.Group().add(Text())
+        # text for hitzone, for results, and points
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
@@ -90,7 +107,9 @@ class Game():
                         # on that note's letter
                         if (notes):
                             lowest_note = get_lowest_note(notes)
-                            action_input_result = lowest_note.process_key(pygame.key.name(event.key))
+                            #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
+                            #print(localization_mqtt.player_location)
+                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), localization_mqtt.player_location)
                             self.__calc_points(action_input_result)
                         else:
                             action_input_result = "No Notes Yet!"
@@ -112,13 +131,12 @@ class Game():
                         lowest_note = get_lowest_note(notes)
                         # FILL IN NOTE'S process_action ONCE ACTIONS ARE KNOWN
                         # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_key(imu_action)
+                        action_input_result = lowest_note.process_action_location(imu_action, localization_mqtt.player_location)
                         self.__calc_points(action_input_result)
                     else:
                         action_input_result = "No Notes Yet!"
                     globals.action_input_result_text.update(text=action_input_result)
-
-            # FILL IN ONCE ACTIONS ARE KNOWN
+            
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # then when imu_action_received is True, do the custom event post
@@ -156,7 +174,6 @@ class Game():
             # draw all sprites
             for note in notes:
                 screen.blit(note.surf, note.rect)
-                # screen.blit(key_font.render(note.letter, True, (255,255,255)), note.rect)
             
             # text for key press results
             screen.blit(result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
