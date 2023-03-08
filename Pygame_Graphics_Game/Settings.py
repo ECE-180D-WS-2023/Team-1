@@ -9,7 +9,7 @@ update_time = 3
 # time between each motion register
 time_between_motion = 600
 # MQTT CALIBRATION TIME
-MQTT_CALIBRATION_TIME = 0
+MQTT_CALIBRATION_TIME = 1000
 
 BPM = 50
 NOTE_SPAWN_SPEED_MS = ((1/BPM)*60)*1000

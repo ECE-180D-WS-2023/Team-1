@@ -1,6 +1,7 @@
 import pygame
 import paho.mqtt.client as mqtt
-from imu_mqtt import on_connect, on_disconnect, imu_action_received_flag, IMU_ACTION
+from imu_mqtt import imu_mqtt_on_connect, imu_mqtt_on_disconnect, imu_mqtt_on_message
+import imu_mqtt
 from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY
 from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
 from Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
@@ -12,21 +13,6 @@ from pygame.locals import (
     KEYDOWN,
     QUIT,
 )
-
-# SHOULD BE ABLE TO MOVE THIS ONE OUT WITH THE SAME WAY points work
-# SHOULD BE ABLE TO IMPORT imu_mqtt AND THEN ACCESS WITH imu_mqtt.imu_action_received_flag or whatever
-# OR even try imu_mqtt.on_message() for the on message function
-# figure out how to move this out this one is bad here
-def on_message(client, userdata, message):
-  #print('Received message: "' + str(message.payload) + '" on topic "' +
-        #message.topic + '" with QoS ' + str(message.qos))
-    global IMU_ACTION
-    global imu_action_received_flag
-    if str(message.payload)[0:3] == "b'1":
-        player = 1
-        IMU_ACTION = str(message.payload)[3:4]
-        imu_action_received_flag = True
-        #print(IMU_ACTION)
 
 # note that height grows downward, the top left is 0, 0 and bottom right is width, height
 
@@ -49,21 +35,16 @@ class Game():
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
-        # initialize mqtt
-        client = mqtt.Client()
-        client.on_connect = on_connect
-        client.on_disconnect = on_disconnect
-        client.on_message = on_message
-        client.connect_async('mqtt.eclipseprojects.io')
-        client.loop_start()
+        # initialize mqtt for imu
+        imu_mqtt_client = mqtt.Client()
+        imu_mqtt_client.on_connect = imu_mqtt_on_connect
+        imu_mqtt_client.on_disconnect = imu_mqtt_on_disconnect
+        imu_mqtt_client.on_message = imu_mqtt_on_message
+        imu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
+        imu_mqtt_client.loop_start()
         # for initialize mqtt
         pygame.time.wait(MQTT_CALIBRATION_TIME)
 
-
-        # vars for gesture recognition
-        imu_action = None
-        # comes from mqtt setting True and then here, reset to False after processed
-        global imu_action_received_flag
         # motion timer
         last_motion = pygame.time.get_ticks()
         
@@ -128,6 +109,7 @@ class Game():
                 elif event.type == ACTION:
                     if (notes):
                         #print("should process action")
+                        #print(imu_action)
                         # when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
                         lowest_note = get_lowest_note(notes)
                         # FILL IN NOTE'S process_action ONCE ACTIONS ARE KNOWN
@@ -143,16 +125,16 @@ class Game():
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # then when imu_action_received is True, do the custom event post
             # in the loop above, when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
-            if (imu_action_received_flag):
+            if (imu_mqtt.imu_action_received_flag):
                 #print("received action flag")
                 if (pygame.time.get_ticks() - last_motion > time_between_motion):
                     #print("action event triggered")
                     pygame.event.post(pygame.event.Event(ACTION))
-                    imu_action = IMU_ACTION
+                    imu_action = imu_mqtt.IMU_ACTION
                     last_motion = pygame.time.get_ticks()
-                    imu_action_received_flag = False
+                    imu_mqtt.imu_action_received_flag = False
                 else:
-                    imu_action_received_flag = False
+                    imu_mqtt.imu_action_received_flag = False
 
             # update note positions
             if (pygame.time.get_ticks() - last_time > update_time):

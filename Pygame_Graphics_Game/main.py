@@ -11,6 +11,7 @@ from Game import Game
 # - make the notes only -1 points if goes through the bottom, don't -1 for 
 #   doing incorrect motion for note -- allow players to try again as long as
 #   note is not gone yet
+#   THIS NEEDS PRINT STATEMENT TOO LIKE "MISSED" OR SOMETHING
 
 
 # TODO: add point system and text
