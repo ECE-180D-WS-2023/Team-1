@@ -3,7 +3,7 @@ Anna Anderson
 UID: 105296576
 180DA Capstone: Team 1 JAAK
 Game: Guitar Hero
-This script will be utilized for locating players based on color in accordance with our game.
+This script defines localization class
 It utilizes cv2 to process webcam data.
 Input: Camera data
 Output: Order of players in multiplayer (colors relative to certain regions) or region of single player 
@@ -38,6 +38,7 @@ class localize:
             do not need to explictly call unless colors need to be recalibrated (set recalibrate=True)
             otherwise, automatically called from detect if not already calibrated
         - detect(self)
+            detect color information
     """
     def __init__(self, players=None, camera=None):
         if players == None or players == 1:

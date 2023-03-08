@@ -1,3 +1,24 @@
+"""
+Anna Anderson
+UID: 105296576
+180DA Capstone: Team 1 JAAK
+Game: Guitar Hero
+This script defines localization class utilities for detection
+It utilizes cv2 to process webcam data.
+Input: Camera data
+Output: Order of players in multiplayer (colors relative to certain regions) or region of single player 
+
+References:
+https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_gui/py_video_display/py_video_display.html
+https://docs.opencv.org/3.4/d4/d73/tutorial_py_contours_begin.html 
+https://pythonprogramming.net/color-filter-python-opencv-tutorial/
+https://automaticaddison.com/real-time-object-tracking-using-opencv-and-a-webcam/ 
+https://code.likeagirl.io/finding-dominant-colour-on-an-image-b4e075f98097 
+https://www.geeksforgeeks.org/how-to-update-a-plot-in-matplotlib/ 
+https://www.geeksforgeeks.org/multiple-color-detection-in-real-time-using-python-opencv/ 
+
+"""
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
