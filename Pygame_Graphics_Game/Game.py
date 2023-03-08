@@ -8,6 +8,7 @@ from Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
 from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME
 import globals
 from Text import Text
+
 from pygame.locals import (
     K_q,
     KEYDOWN,
@@ -52,10 +53,7 @@ class Game():
         notes = pygame.sprite.Group()
         # text stuff
         # texts = pygame.sprite.Group().add(Text())
-        action_input_result_text = Text(text= "Good Luck!")
-        points_text = Text(text= "Points: 0", rect= (SCREEN_WIDTH - (SCREEN_WIDTH/6), 70))
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
-        key_font = pygame.font.Font('fonts/arial.ttf', LETTER_FONT_SIZE)
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
@@ -96,7 +94,7 @@ class Game():
                             self.__calc_points(action_input_result)
                         else:
                             action_input_result = "No Notes Yet!"
-                        action_input_result_text.update(text=action_input_result)
+                        globals.action_input_result_text.update(text=action_input_result)
                 # Check for QUIT event. If QUIT, then set running to false.
                 elif event.type == QUIT:
                     running = False
@@ -118,7 +116,7 @@ class Game():
                         self.__calc_points(action_input_result)
                     else:
                         action_input_result = "No Notes Yet!"
-                    action_input_result_text.update(text=action_input_result)
+                    globals.action_input_result_text.update(text=action_input_result)
 
             # FILL IN ONCE ACTIONS ARE KNOWN
             # if action registered by imu, do the event notification and put the action into imu_action
@@ -161,10 +159,10 @@ class Game():
                 # screen.blit(key_font.render(note.letter, True, (255,255,255)), note.rect)
             
             # text for key press results
-            screen.blit(result_font.render(action_input_result_text.text, True, (0,0,0)), action_input_result_text.rect)
+            screen.blit(result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
             # text for points
-            points_text.update(text="Points: " + str(globals.points))
-            screen.blit(points_font.render(points_text.text, True, (0,0,0)), points_text.rect)
+            globals.points_text.update(text="Points: " + str(globals.points))
+            screen.blit(points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
             # text for hitzone indicator
             screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
 

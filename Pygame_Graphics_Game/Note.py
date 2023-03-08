@@ -96,6 +96,7 @@ class Note(pygame.sprite.Sprite):
         if self.rect.top > SCREEN_HEIGHT:
             #print(points)
             globals.points -= 1
+            globals.action_input_result_text.update(text="Missed!")
             self.kill()
     
 
