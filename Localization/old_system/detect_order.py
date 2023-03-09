@@ -19,70 +19,7 @@ https://www.geeksforgeeks.org/multiple-color-detection-in-real-time-using-python
 
 """
 import cv2
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-
-# Start of Helper Functions
-# ===========================================================================================
-def find_histogram(clt):
-    numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
-    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
-
-    hist = hist.astype("float")
-    hist /= hist.sum()
-
-    return hist
-
-def plot_colors2(hist, centroids):
-    bar = np.zeros((50, 300, 3), dtype="uint8")
-    startX = 0
-    for (percent, color) in zip(hist, centroids):
-        # plot the relative percentage of each cluster
-        endX = startX + (percent * 300)
-        cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
-                      color.astype("uint8").tolist(), -1)
-        startX = endX
-    # return the bar chart
-    return bar
-
-# Returns low & high thresholds of a color
-# For HSV, Hue range is [0,179], Saturation range is [0,255] and Value range is [0,255]
-def threshold(HSV, htol, stol, vtol): 
-    low_threshold = list(HSV)
-    high_threshold = list(HSV)
-
-    # Get low threshold
-    low_threshold[0] -= htol
-    low_threshold[1] -= stol
-    low_threshold[2] -= vtol
-    if low_threshold[0] < 0:
-        low_threshold[0] = 0
-    if low_threshold[1] < 0:
-        low_threshold[1] = 0
-    if low_threshold[2] < 0:
-        low_threshold[2] = 0
-    
-    # Get high threshold
-    high_threshold[0] += htol
-    high_threshold[1] += stol
-    high_threshold[2] += vtol
-    if high_threshold[0] > 179:
-        high_threshold[0] = 179
-    if high_threshold[1] > 255:
-        high_threshold[1] = 255
-    if high_threshold[2] > 255:
-        high_threshold[2] = 255
-
-    return low_threshold, high_threshold
-
-def in_border_range(tol, x, x2, y, y2, w, h):
-    if ((x2 > (x - tol)) and (x2 < (x + w + tol))) and ((y > (y- tol)) and (y < (y + h + tol))):
-        return True
-    return False
-    
-# End of Helper Functions
-# ===========================================================================================
+from local_utils import *
 
 calibrated = False
 colors = {} # dict to store colors
@@ -157,17 +94,11 @@ print("Colors collected")
 print(colors)
 cv2.destroyAllWindows()
 
-# tolerances for thresholding, can be changed
-htol = 2
-stol = 50
-vtol = 50
-orange_hue_tol = 3 # found that orange can get confused with skin tone, give lower threshold
-
 # Perform thresholding
 c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 170) # red
 c2_lower, c2_upper = threshold(colors['c2'], 2, 50, 50) # orange
 c3_lower, c3_upper = threshold(colors['c3'], 5, 50, 50) # blue
-c4_lower, c4_upper = threshold(colors['c4'], 5, stol, vtol) # purple
+c4_lower, c4_upper = threshold(colors['c4'], 5, 50, 50) # purple
 border_lower, border_upper = threshold(colors['c5'], 3, 50, 60) # green
 
 tol = 3 # border tolerance

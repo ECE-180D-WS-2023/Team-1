@@ -3,8 +3,16 @@ import pygame
 
 # controls how much the note falls per refresh
 NOTE_FALL_SPEED = 1
-# time in between refresh
+# time in between refresh game
 update_time = 3
+
+# time between each motion register
+time_between_motion = 600
+# MQTT CALIBRATION TIME
+MQTT_CALIBRATION_TIME = 1000
+
+# LOCALIZATION CALIBRATION TIME
+LOCALIZATION_CALIBRATION_TIME = 1000
 
 BPM = 50
 NOTE_SPAWN_SPEED_MS = ((1/BPM)*60)*1000
@@ -12,6 +20,7 @@ NOTE_SPAWN_SPEED_MS = ((1/BPM)*60)*1000
 # screen width and height on laptop
 #SCREEN_WIDTH = 800
 #SCREEN_HEIGHT = 600
+# screen width and height on pc
 SCREEN_WIDTH = 1500
 SCREEN_HEIGHT = 840
 
@@ -25,9 +34,11 @@ NOTE_HEIGHT = 80
 LETTER_FONT_SIZE = NOTE_WIDTH
 # Result print font size
 RESULT_FONT_SIZE = int(NOTE_WIDTH/2)
+# hitzone text font size
+HITZONE_FONT_SIZE = int(NOTE_WIDTH/4)
 
 # list of available keyboard clicks
-KEYS = 'abcd'
+KEYS = 'ulfr'
 
 # HIT ZONE (lower bound) HEIGHT -- height grows downward
 HIT_ZONE_LOWER = SCREEN_HEIGHT-(SCREEN_HEIGHT/5)
