@@ -15,6 +15,13 @@ from Game import Game
 #   THIS NEEDS PRINT STATEMENT TOO LIKE "MISSED" OR SOMETHING
 # TODO: add point system and text
 
+# not done:
+# TODO: Now that IMU info is de-duped, fix Game code to register every message from 
+#       IMU mqtt -- includes print messages, there is like spam from multiple different messages
+# TODO: draw dots for which region players are in currently from localization
+# TODO: graphics could do like motion animations to remove blocks or something
+
+
 # current state of the game: 
 # playable with keyboard or imu for inputs and then also localization running on a computer on different script
 # if want to play keyboard and no localization, then in Game.py line 111, change function to process_key instead of
