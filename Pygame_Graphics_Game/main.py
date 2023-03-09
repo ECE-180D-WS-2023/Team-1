@@ -2,6 +2,7 @@ from Game import Game
 
 # lots of help from https://realpython.com/pygame-a-primer/#sprite-groups
 
+# all done
 # TODO:
 # - make the hit zone line diff color and text to indicate
 # - make the notes have different symbols on them for motions (rotate is counter clockwise)
@@ -11,9 +12,18 @@ from Game import Game
 # - make the notes only -1 points if goes through the bottom, don't -1 for 
 #   doing incorrect motion for note -- allow players to try again as long as
 #   note is not gone yet
-
-
+#   THIS NEEDS PRINT STATEMENT TOO LIKE "MISSED" OR SOMETHING
 # TODO: add point system and text
+
+# current state of the game: 
+# playable with keyboard or imu for inputs and then also localization running on a computer on different script
+# if want to play keyboard and no localization, then in Game.py line 111, change function to process_key instead of
+# process_action_location, this makes it so that the action_location is taken care of
+# maybe in the future ill implement a setting that is like disable localization for now and it just auto inputs correct
+# localization that might be good or just ignores it i mean
+
+
+
 # TODO: add sprite for clearing success and bad
 
 # TODO: eventually combine note fall speed and also note update speed
