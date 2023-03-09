@@ -148,6 +148,7 @@ class Game():
                     pygame.event.post(pygame.event.Event(ACTION))
                     imu_action = imu_mqtt.IMU_ACTION
                     last_motion = pygame.time.get_ticks()
+                    print("action received: ", imu_action)
                     imu_mqtt.imu_action_received_flag = False
                 else:
                     imu_mqtt.imu_action_received_flag = False
