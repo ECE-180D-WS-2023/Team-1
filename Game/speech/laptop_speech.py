@@ -2,13 +2,28 @@ import queue
 import sys
 import sounddevice as sd
 import json
+import config
 
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
 DEBUG = 1
 
 class KeywordRecognizer():
+    """
+    A class to recognize the player's voice commands.
+    NOTE: The `KeywordRecognizer` class must be contained within a `try except`
+    statement. 
 
+    ...
+
+    Attributes
+    ----------
+    q : queue.Queue()
+    special_words : dict
+    model : Model
+    rec : KaldiRecognizer
+    prev_guess : str
+    """
     def __init__(self, id:int, special_words:dict) -> None:
         self.q = queue.Queue()
         self.special_words = special_words
@@ -28,28 +43,46 @@ class KeywordRecognizer():
                           channels=1, callback=self.callback)
         # print("AAAA")
         self.mic.start()
-        print(self.mic)
+        # print(self.mic)
         # Initialize the Recognizer
         self.rec = KaldiRecognizer(self.model, samplerate)
         self.prev_guess = ""
 
     def __del__(self):
-        pass
+        """Might need this not sure yet"""
         # self.mic.__exit__()
         # self.mic.stop()
         # self.mic.close()
+        pass
 
     def get_data(self):
+        """Get the first value of the binary queue"""
         # print(self.q.get())
         return self.q.get()
 
-    def test_data(self, data):
+    def test_data(self, data, verbose=False):
+        """
+        Check the value of the data and returns the most recent spoken command.
+
+        Parameters
+        ----------
+        data : binarydata
+        verbose : bool optional
+
+        Returns
+        --------
+        new_word : bool
+            `True` if there is a new word. `False` otherwise
+        word : str
+            The most recent new word. 
+        """
         # If our recognizer completed it's prediction for the given phrase
         # it sets rec.AcceptWaveform to True and stores the result in 
         # rec.Result
         # print(data)
         if self.rec.AcceptWaveform(data):
-            # print(f"Your model thought you said: {self.rec.Result()}")
+            if verbose:
+                print(f"Your model thought you said: {self.rec.Result()}")
             self.prev_guess = ""
         else:
             # Get the partial result string in the format of a json file.
@@ -90,41 +123,23 @@ class KeywordRecognizer():
         """
         if status:
             print(status, file=sys.stderr)
+        # print(self.q.qsize())
+
         self.q.put(bytes(indata))
 
 
 if __name__ == "__main__":
+    special_words = config.SPECIAL_WORDS
+
+    KeywordRecognizer.print_all_sound_devices()
+    KeywordRecognizer.print_sound_device(0)
+
     try:
-        ####################################################################
-        # Define the words that you want to detect in the format:
-        # DESIRED_WORD : COMMON_ERROR_LIST
-        # COMMON_ERROR_LIST is found experimentally using test_microphone.py
-        #####################################################################
-        # Make sure that all words in special_words are lowercase
-        # and str type. The recognizer only outputs in lowercase
-        #####################################################################
-        special_words = {
-            "start" : ["stuart", "stark"],
-            "stop" : [],
-            "pause" : [],
-            "continue" : [],
-            "player" : [],
-            "enter": [],
-            "one" : ["won"],
-            "two" : ["to", "too"],
-            "i'm excited" : ["i'm actually"],
-        }
-
-        KeywordRecognizer.print_all_sound_devices()
-        KeywordRecognizer.print_sound_device(0)
         myrec = KeywordRecognizer(0, special_words)
-
         while True:
             # Get the top of the queue and pass through our recognizer
-            # data = q.get()
-            # print("here")
             d = myrec.get_data()
-            new, word = myrec.test_data(d)
+            new, word = myrec.test_data(d, True)
             if new:
                 print(f"WORD: {word}")
     except (KeyboardInterrupt, EOFError):
