@@ -7,6 +7,9 @@
 
 #define SERIAL_PORT Serial
 
+
+
+
 // WiFi
 const char *ssid = SECRET_SSID; // Enter your WiFi name
 const char *password = SECRET_PASS;  // Enter WiFi password
@@ -127,8 +130,11 @@ float max_x = 0;
 float max_y = 0;
 float max_z = 0;
 unsigned long threshold = 20;
-char move;
+char move = 'x';
+char trans_m = 'q';
 int play_num = 1;
+long int last_time = millis();
+long int thresh_send = 600;
 
 void loop()
 {
@@ -186,33 +192,50 @@ void loop()
     if (az < max_z + 100 && az > min_z - 100
     && ax < max_x + 100 && ax > min_x - 100
     && ay < max_y + 100 && ay > min_y - 100) {
+      trans_m = 'q';
     }
     else if (gx > 400000 && gy < 350000 && gz < 350000) {
-      Serial.println("Rotate ++++++++++++++++++++++");
+     Serial.println("Rotate ++++++++++++++++++++++");
       move = 'r';
-      pubMove(move, play_num);
+      trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (ax > 400 && az < 0) {
       Serial.println("Forward ==================");
       move = 'f';
-      pubMove(move, play_num);
+      trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (ay > 1500 && ax < 500 && az < 500) {
       Serial.println("Left ----------------------");
       move = 'l';
-      pubMove(move, play_num);
+      trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (az > 900 && ax < 500 && ay < az - 300 && gx < 100000) {
       Serial.println("Up *********************");
       move = 'u';
-      pubMove(move, play_num);
+      trans_m = pubMove(move, trans_m, play_num, last_time);
     }
+    // if (millis() - last_time > thresh_send) {
+    //   trans_m = 'q';
+    // }
   }
+  //move = 'x';
 	delay(threshold);
 }
 
-void pubMove(char move, int player) {
-  char buf[32];
-  snprintf(buf, 32, "%d%c", player, move); 
-  client.publish(topic, buf);
+//upon registering a motion:
+// registered_motion = motion
+// if registered_motion != transmitted_motion
+  // send regitered_motion
+  // transmitted_motion = registered_motion
+// /every t time, reset transmitted_motion = ""
+
+char pubMove(char move, char trans_m, int player, long int &last_time) { //returns transmitted motions
+  if (move != trans_m) {
+    char buf[32];
+    snprintf(buf, 32, "%d%c", player, move); 
+    client.publish(topic, buf);
+    last_time = millis();  
+    return move; // set equal to trans_m
+  }
+  return trans_m;
 }
