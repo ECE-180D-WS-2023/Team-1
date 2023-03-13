@@ -153,7 +153,7 @@ class Game():
                 
                 # Vosk speech recognizer call
                 d = myrec.get_data()
-                new, word = myrec.test_data(d, True)
+                new, word = myrec.test_data(d, False)
                 if new:
                     print(f"WORD: {word}")
 
