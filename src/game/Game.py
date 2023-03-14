@@ -20,6 +20,7 @@ from .speech import KeywordRecognizer
 
 from pygame.locals import (
     K_q,
+    K_1,
     KEYDOWN,
     QUIT,
 )
@@ -82,15 +83,6 @@ class Game():
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
 
-        # Set up the speech recognizer
-        special_words = {
-            "pause" : ["pies", "applause", "cause"],
-        }
-
-        KeywordRecognizer.print_all_sound_devices()
-        KeywordRecognizer.print_sound_device(0)
-
-
         # note spawning timer
         SPAWNNOTE = pygame.USEREVENT + 1
         pygame.time.set_timer(SPAWNNOTE, int(NOTE_SPAWN_SPEED_MS))
@@ -99,6 +91,15 @@ class Game():
         ACTION = pygame.USEREVENT + 2
         # where the action is stored
         imu_action = None
+
+        # Set up the speech recognizer
+        special_words = {
+            "pause" : ["pies", "applause", "cause"],
+        }
+
+        # TODO Button on esp32 remote was pressed
+        SPEECH_BUTTON = pygame.USEREVENT + 3
+        speech_flag = False
 
         # custom note update per speed along with note fall speed
         last_time = pygame.time.get_ticks()
@@ -151,11 +152,22 @@ class Game():
                             action_input_result = "No Notes Yet!"
                         globals.action_input_result_text.update(text=action_input_result)
                 
+
+                keys = pygame.key.get_pressed()
+                if keys[K_1]:
+                    speech_flag = True
+                else:
+                    speech_flag = False
+
                 # Vosk speech recognizer call
-                d = myrec.get_data()
-                new, word = myrec.test_data(d, False)
-                if new:
-                    print(f"WORD: {word}")
+                if speech_flag:
+                    # print("GETTING SPEECH DATA")
+                    d = myrec.get_data()
+                    new, word = myrec.test_data(d, verbose=True)
+                    if new:
+                        print(f"WORD: {word}")
+                        if word == "pause":
+                            print("PAUSE DETECTED: PAUSING THE GAME")
 
                 # if action registered by imu, do the event notification and put the action into imu_action
                 # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action

@@ -49,7 +49,10 @@ class KeywordRecognizer():
         self.prev_guess = ""
 
     def __del__(self):
-        """Might need this not sure yet"""
+        """
+        NOT IMPLEMENTED: Delete the object
+        Might need this not sure yet
+        """
         # self.mic.__exit__()
         # self.mic.stop()
         # self.mic.close()
@@ -59,6 +62,12 @@ class KeywordRecognizer():
         """Get the first value of the binary queue"""
         # print(self.q.get())
         return self.q.get()
+    
+    def clear_q(self):
+        """Clear the audio bitsream queue"""
+        # TODO test this function
+        with self.q.mutex:
+            self.q.queue.clear()
 
     def test_data(self, data, verbose=False):
         """
@@ -80,6 +89,7 @@ class KeywordRecognizer():
         # it sets rec.AcceptWaveform to True and stores the result in 
         # rec.Result
         # print(data)
+        rtguess = ""
         if self.rec.AcceptWaveform(data):
             if verbose:
                 print(f"Your model thought you said: {self.rec.Result()}")
@@ -106,7 +116,7 @@ class KeywordRecognizer():
                         return True, word
                 self.prev_guess = rtguess
 
-        return False, ""
+        return False, rtguess
 
     @staticmethod
     def print_sound_device(id):
