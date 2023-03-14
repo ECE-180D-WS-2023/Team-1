@@ -2,22 +2,11 @@ from Game import Game
 
 # lots of help from https://realpython.com/pygame-a-primer/#sprite-groups
 
-# all done
-# TODO:
-# - make the hit zone line diff color and text to indicate
-# - make the notes have different symbols on them for motions (rotate is counter clockwise)
-# - incorporate the localization
-# - fix points
-# TODO:
-# - make the notes only -1 points if goes through the bottom, don't -1 for 
-#   doing incorrect motion for note -- allow players to try again as long as
-#   note is not gone yet
-#   THIS NEEDS PRINT STATEMENT TOO LIKE "MISSED" OR SOMETHING
-# TODO: add point system and text
-
 # not done:
 # TODO: Now that IMU info is de-duped, fix Game code to register every message from 
 #       IMU mqtt -- includes print messages, there is like spam from multiple different messages
+# TODO: make pause function
+# TODO: make the text not change if wrong motion
 # TODO: draw dots for which region players are in currently from localization
 # TODO: graphics could do like motion animations to remove blocks or something
 

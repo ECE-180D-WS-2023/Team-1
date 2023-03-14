@@ -9,7 +9,7 @@ update_time = 3
 # time between each motion register
 time_between_motion = 0
 # MQTT CALIBRATION TIME
-MQTT_CALIBRATION_TIME = 10000
+MQTT_CALIBRATION_TIME = 1000
 
 # LOCALIZATION CALIBRATION TIME
 LOCALIZATION_CALIBRATION_TIME = 1000
@@ -36,6 +36,8 @@ LETTER_FONT_SIZE = NOTE_WIDTH
 RESULT_FONT_SIZE = int(NOTE_WIDTH/2)
 # hitzone text font size
 HITZONE_FONT_SIZE = int(NOTE_WIDTH/4)
+# paused screen font size
+PAUSED_FONT_SIZE = int(NOTE_WIDTH * 5)
 
 # list of available keyboard clicks
 KEYS = 'ulfr'

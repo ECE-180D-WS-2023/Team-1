@@ -6,7 +6,7 @@ from localization_mqtt import localization_mqtt_on_connect, localization_mqtt_on
 import localization_mqtt
 from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
-from Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
+from Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
 import globals
 from Text import Text
@@ -16,6 +16,7 @@ from Text import Text
 
 from pygame.locals import (
     K_q,
+    K_p,
     KEYDOWN,
     QUIT,
 )
@@ -24,6 +25,7 @@ from pygame.locals import (
 
 class Game():
     def __init__(self):
+        self.pause = True
         pass
 
     def __calc_points(self, action_input_result):
@@ -74,6 +76,7 @@ class Game():
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
+        paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
 
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
@@ -81,7 +84,7 @@ class Game():
 
         # note spawning timer
         SPAWNNOTE = pygame.USEREVENT + 1
-        pygame.time.set_timer(SPAWNNOTE, int(NOTE_SPAWN_SPEED_MS))
+        pygame.time.set_timer(SPAWNNOTE, int(0))
 
         # received action from imu event
         ACTION = pygame.USEREVENT + 2
@@ -102,6 +105,14 @@ class Game():
                 if event.type == KEYDOWN:
                     if event.key == K_q:
                         running = False
+                    elif event.key == K_p:
+                        self.pause = not self.pause
+                        if (self.pause == True):
+                            pygame.time.set_timer(SPAWNNOTE, 0)
+                        elif (self.pause == False):
+                            pygame.time.set_timer(SPAWNNOTE, int(NOTE_SPAWN_SPEED_MS))
+
+
                     else:
                         # calculate which note is the lowest and then process key press accordingly based
                         # on that note's letter
@@ -137,26 +148,29 @@ class Game():
                         action_input_result = "No Notes Yet!"
                     globals.action_input_result_text.update(text=action_input_result)
             
+            # when pause game, also don't allow action to be read in and dont
+            # let there be updated notes
+            if not self.pause:
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # then when imu_action_received is True, do the custom event post
             # in the loop above, when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
-            if (imu_mqtt.imu_action_received_flag):
-                #print("received action flag")
-                if (pygame.time.get_ticks() - last_motion > time_between_motion):
-                    #print("action event triggered")
-                    pygame.event.post(pygame.event.Event(ACTION))
-                    imu_action = imu_mqtt.IMU_ACTION
-                    last_motion = pygame.time.get_ticks()
-                    print("action received: ", imu_action)
-                    imu_mqtt.imu_action_received_flag = False
-                else:
-                    imu_mqtt.imu_action_received_flag = False
+                if (imu_mqtt.imu_action_received_flag):
+                    #print("received action flag")
+                    if (pygame.time.get_ticks() - last_motion > time_between_motion):
+                        #print("action event triggered")
+                        pygame.event.post(pygame.event.Event(ACTION))
+                        imu_action = imu_mqtt.IMU_ACTION
+                        last_motion = pygame.time.get_ticks()
+                        print("action received: ", imu_action)
+                        imu_mqtt.imu_action_received_flag = False
+                    else:
+                        imu_mqtt.imu_action_received_flag = False
+                # update note positions
+                if (pygame.time.get_ticks() - last_time > update_time):
+                    notes.update()
+                    last_time = pygame.time.get_ticks()
 
-            # update note positions
-            if (pygame.time.get_ticks() - last_time > update_time):
-                notes.update()
-                last_time = pygame.time.get_ticks()
 
             # Fill the screen with black
             screen.fill((255, 255, 255))
