@@ -164,8 +164,10 @@ def detect_position(colors, camera): # gives position of one color
                 position = 2
             else:
                 position = 1
-            print('Player position: ', position)
-            client.publish("ktanna/local", position, qos=1) # publish on MQTT
+        print('Player position: ', position)
+        client.publish("ktanna/local", position, qos=1) # publish on MQTT
+        # IF POSITION == 0, out of bounds
+        
         
         flip = cv2.flip(frame,1) # mirror frame for visual understanding
         cv2.putText(flip, "zone 1", (10, 240),
