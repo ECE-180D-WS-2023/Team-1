@@ -73,6 +73,7 @@ class Game():
         notes = pygame.sprite.Group()
         # text for hitzone, for results, and points
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
+        paused_text = Text(text="Press P To Start", rect=(10, SCREEN_HEIGHT/3))
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
@@ -107,6 +108,7 @@ class Game():
                         running = False
                     elif event.key == K_p:
                         self.pause = not self.pause
+                        paused_text.update(text="Paused")
                         if (self.pause == True):
                             pygame.time.set_timer(SPAWNNOTE, 0)
                         elif (self.pause == False):
@@ -197,6 +199,12 @@ class Game():
             screen.blit(points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
             # text for hitzone indicator
             screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
+            # text for pause
+            if (self.pause):
+                print_paused = paused_font.render(paused_text.text, True, (0,0,0))
+                print_paused_rect = print_paused.get_rect()
+                print_paused_rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
+                screen.blit(print_paused, print_paused_rect)
 
             # Update the display
             pygame.display.flip()
