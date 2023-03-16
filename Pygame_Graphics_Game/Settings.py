@@ -37,7 +37,7 @@ RESULT_FONT_SIZE = int(NOTE_WIDTH/2)
 # hitzone text font size
 HITZONE_FONT_SIZE = int(NOTE_WIDTH/4)
 # paused screen font size
-PAUSED_FONT_SIZE = int(NOTE_WIDTH * 5)
+PAUSED_FONT_SIZE = int(NOTE_WIDTH*2)
 
 # list of available keyboard clicks
 KEYS = 'ulfr'
