@@ -170,7 +170,7 @@ def detect_position(colors, camera): # gives position of one color
             else:
                 position = 1
             print('Player position: ', position)
-            position = str(position) + ',' + str(rx)
+            position = str(position) # + ',' + str(rx)
             client.publish("ktanna/local", position, qos=1) # publish on MQTT
         else:
             position = 'OUT OF BOUNDS' # out of bounds
