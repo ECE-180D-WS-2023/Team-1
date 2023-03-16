@@ -12,6 +12,7 @@
 #include <Wire.h>
 #include "SparkFun_ISM330DHCX.h"
 #define LED_BLUE 13 //for calibration indication
+#define BUTTON 14
 
 SparkFun_ISM330DHCX myISM; 
 
@@ -29,6 +30,7 @@ float gz;
 
 void setup(){
   pinMode(LED_BLUE, OUTPUT); //declare onboard LED output
+  pinMode(BUTTON, INPUT); // declare button for speech recognition
 
 	Wire.begin();
 

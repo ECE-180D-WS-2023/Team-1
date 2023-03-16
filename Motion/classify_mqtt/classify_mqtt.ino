@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include "SparkFun_ISM330DHCX.h"
 #define LED_BLUE 13 //for calibration indication
+#define BUTTON 14 //for button
 
 #define SERIAL_PORT Serial
 
@@ -42,7 +43,7 @@ float gz;
 
 void setup() {
   pinMode(LED_BLUE, OUTPUT); //declare onboard LED output
-
+  pinMode(BUTTON, INPUT); // declare button as input
 	Wire.begin();
 
  // Set software serial baud to 115200;
@@ -72,6 +73,7 @@ void setup() {
  // publish and subscribe
  client.publish(topic, "Hi I'm ESP32 ^^");
  client.subscribe(topic);
+
 
   if( !myISM.begin() ){
 		Serial.println("Did not begin.");
@@ -136,8 +138,44 @@ int play_num = 1;
 long int last_time = millis();
 long int thresh_send = 600;
 
+int buttonState;            // the current reading from the input pin
+int lastButtonState = LOW;  // the previous reading from the input pin
+
+// the following variables are unsigned longs because the time, measured in
+// milliseconds, will quickly become a bigger number than can be stored in an int.
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
 void loop()
 {
+  int reading = digitalRead(BUTTON);
+  if (reading != lastButtonState) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      // only toggle the LED if the new button state is HIGH
+      if (buttonState == HIGH) {
+        client.publish(topic, "BUTTON PUSHED");
+        Serial.println("BUTTON PUSHED");
+      }
+    }
+  }
+  lastButtonState = reading;
+  // if (buttonState == HIGH) {
+  //   char pause = 'P';
+  //   char buf[32];
+  //   snprintf(buf, 32, "%c", pause); 
+  //   client.publish(topic, buf);
+  //   Serial.println("BUTTON PUSHED");
+  // }
   // Check if both gyroscope and accelerometer data is available.
 	if( myISM.checkStatus() ){
     if (!calibrated) {
