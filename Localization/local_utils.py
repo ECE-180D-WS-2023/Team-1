@@ -82,7 +82,9 @@ def threshold(HSV, htol, stol, vtol):
     return low_threshold, high_threshold
 
 def in_border_range(tol, x, x2, y, y2, w, h): # find if in the border range
-    if ((x2 > (x - tol)) and (x2 < (x + w + tol))) and ((y > (y- tol)) and (y < (y + h + tol))):
+    print('X ', x)
+    print('GX ', x2)
+    if (((x2 > (x)) and (x2 < (x + w + tol))) and ((y2 > (y)) and (y2 < (y + h + tol)))) or (((x2 < (x)) and (x2 > (x - tol))) and ((y2 < (y)) and (y2 > (y - tol)))):
         return True
     return False
 
@@ -91,9 +93,9 @@ def detect_position(colors, camera): # gives position of one color
     cap = cv2.VideoCapture(camera) # start webcam capture (0 for onboard camera, 1 for USB camera)
     # Perform thresholding
     c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 150) # red
-    border_lower, border_upper = threshold(colors['c2'], 3, 50, 60) # green
+    border_lower, border_upper = threshold(colors['c2'], 5, 100, 100) # green
 
-    tol = 3 # border tolerance
+    tol = 5 # border tolerance
     atol = 500 # area tolerance
 
     # initialize MQTT values
@@ -150,10 +152,13 @@ def detect_position(colors, camera): # gives position of one color
                         frame = cv2.rectangle(frame, (x, y), 
                                                 (x + w, y + h), 
                                                 (0, 0, 255), 2)
+                        frame = cv2.rectangle(frame, (x2, y2), 
+                                                (x2 + w2, y2 + h2), 
+                                                (0, 255, 0), 2)
                         cv2.putText(frame, "Red Color", (x, y),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                     (0, 0, 255))
-
+        # Player position ranges between 0 and 640
         if red:
             position = 0
             if (rx < 160):
@@ -164,9 +169,12 @@ def detect_position(colors, camera): # gives position of one color
                 position = 2
             else:
                 position = 1
-        print('Player position: ', position)
-        client.publish("ktanna/local", position, qos=1) # publish on MQTT
-        # IF POSITION == 0, out of bounds
+            print('Player position: ', position)
+            position = str(position) + ',' + str(rx)
+            client.publish("ktanna/local", position, qos=1) # publish on MQTT
+        else:
+            position = 'OOB' # out of bounds
+            client.publish("ktanna/local", position, qos=1)  # publish on MQTT
         
         
         flip = cv2.flip(frame,1) # mirror frame for visual understanding
