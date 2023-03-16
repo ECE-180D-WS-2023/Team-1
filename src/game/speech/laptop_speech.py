@@ -2,7 +2,7 @@ import queue
 import sys
 import sounddevice as sd
 import json
-from . import config
+# import config
 
 from vosk import Model, KaldiRecognizer, SetLogLevel
 

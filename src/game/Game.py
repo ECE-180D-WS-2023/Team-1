@@ -12,7 +12,7 @@ from .Text import Text
 import sys
  
 # adding Folder_2 to the system path
-from .speech import KeywordRecognizer
+from .speech import KeywordRecognizer, config
 
 # import sys
 # sys.path.append('../Localization')
@@ -93,9 +93,7 @@ class Game():
         imu_action = None
 
         # Set up the speech recognizer
-        special_words = {
-            "pause" : ["pies", "applause", "cause"],
-        }
+        special_words =  config.SPECIAL_WORDS 
 
         # TODO Button on esp32 remote was pressed
         SPEECH_BUTTON = pygame.USEREVENT + 3
@@ -117,6 +115,10 @@ class Game():
                     if event.type == KEYDOWN:
                         if event.key == K_q:
                             running = False
+                        elif event.key == K_1:
+                            print("First pressed")
+                            myrec.clear_q()
+                            print(f"QUEUE: {myrec.q.queue}")
                         else:
                             # calculate which note is the lowest and then process key press accordingly based
                             # on that note's letter
@@ -152,7 +154,7 @@ class Game():
                             action_input_result = "No Notes Yet!"
                         globals.action_input_result_text.update(text=action_input_result)
                 
-
+                # Check if the keyboard or remote button was pressed
                 keys = pygame.key.get_pressed()
                 if keys[K_1]:
                     speech_flag = True
@@ -168,6 +170,9 @@ class Game():
                         print(f"WORD: {word}")
                         if word == "pause":
                             print("PAUSE DETECTED: PAUSING THE GAME")
+                        elif word == "exit":
+                            print("EXIT DETECTED: EXITING THE GAME")
+                            running = False
 
                 # if action registered by imu, do the event notification and put the action into imu_action
                 # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action

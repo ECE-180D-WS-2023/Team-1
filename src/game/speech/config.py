@@ -10,11 +10,12 @@
 SPECIAL_WORDS = {
     "start" : ["stuart", "stark", "don't"],
     "stop" : ["slob"],
-    "pause" : ["pies", "applause", "cause"],
+    "pause" : ["pies", "applause", "cause", "because"],
     "continue" : [],
     "player" : ["later", "claire"],
     "enter": ["under", "after"],
     "one" : ["won"],
     "two" : ["to", "too", "do"],
     "i'm excited" : ["i'm actually"],
+    "exit" : ["exactly"],
 }
