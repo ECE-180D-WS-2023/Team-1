@@ -50,7 +50,7 @@ class localize:
         self.calibrated = False # not yet calibrated
         self.color = self.players + 1
         self.colors = {}
-        if camera == None:
+        if camera == None or camera == 1:
             self.camera = 1 # default to USB camera
         else:
             self.camera = 0 # otherwise 
