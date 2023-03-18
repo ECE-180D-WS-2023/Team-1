@@ -108,7 +108,7 @@ class Game():
         # Variable to keep the main loop running
         running = True
         try:
-            myrec = KeywordRecognizer(0, special_words)
+            myrec = KeywordRecognizer(0, config.SPECIAL_WORDS)
             while running:
                 for event in pygame.event.get():
                     # check if q is pressed then leave
