@@ -7,9 +7,10 @@ from Game import Game
 #       IMU mqtt -- includes print messages, there is like spam from multiple different messages
 # TODO: make pause function
 # TODO: make the text not change if wrong motion
+# TODO: make the text not change if wrong lane, for some reason it spams wrong lane
 # TODO: draw dots for which region players are in currently from localization
 # TODO: graphics could do like motion animations to remove blocks or something
-
+#
 
 # current state of the game: 
 # playable with keyboard or imu for inputs and then also localization running on a computer on different script
