@@ -233,22 +233,22 @@ void loop()
       trans_m = 'q';
     }
     else if (gx > 400000 && gy < 350000 && gz < 350000) {
-     Serial.println("Rotate ++++++++++++++++++++++");
+     Serial.println("r");
       move = 'r';
       trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (ax > 400 && az < 0) {
-      Serial.println("Forward ==================");
+      Serial.println("f");
       move = 'f';
       trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (ay > 1500 && ax < 500 && az < 500) {
-      Serial.println("Left ----------------------");
+      Serial.println("l");
       move = 'l';
       trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (az > 900 && ax < 500 && ay < az - 300 && gx < 100000) {
-      Serial.println("Up *********************");
+      Serial.println("u");
       move = 'u';
       trans_m = pubMove(move, trans_m, play_num, last_time);
     }
