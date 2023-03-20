@@ -4,8 +4,12 @@
 #include <Wire.h>
 #include "SparkFun_ISM330DHCX.h"
 #define LED_BLUE 13 //for calibration indication
+#define BUTTON 14 //for button
 
 #define SERIAL_PORT Serial
+
+
+
 
 // WiFi
 const char *ssid = SECRET_SSID; // Enter your WiFi name
@@ -39,7 +43,7 @@ float gz;
 
 void setup() {
   pinMode(LED_BLUE, OUTPUT); //declare onboard LED output
-
+  pinMode(BUTTON, INPUT); // declare button as input
 	Wire.begin();
 
  // Set software serial baud to 115200;
@@ -69,6 +73,7 @@ void setup() {
  // publish and subscribe
  client.publish(topic, "Hi I'm ESP32 ^^");
  client.subscribe(topic);
+
 
   if( !myISM.begin() ){
 		Serial.println("Did not begin.");
@@ -127,11 +132,50 @@ float max_x = 0;
 float max_y = 0;
 float max_z = 0;
 unsigned long threshold = 20;
-char move;
+char move = 'x';
+char trans_m = 'q';
 int play_num = 1;
+long int last_time = millis();
+long int thresh_send = 600;
+
+int buttonState;            // the current reading from the input pin
+int lastButtonState = LOW;  // the previous reading from the input pin
+
+// the following variables are unsigned longs because the time, measured in
+// milliseconds, will quickly become a bigger number than can be stored in an int.
+unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
 void loop()
 {
+  int reading = digitalRead(BUTTON);
+  if (reading != lastButtonState) {
+    // reset the debouncing timer
+    lastDebounceTime = millis();
+  }
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // whatever the reading is at, it's been there for longer than the debounce
+    // delay, so take it as the actual current state:
+
+    // if the button state has changed:
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      // only toggle the LED if the new button state is HIGH
+      if (buttonState == HIGH) {
+        client.publish(topic, "BUTTON PUSHED");
+        Serial.println("BUTTON PUSHED");
+      }
+    }
+  }
+  lastButtonState = reading;
+  // if (buttonState == HIGH) {
+  //   char pause = 'P';
+  //   char buf[32];
+  //   snprintf(buf, 32, "%c", pause); 
+  //   client.publish(topic, buf);
+  //   Serial.println("BUTTON PUSHED");
+  // }
   // Check if both gyroscope and accelerometer data is available.
 	if( myISM.checkStatus() ){
     if (!calibrated) {
@@ -186,33 +230,50 @@ void loop()
     if (az < max_z + 100 && az > min_z - 100
     && ax < max_x + 100 && ax > min_x - 100
     && ay < max_y + 100 && ay > min_y - 100) {
+      trans_m = 'q';
     }
     else if (gx > 400000 && gy < 350000 && gz < 350000) {
-      Serial.println("Rotate ++++++++++++++++++++++");
+     Serial.println("r");
       move = 'r';
-      pubMove(move, play_num);
+      trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (ax > 400 && az < 0) {
-      Serial.println("Forward ==================");
+      Serial.println("f");
       move = 'f';
-      pubMove(move, play_num);
+      trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (ay > 1500 && ax < 500 && az < 500) {
-      Serial.println("Left ----------------------");
+      Serial.println("l");
       move = 'l';
-      pubMove(move, play_num);
+      trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (az > 900 && ax < 500 && ay < az - 300 && gx < 100000) {
-      Serial.println("Up *********************");
+      Serial.println("u");
       move = 'u';
-      pubMove(move, play_num);
+      trans_m = pubMove(move, trans_m, play_num, last_time);
     }
+    // if (millis() - last_time > thresh_send) {
+    //   trans_m = 'q';
+    // }
   }
+  //move = 'x';
 	delay(threshold);
 }
 
-void pubMove(char move, int player) {
-  char buf[32];
-  snprintf(buf, 32, "%d%c", player, move); 
-  client.publish(topic, buf);
+//upon registering a motion:
+// registered_motion = motion
+// if registered_motion != transmitted_motion
+  // send regitered_motion
+  // transmitted_motion = registered_motion
+// /every t time, reset transmitted_motion = ""
+
+char pubMove(char move, char trans_m, int player, long int &last_time) { //returns transmitted motions
+  if (move != trans_m) {
+    char buf[32];
+    snprintf(buf, 32, "%d%c", player, move); 
+    client.publish(topic, buf);
+    last_time = millis();  
+    return move; // set equal to trans_m
+  }
+  return trans_m;
 }
