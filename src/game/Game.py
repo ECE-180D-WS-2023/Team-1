@@ -1,22 +1,15 @@
 import pygame
 import paho.mqtt.client as mqtt
-from .imu_mqtt import imu_mqtt_on_connect, imu_mqtt_on_disconnect, imu_mqtt_on_message
-from .localization_mqtt import localization_mqtt_on_connect, localization_mqtt_on_disconnect, localization_mqtt_on_message
+
 from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
 from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
 from .Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
-from . import imu_mqtt, localization_mqtt, globals
 from .Text import Text
+from . import globals
 
-import sys
- 
-# adding Folder_2 to the system path
-from .speech import KeywordRecognizer, config
+from game import mqtt_lib, speech
 
-# import sys
-# sys.path.append('../Localization')
-# from localize_class import localize
 
 from pygame.locals import (
     K_q,
@@ -49,9 +42,9 @@ class Game():
         # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and rotate
         # check imu_mqtt for which channel its listening to
         imu_mqtt_client = mqtt.Client()
-        imu_mqtt_client.on_connect = imu_mqtt_on_connect
-        imu_mqtt_client.on_disconnect = imu_mqtt_on_disconnect
-        imu_mqtt_client.on_message = imu_mqtt_on_message
+        imu_mqtt_client.on_connect = mqtt_lib.imu_mqtt_on_connect
+        imu_mqtt_client.on_disconnect = mqtt_lib.imu_mqtt_on_disconnect
+        imu_mqtt_client.on_message = mqtt_lib.imu_mqtt_on_message
         imu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
         imu_mqtt_client.loop_start()
         # for initialize mqtt
@@ -62,9 +55,9 @@ class Game():
         # local = localize(camera=0)
         # local.detect()
         localization_mqtt_client = mqtt.Client()
-        localization_mqtt_client.on_connect = localization_mqtt_on_connect
-        localization_mqtt_client.on_disconnect = localization_mqtt_on_disconnect
-        localization_mqtt_client.on_message = localization_mqtt_on_message
+        localization_mqtt_client.on_connect = mqtt_lib.localization_mqtt_on_connect
+        localization_mqtt_client.on_disconnect = mqtt_lib.localization_mqtt_on_disconnect
+        localization_mqtt_client.on_message = mqtt_lib.localization_mqtt_on_message
         localization_mqtt_client.connect_async('mqtt.eclipseprojects.io')
         localization_mqtt_client.loop_start()
         pygame.time.wait(LOCALIZATION_CALIBRATION_TIME)
@@ -93,7 +86,7 @@ class Game():
         imu_action = None
 
         # Set up the speech recognizer
-        special_words =  config.SPECIAL_WORDS 
+        special_words =  speech.config.SPECIAL_WORDS 
 
         # TODO Button on esp32 remote was pressed
         SPEECH_BUTTON = pygame.USEREVENT + 3
@@ -108,7 +101,7 @@ class Game():
         # Variable to keep the main loop running
         running = True
         try:
-            myrec = KeywordRecognizer(0, config.SPECIAL_WORDS)
+            myrec = speech.KeywordRecognizer(0, speech.config.SPECIAL_WORDS)
             while running:
                 for event in pygame.event.get():
                     # check if q is pressed then leave
@@ -126,7 +119,10 @@ class Game():
                                 lowest_note = get_lowest_note(notes)
                                 #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
                                 #print(localization_mqtt.player_location)
-                                action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), localization_mqtt.player_location)
+                                action_input_result = lowest_note.process_action_location(
+                                    pygame.key.name(event.key), 
+                                    mqtt_lib.localization_mqtt.player_location
+                                    )
                                 self.__calc_points(action_input_result)
                             else:
                                 action_input_result = "No Notes Yet!"
@@ -178,17 +174,17 @@ class Game():
                 # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
                 # then when imu_action_received is True, do the custom event post
                 # in the loop above, when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
-                if (imu_mqtt.imu_action_received_flag):
+                if (mqtt_lib.imu_mqtt.imu_action_received_flag):
                     #print("received action flag")
                     if (pygame.time.get_ticks() - last_motion > time_between_motion):
                         #print("action event triggered")
                         pygame.event.post(pygame.event.Event(ACTION))
-                        imu_action = imu_mqtt.IMU_ACTION
+                        imu_action = mqtt_lib.imu_mqtt.IMU_ACTION
                         last_motion = pygame.time.get_ticks()
                         print("action received: ", imu_action)
-                        imu_mqtt.imu_action_received_flag = False
+                        mqtt_lib.imu_mqtt.imu_action_received_flag = False
                     else:
-                        imu_mqtt.imu_action_received_flag = False
+                        mqtt_lib.imu_mqtt.imu_action_received_flag = False
 
                 # update note positions
                 if (pygame.time.get_ticks() - last_time > update_time):

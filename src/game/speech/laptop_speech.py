@@ -2,7 +2,7 @@ import queue
 import sys
 import sounddevice as sd
 import json
-# import config
+# 
 
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
@@ -139,6 +139,7 @@ class KeywordRecognizer():
 
 
 if __name__ == "__main__":
+    import config
     special_words = config.SPECIAL_WORDS
 
     KeywordRecognizer.print_all_sound_devices()
