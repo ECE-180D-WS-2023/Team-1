@@ -1,15 +1,17 @@
 import pygame
+import logging
 import paho.mqtt.client as mqtt
 
+# Internal Package imports
+from game import mqtt_lib, speech
+
+# TODO: Move these files to their own packages
 from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
 from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
 from .Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
 from .Text import Text
 from . import globals
-
-from game import mqtt_lib, speech
-
 
 from pygame.locals import (
     K_q,
@@ -18,6 +20,7 @@ from pygame.locals import (
     QUIT,
 )
 
+# TODO: Move this comment to where it matters
 # note that height grows downward, the top left is 0, 0 and bottom right is width, height
 
 class Game():
@@ -35,12 +38,14 @@ class Game():
     def start(self):
         # setup vars
         # Initialize pygame
+        logging.info(f"GAME: Starting the game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
         # initialize mqtt for imu
         # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and rotate
         # check imu_mqtt for which channel its listening to
+        logging.info("MQTT: Preparing IMU MQTT connection")
         imu_mqtt_client = mqtt.Client()
         imu_mqtt_client.on_connect = mqtt_lib.imu_mqtt_on_connect
         imu_mqtt_client.on_disconnect = mqtt_lib.imu_mqtt_on_disconnect
@@ -54,6 +59,7 @@ class Game():
         # this should output something like "1" for zone 1
         # local = localize(camera=0)
         # local.detect()
+        logging.info("MQTT: Preparing localization MQTT connection")
         localization_mqtt_client = mqtt.Client()
         localization_mqtt_client.on_connect = mqtt_lib.localization_mqtt_on_connect
         localization_mqtt_client.on_disconnect = mqtt_lib.localization_mqtt_on_disconnect
@@ -85,9 +91,6 @@ class Game():
         # where the action is stored
         imu_action = None
 
-        # Set up the speech recognizer
-        special_words =  speech.config.SPECIAL_WORDS 
-
         # TODO Button on esp32 remote was pressed
         SPEECH_BUTTON = pygame.USEREVENT + 3
         speech_flag = False
@@ -98,6 +101,7 @@ class Game():
         # variable to store result of key_press attempts
         action_input_result = ""
 
+        # TODO: Make this less horrible looking
         # Variable to keep the main loop running
         running = True
         try:
@@ -165,8 +169,10 @@ class Game():
                     if new:
                         print(f"WORD: {word}")
                         if word == "pause":
+                            logging.debug("SPEECH: Pause detected")
                             print("PAUSE DETECTED: PAUSING THE GAME")
                         elif word == "exit":
+                            logging.debug("SPEECH: Exit detected")
                             print("EXIT DETECTED: EXITING THE GAME")
                             running = False
 

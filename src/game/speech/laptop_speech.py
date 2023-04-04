@@ -2,11 +2,14 @@ import queue
 import sys
 import sounddevice as sd
 import json
-# 
+import logging
 
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
-DEBUG = 1
+
+# logging.basicConfig(filename='game.log', filemode='w',
+#                     format='%(name)s - %(levelname)s - %(message)s')
+
 
 class KeywordRecognizer():
     """
@@ -24,29 +27,32 @@ class KeywordRecognizer():
     rec : KaldiRecognizer
     prev_guess : str
     """
-    def __init__(self, id:int, special_words:dict) -> None:
+
+    def __init__(self, id: int, special_words: dict) -> None:
         self.q = queue.Queue()
         self.special_words = special_words
 
         # Turn off Vosk CLI logging feature (on by default)
         SetLogLevel(-1)
 
-        # Initialize the Vosk Model 
+        # Initialize the Vosk Model
         self.model = Model(lang="en-us")
 
         # Set up the sound device to the first available input
         device_info = sd.query_devices(id)
         samplerate = int(device_info["default_samplerate"])
 
-        self.mic = sd.RawInputStream(samplerate=samplerate, blocksize = 8000, 
-                          device=device_info["name"], dtype="int16", 
-                          channels=1, callback=self.callback)
+        self.mic = sd.RawInputStream(samplerate=samplerate, blocksize=8000,
+                                     device=device_info["name"], dtype="int16",
+                                     channels=1, callback=self.callback)
         # print("AAAA")
         self.mic.start()
         # print(self.mic)
         # Initialize the Recognizer
         self.rec = KaldiRecognizer(self.model, samplerate)
         self.prev_guess = ""
+
+        logging.info("SPEECH: Starting the recognizer!")
 
     def __del__(self):
         """
@@ -56,18 +62,19 @@ class KeywordRecognizer():
         # self.mic.__exit__()
         # self.mic.stop()
         # self.mic.close()
-        pass
+        logging.info("SPEECH: Deleting the recognizer")
 
     def get_data(self):
         """Get the first value of the binary queue"""
         # print(self.q.get())
         return self.q.get()
-    
+
     def clear_q(self):
         """Clear the audio bitsream queue"""
         # TODO test this function
         with self.q.mutex:
             self.q.queue.clear()
+        logging.info("SPEECH: Cleared Queue")
 
     def test_data(self, data, verbose=False):
         """
@@ -86,13 +93,14 @@ class KeywordRecognizer():
             The most recent new word. 
         """
         # If our recognizer completed it's prediction for the given phrase
-        # it sets rec.AcceptWaveform to True and stores the result in 
+        # it sets rec.AcceptWaveform to True and stores the result in
         # rec.Result
         # print(data)
         rtguess = ""
         if self.rec.AcceptWaveform(data):
             if verbose:
                 print(f"Your model thought you said: {self.rec.Result()}")
+                logging.debug(f"SPEECH: model thought you said: {self.rec.Result()}")
             self.prev_guess = ""
         else:
             # Get the partial result string in the format of a json file.
@@ -101,7 +109,7 @@ class KeywordRecognizer():
             rtguess = json.loads(rtguess)["partial"]
 
             # Only take the most recently said word in phrase
-            if rtguess != "": 
+            if rtguess != "":
                 rtguess = rtguess.split()[-1]
 
             # Avoid recording multiple commands detected for the commands
@@ -112,6 +120,7 @@ class KeywordRecognizer():
                 for word, errs in self.special_words.items():
                     if rtguess == word or rtguess in errs:
                         print(f"COMMAND {word} DETECTED!")
+                        logging.debug(f"SPEECH: COMMAND {word} DETECTED!")
                         self.prev_guess = rtguess
                         return True, word
                 self.prev_guess = rtguess
@@ -133,7 +142,7 @@ class KeywordRecognizer():
         """
         if status:
             print(status, file=sys.stderr)
-        # print(self.q.qsize())
+            logging.error(f"SPEECH: ERROR {status}")
 
         self.q.put(bytes(indata))
 
