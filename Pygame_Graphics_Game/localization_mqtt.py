@@ -1,4 +1,5 @@
 player_location = "1"
+player_coords = "0"
 
 SUBSCRIPTION = "ktanna/local"
 
@@ -7,7 +8,9 @@ def localization_mqtt_on_message(client, userdata, message):
     # print('Received message: "' + str(message.payload) + '" on topic "' +
     #      message.topic + '" with QoS ' + str(message.qos))
     global player_location
+    global player_coords
     player_location = str(message.payload)[2]
+    player_coords = str(message.payload)[4:-1]
 
 def localization_mqtt_on_connect(client, userdata, flags, rc):
     print("Connection returned result: " + str(rc))
