@@ -5,10 +5,11 @@ import imu_mqtt
 from localization_mqtt import localization_mqtt_on_connect, localization_mqtt_on_disconnect, localization_mqtt_on_message
 import localization_mqtt
 from Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
-from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
+from Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time, time_between_motion
 from Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
-from Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
+from Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
 import globals
+from Player import Player
 from Text import Text
 # import sys
 # sys.path.append('../Localization')
@@ -27,14 +28,6 @@ class Game():
     def __init__(self):
         self.pause = True
         pass
-
-    def __calc_points(self, action_input_result):
-        if action_input_result == SUCCESS:
-            globals.points += 1
-        elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY or action_input_result == WRONG_LANE:
-            # allow players to try again as long as the thing is not gone yet
-            # no point deduction for too early or wrong motion
-            globals.points -= 0
 
     def start(self):
         # setup vars
@@ -71,6 +64,9 @@ class Game():
         
         # instantiate sprite groups
         notes = pygame.sprite.Group()
+        players = pygame.sprite.Group()
+        players.add(Player())
+
         # text for hitzone, for results, and points
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
         paused_text = Text(text="Press P To Start", rect=(10, SCREEN_HEIGHT/3))
@@ -93,7 +89,7 @@ class Game():
         imu_action = None
 
         # custom note update per speed along with note fall speed
-        last_time = pygame.time.get_ticks()
+        last_note_update = pygame.time.get_ticks()
 
         # variable to store result of key_press attempts
         action_input_result = ""
@@ -138,11 +134,7 @@ class Game():
                 # if we receive some action from imu
                 elif event.type == ACTION:
                     if (notes):
-                        #print("should process action")
-                        #print(imu_action)
-                        # when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
                         lowest_note = get_lowest_note(notes)
-                        # FILL IN NOTE'S process_action ONCE ACTIONS ARE KNOWN
                         # process key works for now since it is just diff letters
                         action_input_result = lowest_note.process_action_location(imu_action, localization_mqtt.player_location)
                         self.__calc_points(action_input_result)
@@ -155,24 +147,19 @@ class Game():
             if not self.pause:
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
-            # then when imu_action_received is True, do the custom event post
-            # in the loop above, when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
+            # because the imu_mqtt runs in parallel, we want to do this flag true and false 
                 if (imu_mqtt.imu_action_received_flag):
-                    #print("received action flag")
-                    if (pygame.time.get_ticks() - last_motion > time_between_motion):
-                        #print("action event triggered")
-                        pygame.event.post(pygame.event.Event(ACTION))
-                        imu_action = imu_mqtt.IMU_ACTION
-                        last_motion = pygame.time.get_ticks()
-                        print("action received: ", imu_action)
-                        imu_mqtt.imu_action_received_flag = False
-                    else:
-                        imu_mqtt.imu_action_received_flag = False
+                    pygame.event.post(pygame.event.Event(ACTION))
+                    imu_action = imu_mqtt.IMU_ACTION
+                    print("action received: ", imu_action)
+                    imu_mqtt.imu_action_received_flag = False
                 # update note positions
-                if (pygame.time.get_ticks() - last_time > update_time):
+                if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     notes.update()
-                    last_time = pygame.time.get_ticks()
+                    last_note_update = pygame.time.get_ticks()
 
+            # update player location
+            players.update()
 
             # Fill the screen with black
             screen.fill((255, 255, 255))
@@ -180,10 +167,10 @@ class Game():
             # include text to indicate hit zone
             # include text to indicate point record
             # include vertical lines to divide into 4 columns/lanes
-            pygame.draw.line(screen, (0, 0, 0), (COLUMN_1, 0), (COLUMN_1, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (COLUMN_2, 0), (COLUMN_2, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (COLUMN_3, 0), (COLUMN_3, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (COLUMN_4, 0), (COLUMN_4, SCREEN_HEIGHT))
+            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_1, 0), (LINE_COLUMN_1, SCREEN_HEIGHT))
+            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_2, 0), (LINE_COLUMN_2, SCREEN_HEIGHT))
+            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_3, 0), (LINE_COLUMN_3, SCREEN_HEIGHT))
+            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_4, 0), (LINE_COLUMN_4, SCREEN_HEIGHT))
             # display hit zone
             # horizontal line to indicate hit zone
             pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
@@ -191,7 +178,9 @@ class Game():
             # draw all sprites
             for note in notes:
                 screen.blit(note.surf, note.rect)
-            
+            for player in players:
+                screen.blit(player.surf, player.rect)
+
             # text for key press results
             screen.blit(result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
             # text for points
@@ -199,6 +188,7 @@ class Game():
             screen.blit(points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
             # text for hitzone indicator
             screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
+            
             # text for pause
             if (self.pause):
                 print_paused = paused_font.render(paused_text.text, True, (0,0,0))
@@ -208,3 +198,12 @@ class Game():
 
             # Update the display
             pygame.display.flip()
+
+
+    def __calc_points(self, action_input_result):
+        if action_input_result == SUCCESS:
+            globals.points += 1
+        elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY or action_input_result == WRONG_LANE:
+            # allow players to try again as long as the thing is not gone yet
+            # no point deduction for too early or wrong motion
+            globals.points -= 0
