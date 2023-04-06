@@ -4,4 +4,6 @@ root - INFO - MQTT: Preparing IMU MQTT connection
 root - INFO - MQTT: Preparing localization MQTT connection
 root - INFO - SPEECH: Starting the recognizer!
 root - INFO - SPEECH: Cleared Queue
+root - INFO - SPEECH: Cleared Queue
 root - DEBUG - SPEECH: COMMAND exit DETECTED!
+root - DEBUG - SPEECH: Exit detected
