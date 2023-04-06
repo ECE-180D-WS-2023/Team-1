@@ -3,7 +3,8 @@ import logging
 import paho.mqtt.client as mqtt
 
 # Internal Package imports
-from game import mqtt_lib, speech
+from game import mqtt_lib
+import speech
 
 # TODO: Move these files to their own packages
 from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
@@ -93,7 +94,7 @@ class Game():
 
         # TODO Button on esp32 remote was pressed
         SPEECH_BUTTON = pygame.USEREVENT + 3
-        speech_flag = False
+        speech_flag = True
 
         # custom note update per speed along with note fall speed
         last_time = pygame.time.get_ticks()
