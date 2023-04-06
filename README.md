@@ -4,6 +4,7 @@
 pip install vosk 
 pip install sounddevice 
 pip install pyaudio
+pip install opencv-python
 ```
 
 Anna Anderson
