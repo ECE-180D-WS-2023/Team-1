@@ -1,5 +1,6 @@
 import logging
 from game import Game
+from speech import laptop_speech, config
 
 
 # Initialize the logging file
