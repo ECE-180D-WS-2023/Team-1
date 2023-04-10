@@ -82,8 +82,8 @@ def threshold(HSV, htol, stol, vtol):
     return low_threshold, high_threshold
 
 def in_border_range(tol, x, x2, y, y2, w, h): # find if in the border range
-    print('X ', x)
-    print('GX ', x2)
+    #print('X ', x)
+    #print('GX ', x2)
     if (((x2 > (x)) and (x2 < (x + w + tol))) and ((y2 > (y)) and (y2 < (y + h + tol)))) or (((x2 < (x)) and (x2 > (x - tol))) and ((y2 < (y)) and (y2 > (y - tol)))):
         return True
     return False
