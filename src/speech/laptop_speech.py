@@ -133,7 +133,9 @@ class KeywordRecognizer():
 
     @staticmethod
     def print_all_sound_devices():
-        print(sd.query_devices())
+        # print(sd.query_devices())
+        print(sd.query_devices(kind="input"))
+
 
     def callback(self, indata, frames, time, status):
         """
