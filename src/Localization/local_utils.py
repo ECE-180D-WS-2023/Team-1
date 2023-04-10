@@ -89,11 +89,15 @@ def in_border_range(tol, x, x2, y, y2, w, h): # find if in the border range
     return False
 
 # SINGLE PLAYER
-def detect_position(colors, camera): # gives position of one color
+def detect_position(colors, camera, players): # gives position of one color
     cap = cv2.VideoCapture(camera) # start webcam capture (0 for onboard camera, 1 for USB camera)
     # Perform thresholding
     c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 150) # red
-    border_lower, border_upper = threshold(colors['c2'], 5, 100, 100) # green
+    if players == 2: # blue
+        c2_lower, c2_upper = threshold(colors['c2'], 5, 150, 150) # blue
+        border_lower, border_upper = threshold(colors['c3'], 5, 100, 100) # green
+    else:
+        border_lower, border_upper = threshold(colors['c2'], 5, 100, 100) # green
 
     tol = 5 # border tolerance
     atol = 500 # area tolerance
@@ -125,17 +129,30 @@ def detect_position(colors, camera): # gives position of one color
         border_mask = cv2.inRange(hsvFrame, np.array(border_lower, np.uint8), np.array(border_upper, np.uint8))
         border_mask = cv2.erode(border_mask, kernel, iterations=2)
         border_mask = cv2.dilate(border_mask, kernel, iterations=2)
+        if players == 2:
+            blue_mask = cv2.inRange(hsvFrame, np.array(c2_lower, np.uint8), np.array(c2_upper, np.uint8))
+            blue_mask = cv2.erode(blue_mask, kernel, iterations=2)
+            blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
         #flip = cv2.flip(red_mask,1) # for testing purposes
 
         # Bools to store if we see a certain color:
         red = False
-        
-
         rx = 0
+
+        if players == 2:
+            blue = False
+            bx = 0
+
 
 
         # Creating contour to track red color
         contours, hierarchy = cv2.findContours(red_mask,
+                                            cv2.RETR_TREE,
+                                            cv2.CHAIN_APPROX_SIMPLE)
+        
+        if players == 2:
+            # Creating contour to track blue color
+            contoursb, hierarchyb = cv2.findContours(blue_mask,
                                             cv2.RETR_TREE,
                                             cv2.CHAIN_APPROX_SIMPLE)
         
@@ -158,6 +175,27 @@ def detect_position(colors, camera): # gives position of one color
                         cv2.putText(frame, "Red Color", (x, y),
                                     cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                     (0, 0, 255))
+        if players == 2:       
+            for pic, contour in enumerate(contoursb):
+                area = cv2.contourArea(contour)
+                if(area > atol):
+                    x, y, w, h = cv2.boundingRect(contour)
+                    contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # detect green border
+                    for img, cnt in enumerate(contours2): 
+                        x2, y2, w2, h2 = cv2.boundingRect(cnt) 
+                        if in_border_range(tol, x, x2, y, y2, w, h): # if green border is in vicinity of the color square, we have properly detected color
+                            bx = x
+                            blue = True
+                            frame = cv2.rectangle(frame, (x, y), 
+                                                    (x + w, y + h), 
+                                                    (0, 0, 255), 2)
+                            frame = cv2.rectangle(frame, (x2, y2), 
+                                                    (x2 + w2, y2 + h2), 
+                                                    (0, 255, 0), 2)
+                            cv2.putText(frame, "Blue Color", (x, y),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                                        (255, 0, 0))
+
         # Player position ranges between 0 and 640
         if red:
             position = 0
@@ -169,9 +207,27 @@ def detect_position(colors, camera): # gives position of one color
                 position = 2
             else:
                 position = 1
-            print('Player position: ', position)
+            # print('Player position: ', position)
             position = str(position) + ',' + str(rx)
             client.publish("ktanna/local", position, qos=1) # publish on MQTT
+            if players == 2:
+                position = 'p1,' + str(position) + ',' + str(rx)
+                client.publish("ktanna/local", position, qos=1) # publish on MQTT
+        
+        if players == 2:
+            if blue:
+                position = 0
+                if (bx < 160):
+                    position = 4
+                elif(bx >= 160 and bx < 320):
+                    position = 3
+                elif (bx >= 320 and bx < 480):
+                    position = 2
+                else:
+                    position = 1
+                # print('Player position: ', position)
+                position = 'p2,' + str(position) + ',' + str(bx)
+                client.publish("ktanna/local", position, qos=1) # publish on MQTT
         # else:
         #     position = 'OUT OF BOUNDS' # out of bounds
         #     client.publish("ktanna/local", position, qos=1)  # publish on MQTT
@@ -202,7 +258,7 @@ def detect_position(colors, camera): # gives position of one color
     cap.release()
     cv2.destroyAllWindows()
 
-# MULTI-PLAYER
+# MULTI-PLAYER (>2)
 def detect_order(colors, camera): # gives position of 4 colors
     cap = cv2.VideoCapture(camera) # start webcam capture (0 for onboard camera, 1 for USB camera)
     # Perform thresholding

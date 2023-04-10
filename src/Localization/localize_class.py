@@ -43,8 +43,8 @@ class localize:
     def __init__(self, players=None, camera=None):
         if players == None or players == 1:
             self.players = 1 # default single player
-        elif players == 4: 
-            self.players = 4 # otherwise multiplayer
+        elif players == 2: 
+            self.players = 2 # otherwise multiplayer
         else:
             raise Exception("Not a valid number of players")
         self.calibrated = False # not yet calibrated
@@ -86,23 +86,23 @@ class localize:
                                         cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                         (0, 0, 255))
             if color == 1:
-                if self.players == 4: # if multiplayer
-                    cv2.putText(flip, "Orange Color", (300, 100),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 
-                                            1.0, (0, 164, 255))
+                if self.players == 2: # if multiplayer
+                    cv2.putText(flip, "Blue Color", (300, 100),
+                                        cv2.FONT_HERSHEY_SIMPLEX,
+                                        1.0, (255, 0, 0))
                 else: # if single player, only need one more color - the border color
                     cv2.putText(flip, "Green Border Color", (300, 100),
                                         cv2.FONT_HERSHEY_SIMPLEX, 
                                         1.0, (0, 255, 0))
+            # if color == 2:
+            #     cv2.putText(flip, "Orange Color", (300, 100),
+            #                                 cv2.FONT_HERSHEY_SIMPLEX, 
+            #                                 1.0, (0, 164, 255))
+            # if color == 3:
+            #     cv2.putText(flip, "Purple Color", (300, 100),
+            #                             cv2.FONT_HERSHEY_SIMPLEX, 
+            #                             1.0, (245, 0, 147))
             if color == 2:
-                cv2.putText(flip, "Blue Color", (300, 100),
-                                        cv2.FONT_HERSHEY_SIMPLEX,
-                                        1.0, (255, 0, 0))
-            if color == 3:
-                cv2.putText(flip, "Purple Color", (300, 100),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 
-                                        1.0, (245, 0, 147))
-            if color == 4:
                 cv2.putText(flip, "Green Border Color", (300, 100),
                                         cv2.FONT_HERSHEY_SIMPLEX, 
                                         1.0, (0, 255, 0))
@@ -124,14 +124,14 @@ class localize:
                 color_key = 'c' + str(color+1)
                 self.colors[color_key] = HSV_vals[0][0]
                 color += 1
-                if (color == 1):
-                    print("Input orange color by aligning in central box and striking c key")
-                if (color == 2):
-                    print("Input blue color by aligning in central box and striking c key")
-                if (color == 3):
-                    print("Input purple color by aligning in central box and striking c key")
-                if (color == 4):
-                    print("Input green border color by aligning in central box and striking c key")
+                # if (color == 1):
+                #     print("Input orange color by aligning in central box and striking c key")
+                # if (color == 2):
+                #     print("Input blue color by aligning in central box and striking c key")
+                # if (color == 3):
+                #     print("Input purple color by aligning in central box and striking c key")
+                # if (color == 4):
+                #     print("Input green border color by aligning in central box and striking c key")
         
         print("Colors collected")
         print(self.colors)
@@ -142,7 +142,7 @@ class localize:
     def detect(self):
         if not self.calibrated:
             self.calibrate()
-        if self.players == 1:
-            detect_position(self.colors, self.camera)
-        else:
-            detect_order(self.colors, self.camera)
+        #if self.players == 1:
+        detect_position(self.colors, self.camera, self.players)
+        #else:
+            #detect_order(self.colors, self.camera)
