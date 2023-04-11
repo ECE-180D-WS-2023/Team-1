@@ -11,10 +11,15 @@ WRONG_LANE = "Wrong Lane!"
 
 TOO_LATE = "Too Late!"
 
+# we want only r and b column colors now
 COLUMN_COLOR_1 = (255, 204, 203) #r
-COLUMN_COLOR_2 = (144, 238, 144) #g
-COLUMN_COLOR_3 = (173, 216, 230) #b
-COLUMN_COLOR_4 = (255,255,102) #y
+COLUMN_COLOR_2 = (173, 216, 230) #b
+COLUMN_COLOR_3 = (255, 204, 203) #r
+COLUMN_COLOR_4 = (173, 216, 230) #b
+
+#COLUMN_COLOR_2 = (144, 238, 144) #g
+#COLUMN_COLOR_3 = (173, 216, 230) #b
+#COLUMN_COLOR_4 = (255,255,102) #y
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):

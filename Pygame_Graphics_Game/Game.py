@@ -58,9 +58,6 @@ class Game():
         localization_mqtt_client.connect_async('mqtt.eclipseprojects.io')
         localization_mqtt_client.loop_start()
         pygame.time.wait(LOCALIZATION_CALIBRATION_TIME)
-
-        # motion timer
-        last_motion = pygame.time.get_ticks()
         
         # instantiate sprite groups
         notes = pygame.sprite.Group()

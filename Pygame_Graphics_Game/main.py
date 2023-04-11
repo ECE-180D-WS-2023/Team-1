@@ -2,10 +2,25 @@ from Game import Game
 
 # lots of help from https://realpython.com/pygame-a-primer/#sprite-groups
 
+# TODO: make the localization outputs int instead of string
+    # change the part in Note correct_column() function that checks for correct column
+    # change the part in localization_mqtt to directly int() right away the received message payload
+    # change in Player the place where player_coords is int()ed, this is no longer needed
+# TODO: make a copy of this after ensuring it works to save as good 1p game
+
+# TODO: in scaling to 2p
+    # in localization_mqtt, make the distinction between setting player1 and player2 coord and location 
+        # "player1_coords player2_coords" as in Player update()
+    # then when checking whether the move is correct, need to distinguish between player1 and player2 that made
+        # the gesture, possibly set two different events so both ensured that they get processed when gesture'd
+        # this involves making action flag for player 1 and also action flag for player 2 then make 2 if statements
+        # where the event is created
+    # from above, need to pass in player# into process_action_location to make sure the colors match the player's color
+
+
 # not done:
 # TODO: Now that IMU info is de-duped, fix Game code to register every message from 
 #       IMU mqtt -- includes print messages, there is like spam from multiple different messages
-# TODO: make pause function
 # TODO: make the text not change if wrong motion
 # TODO: make the text not change if wrong lane, for some reason it spams wrong lane
 # TODO: draw dots for which region players are in currently from localization
