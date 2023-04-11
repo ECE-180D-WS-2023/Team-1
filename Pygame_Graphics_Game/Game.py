@@ -63,6 +63,7 @@ class Game():
         notes = pygame.sprite.Group()
         players = pygame.sprite.Group()
         players.add(Player(1))
+        players.add(Player(2))
 
         # text for hitzone, for results, and points
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
@@ -80,10 +81,14 @@ class Game():
         SPAWNNOTE = pygame.USEREVENT + 1
         pygame.time.set_timer(SPAWNNOTE, int(0))
 
-        # received action from imu event
-        ACTION = pygame.USEREVENT + 2
+        # received action from imu event for player 1
+        ACTION_1 = pygame.USEREVENT + 2
         # where the action is stored
-        imu_action = None
+        imu_action_1 = None
+        # received action from imu event for player 1
+        ACTION_2 = pygame.USEREVENT + 3
+        # where the action is stored
+        imu_action_2 = None
 
         # custom note update per speed along with note fall speed
         last_note_update = pygame.time.get_ticks()
@@ -115,7 +120,7 @@ class Game():
                             lowest_note = get_lowest_note(notes)
                             #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
                             #print(localization_mqtt.player_location)
-                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), localization_mqtt.player_location)
+                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), localization_mqtt.player1_location, 1)
                             self.__calc_points(action_input_result)
                         else:
                             action_input_result = "No Notes Yet!"
@@ -129,27 +134,41 @@ class Game():
                     notes.add(new_note)
                     all_sprites.add(new_note)
                 # if we receive some action from imu
-                elif event.type == ACTION:
+                elif event.type == ACTION_1:
                     if (notes):
                         lowest_note = get_lowest_note(notes)
                         # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action, localization_mqtt.player_location)
+                        action_input_result = lowest_note.process_action_location(imu_action_1, localization_mqtt.player1_location, 1)
                         self.__calc_points(action_input_result)
                     else:
                         action_input_result = "No Notes Yet!"
                     globals.action_input_result_text.update(text=action_input_result)
-            
+                elif event.type == ACTION_2:
+                    if (notes):
+                        lowest_note = get_lowest_note(notes)
+                        # process key works for now since it is just diff letters
+                        action_input_result = lowest_note.process_action_location(imu_action_2, localization_mqtt.player2_location, 2)
+                        self.__calc_points(action_input_result)
+                    else:
+                        action_input_result = "No Notes Yet!"
+                    globals.action_input_result_text.update(text=action_input_result)
+
             # when pause game, also don't allow action to be read in and dont
             # let there be updated notes
             if not self.pause:
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
-                if (imu_mqtt.imu_action_received_flag):
-                    pygame.event.post(pygame.event.Event(ACTION))
-                    imu_action = imu_mqtt.IMU_ACTION
-                    print("action received: ", imu_action)
-                    imu_mqtt.imu_action_received_flag = False
+                if (imu_mqtt.imu_action_1_received_flag):
+                    pygame.event.post(pygame.event.Event(ACTION_1))
+                    imu_action_1 = imu_mqtt.IMU_ACTION
+                    print("action received: ", imu_action_1)
+                    imu_mqtt.imu_action_1_received_flag = False
+                if (imu_mqtt.imu_action_2_received_flag):
+                    pygame.event.post(pygame.event.Event(ACTION_2))
+                    imu_action_2 = imu_mqtt.IMU_ACTION_2
+                    print("action received: ", imu_action_2)
+                    imu_mqtt.imu_action_2_received_flag = False
                 # update note positions
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     notes.update()
