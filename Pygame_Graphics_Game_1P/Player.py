@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
                 )
             )
         elif (player_num == 2):
-            self.surf.fill((0, 0, 255))
+            self.surf.fill((0, 255, 0))
             self.rect = self.surf.get_rect(
                 center=(
                     0, 0
@@ -32,14 +32,14 @@ class Player(pygame.sprite.Sprite):
         if (self.player_num == 1):
             self.rect = self.surf.get_rect(
                 center = (
-                    ((640-(localization_mqtt.player1_coords))/640)*SCREEN_WIDTH, 
+                    ((640-(localization_mqtt.player_coords))/640)*SCREEN_WIDTH, 
                     PLAYER_Y_COORD
                 )
             )
         elif (self.player_num == 2):
             self.rect = self.surf.get_rect(
                 center = (
-                    ((640-int(localization_mqtt.player2_coords))/640)*SCREEN_WIDTH, 
+                    ((640-int(localization_mqtt.player_coords))/640)*SCREEN_WIDTH, 
                     PLAYER_Y_COORD
                 )
             )

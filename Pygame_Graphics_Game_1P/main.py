@@ -6,7 +6,7 @@ from Game import Game
     # change the part in Note correct_column() function that checks for correct column
     # change the part in localization_mqtt to directly int() right away the received message payload
     # change in Player the place where player_coords is int()ed, this is no longer needed
-# DONE: make a copy of this after ensuring it works to save as good 1p game
+# TODO: make a copy of this after ensuring it works to save as good 1p game
 
 # TODO: in scaling to 2p
     # in localization_mqtt, make the distinction between setting player1 and player2 coord and location 

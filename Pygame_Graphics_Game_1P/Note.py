@@ -8,37 +8,64 @@ SUCCESS = "Nice!"
 TOO_EARLY = "Too Early!"
 WRONG_KEY = "Wrong Motion!"
 WRONG_LANE = "Wrong Lane!"
-WRONG_COLOR = "Wrong Color!"
 
 TOO_LATE = "Too Late!"
 
 # we want only r and b column colors now
-COLOR_1 = (255, 204, 203) #r
-COLOR_2 = (173, 216, 230) #b
-COLOR_3 = COLOR_1
-COLOR_4 = COLOR_2
+COLUMN_COLOR_1 = (255, 204, 203) #r
+COLUMN_COLOR_2 = (173, 216, 230) #b
+COLUMN_COLOR_3 = (255, 204, 203) #r
+COLUMN_COLOR_4 = (173, 216, 230) #b
 
-#COLOR_2 = (144, 238, 144) #g
-#COLOR_3 = (173, 216, 230) #b
-#COLOR_4 = (255,255,102) #y
+#COLUMN_COLOR_2 = (144, 238, 144) #g
+#COLUMN_COLOR_3 = (173, 216, 230) #b
+#COLUMN_COLOR_4 = (255,255,102) #y
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):
+    """ # legacy code where it just displays color
+    def __init__(self):
+        super(Note, self).__init__()
+        self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
+        
+        # color in the square according to its lane
+        if (self.lane == COLUMN_1):
+            self.surf.fill(COLUMN_COLOR_1)
+        elif (self.lane == COLUMN_2):
+            self.surf.fill(COLUMN_COLOR_2)
+        elif (self.lane == COLUMN_3):
+            self.surf.fill(COLUMN_COLOR_3)
+        elif (self.lane == COLUMN_4):
+            self.surf.fill(COLUMN_COLOR_4)
+
+        # self.surf.fill((0, 100, 100)) # default color
+        self.rect = self.surf.get_rect(
+            center=(
+                # random.randint(NOTE_WIDTH/2, SCREEN_WIDTH-(NOTE_WIDTH/2)), # for randomly on screen
+            self.lane, 0
+            )
+        )
+        
+        # the letter assigned to note, randomly generated
+        self.char = random.choice(KEYS)
+        self.letter = self.char
+    """
     def __init__(self):
         super(Note, self).__init__()
         self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
         
         self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
-
-        self.color = ""
-        # randomly generate either 1 or 2 for color
-        if (random.randint(1,2) == 1):
-            self.color = COLOR_1
-        else:
-            self.color = COLOR_2
         
         # color in the square according to its lane
-        self.surf.fill(self.color)
+        if (self.lane == COLUMN_1):
+            self.surf.fill(COLUMN_COLOR_1)
+        elif (self.lane == COLUMN_2):
+            self.surf.fill(COLUMN_COLOR_2)
+        elif (self.lane == COLUMN_3):
+            self.surf.fill(COLUMN_COLOR_3)
+        elif (self.lane == COLUMN_4):
+            self.surf.fill(COLUMN_COLOR_4)
 
         # self.surf.fill((0, 100, 100)) # default color
         self.rect = self.surf.get_rect(
@@ -94,14 +121,11 @@ class Note(pygame.sprite.Sprite):
             return WRONG_KEY
 
     # if we have <imu or keyboard> AND <localization>
-    def process_action_location(self, action, location, player_num):
-        # check that the player cleared the correct color
+    def process_action_location(self, action, location):
         # if the key press is correct and is also in the hit zone AND also in the correct column
-        if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location) and self.correct_color(player_num):
+        if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location):
             self.kill()
             return SUCCESS
-        elif not self.correct_color(player_num):
-            return WRONG_COLOR
         elif not self.correct_column(location):
             return WRONG_LANE
         elif action == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
@@ -123,14 +147,6 @@ class Note(pygame.sprite.Sprite):
             return True
         return False
 
-    def correct_color(self, player_num):
-        if player_num == 1:
-            if self.color == COLOR_1 or self.color == COLOR_3:
-                return True
-        elif player_num == 2:
-            if self.color == COLOR_2 or self.color == COLOR_4:
-                return True
-        return False
 
 # calculates lowest key and returns that note
 def get_lowest_note(notes):
