@@ -197,6 +197,7 @@ def detect_position(colors, camera, players): # gives position of one color
                                         (255, 0, 0))
 
         # Player position ranges between 0 and 640
+        
         if red:
             position = 0
             if (rx < 160):
@@ -208,11 +209,15 @@ def detect_position(colors, camera, players): # gives position of one color
             else:
                 position = 1
             # print('Player position: ', position)
-            position = str(position) + ',' + str(rx)
-            client.publish("ktanna/local", position, qos=1) # publish on MQTT
-            if players == 2:
-                position = 'p1,' + str(position) + ',' + str(rx)
-                client.publish("ktanna/local", position, qos=1) # publish on MQTT
+            position_str1 = ''
+            position_str1 = str(position) + ',' + str(rx)
+            if position != 0:
+                # if players == 2:
+                position_str1 = ''
+                position_str1 = 'p1,' + str(position) + ',' + str(rx)
+                client.publish("ktanna/local", position_str1, qos=1) # publish on MQTT
+                # else:
+                #     client.publish("ktanna/local", position_str1, qos=1) # publish on MQTT
         
         if players == 2:
             if blue:
@@ -225,9 +230,11 @@ def detect_position(colors, camera, players): # gives position of one color
                     position = 2
                 else:
                     position = 1
+                if position != 0:
                 # print('Player position: ', position)
-                position = 'p2,' + str(position) + ',' + str(bx)
-                client.publish("ktanna/local", position, qos=1) # publish on MQTT
+                    position_str = ''
+                    position_str = 'p2,' + str(position) + ',' + str(bx)
+                    client.publish("ktanna/local", position_str, qos=1) # publish on MQTT
         # else:
         #     position = 'OUT OF BOUNDS' # out of bounds
         #     client.publish("ktanna/local", position, qos=1)  # publish on MQTT

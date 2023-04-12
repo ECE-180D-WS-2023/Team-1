@@ -2,7 +2,20 @@
 #include <PubSubClient.h>
 #include "arduino_secrets.h"
 #include <Wire.h>
-#include "SparkFun_ISM330DHCX.h"
+#include "ICM_20948.h" // Click here to get the library: http://librarymanager/All#SparkFun_ICM_20948_IMU
+//#define USE_SPI       // Uncomment this to use SPI
+#define SERIAL_PORT Serial
+#define SPI_PORT SPI // Your desired SPI port.       Used only when "USE_SPI" is defined
+#define CS_PIN 2     // Which pin you connect CS to. Used only when "USE_SPI" is defined
+#define WIRE_PORT Wire // Your desired Wire port.      Used when "USE_SPI" is not defined
+#define AD0_VAL 1
+
+#ifdef USE_SPI
+ICM_20948_SPI myICM; // If using SPI create an ICM_20948_SPI object
+#else
+ICM_20948_I2C myICM; // Otherwise create an ICM_20948_I2C object
+#endif
+
 #define LED_BLUE 13 //for calibration indication
 #define BUTTON 14 //for button
 
@@ -17,7 +30,7 @@ const char *password = SECRET_PASS;  // Enter WiFi password
 
 // MQTT Broker
 const char *mqtt_broker = "mqtt.eclipseprojects.io";
-const char *topic = "ktanna/motion1";
+const char *topic = "ktanna/motion2";
 // const char *mqtt_username = "emqx";
 // const char *mqtt_password = "public";
 const int mqtt_port = 1883;
@@ -25,12 +38,7 @@ const int mqtt_port = 1883;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// Motion detection vars
-SparkFun_ISM330DHCX myISM; 
 
-// Structs for X,Y,Z data
-sfe_ism_data_t accelData; 
-sfe_ism_data_t gyroData; 
 
 // floats for X, Y, Z data
 float ax;
@@ -70,45 +78,34 @@ void setup() {
          delay(2000);
      }
  }
- // publish and subscribe
- client.publish(topic, "Hi I'm ESP32 ^^");
- client.subscribe(topic);
+ #ifdef USE_SPI
+  SPI_PORT.begin();
+#else
+  WIRE_PORT.begin();
+  WIRE_PORT.setClock(400000);
+#endif
+  //myICM.enableDebugging(); // Uncomment this line to enable helpful debug messages on Serial
+  bool initialized = false;
+  while (!initialized)
+  {
+#ifdef USE_SPI
+    myICM.begin(CS_PIN, SPI_PORT);
+#else
+    myICM.begin(WIRE_PORT, AD0_VAL);
+#endif
+    SERIAL_PORT.print(F("Initialization of the sensor returned: "));
+    SERIAL_PORT.println(myICM.statusString());
+    if (myICM.status != ICM_20948_Stat_Ok)
+    {
+      SERIAL_PORT.println("Trying again...");
+      delay(500);
+    }
+    else
+    {
+      initialized = true;
+    }
+  }
 
-
-  if( !myISM.begin() ){
-		Serial.println("Did not begin.");
-		while(1);
-	}
-  
-	// Reset the device to default settings
-	myISM.deviceReset();
-
-	// Wait for it to finish reseting
-	while( !myISM.getDeviceReset() ){ 
-		delay(1);
-	} 
-
-	Serial.println("Reset.");
-	Serial.println("Applying settings.");
-	delay(100);
-	myISM.setDeviceConfig();
-	myISM.setBlockDataUpdate();
-	
-	// Set the output data rate and precision of the accelerometer
-	myISM.setAccelDataRate(ISM_XL_ODR_208Hz);
-	myISM.setAccelFullScale(ISM_4g); 
-
-	// Set the output data rate and precision of the gyroscope
-	myISM.setGyroDataRate(ISM_GY_ODR_208Hz);
-	myISM.setGyroFullScale(ISM_500dps); 
-
-	// Turn on the accelerometer's filter and apply settings. 
-	myISM.setAccelFilterLP2();
-	myISM.setAccelSlopeFilter(ISM_LP_ODR_DIV_100);
-
-	// Turn on the gyroscope's filter and apply settings. 
-	myISM.setGyroFilterLP1();
-	myISM.setGyroLP1Bandwidth(ISM_MEDIUM);
 }
 
 void callback(char *topic, byte *payload, unsigned int length) {
@@ -134,7 +131,7 @@ float max_z = 0;
 unsigned long threshold = 20;
 char move = 'x';
 char trans_m = 'q';
-int play_num = 1;
+int play_num = 2;
 long int last_time = millis();
 long int thresh_send = 600;
 
@@ -177,67 +174,73 @@ void loop()
   //   Serial.println("BUTTON PUSHED");
   // }
   // Check if both gyroscope and accelerometer data is available.
-	if( myISM.checkStatus() ){
+  if (myICM.dataReady()){
+    myICM.getAGMT(); // The values are only updated when you call 'getAGMT'
     if (!calibrated) {
-      Serial.println("Calibrating idle movement"); 
-      digitalWrite(LED_BLUE, HIGH);
-      for (int i = 0; i < 10; i++) {
-        myISM.getAccel(&accelData);
-        myISM.getGyro(&gyroData);
-        ax = accelData.xData;
-        ay = accelData.yData;
-        az = accelData.zData;
-        delay(500);
-        // Get min
-        if (ax < min_x) {
-          min_x = ax;
+       SERIAL_PORT.println("Calibrating idle movement"); 
+       digitalWrite(LED_BLUE, HIGH);
+       for (int i = 0; i < 10; i++)
+        {
+          delay(1000);
+          // Get Max & Min Acceleration
+          if (myICM.accX()> max_x) {
+            max_x = myICM.accX();
+          }
+          if (myICM.accY()> max_y) {
+            max_y = myICM.accY();
+          }
+          if (myICM.accZ()> max_z) {
+            max_z = myICM.accZ();
+          }
+          //Get min
+          if (myICM.accX()< min_x) {
+            min_x = myICM.accX();
+          }
+          if (myICM.accY()< min_y) {
+            min_y = myICM.accY();
+          }
+          if (myICM.accZ()< min_z) {
+            min_z = myICM.accZ();
+          }
         }
-        if (ay < min_y) {
-          min_y = ay;
-        }
-        if (az < min_z) {
-          min_z = az;
-        }
-        // Get max
-        if (ax > max_x) {
-          max_x = ax;
-        }
-        if (ay > max_y) {
-          max_y = ay;
-        }
-        if (az > max_z) {
-          max_z = az;
-        }
-      }
-      Serial.println("Idle values:");
-      Serial.println( min_x);
-      Serial.println( max_x);
-      Serial.println( min_y);
-      Serial.println( max_y);
-      Serial.println( min_z);
-      Serial.println( max_z); 
-      digitalWrite(LED_BLUE, LOW);
-      calibrated = 1; 
-	  }
-    myISM.getAccel(&accelData);
-		myISM.getGyro(&gyroData);
-    ax = accelData.xData;
-    ay = accelData.yData;
-    az = accelData.zData;
-    gx = gyroData.xData;
-    gy = gyroData.yData;
-    gz = gyroData.zData;
+        SERIAL_PORT.println("Idle values:");
+        SERIAL_PORT.println( min_x);
+        SERIAL_PORT.println( max_x);
+        SERIAL_PORT.println( min_y);
+        SERIAL_PORT.println( max_y);
+        SERIAL_PORT.println( min_z);
+        SERIAL_PORT.println(max_z); 
+        digitalWrite(LED_BLUE, LOW);
+        calibrated = 1; //Set calibration mode to true
+    }
+
+    ay = myICM.accY();
+    az = myICM.accZ();
+    ax = myICM.accX();
+    
+    gy = myICM.gyrY();
+    gz = myICM.gyrZ();
+    gx = myICM.gyrX();
+
+    //SERIAL_PORT.println(ax);
+
+    //SERIAL_PORT.println(ay);
+    // SERIAL_PORT.println(az);
+    //SERIAL_PORT.println(gx); 
+    //SERIAL_PORT.println(gy); 
+    //SERIAL_PORT.println(gz); 
+
     if (az < max_z + 100 && az > min_z - 100
     && ax < max_x + 100 && ax > min_x - 100
     && ay < max_y + 100 && ay > min_y - 100) {
       trans_m = 'q';
     }
-    else if (gx > 400000 && gy < 350000 && gz < 350000) {
+    else if (gx > 200 && gy < 200 && gz < 100) {
      Serial.println("r");
       move = 'r';
       trans_m = pubMove(move, trans_m, play_num, last_time);
     }
-    else if (ax > 400 && az < 0) {
+    else if (ax > 1000 && az < 2000) {
       Serial.println("f");
       move = 'f';
       trans_m = pubMove(move, trans_m, play_num, last_time);
@@ -246,8 +249,8 @@ void loop()
       Serial.println("l");
       move = 'l';
       trans_m = pubMove(move, trans_m, play_num, last_time);
-    }
-    else if (az > 900 && ax < 500 && ay < az - 300 && gx < 100000) {
+    }    
+    else if (az > 1800 && ax < 500 && ay < 500) {
       Serial.println("u");
       move = 'u';
       trans_m = pubMove(move, trans_m, play_num, last_time);
