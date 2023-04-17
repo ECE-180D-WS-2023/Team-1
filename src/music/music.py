@@ -5,6 +5,8 @@ import queue
 import threading
 import sounddevice as sd
 import soundfile as sf
+import pygame
+
 
 DEFAULT_SONG_FOLDER = os.path.abspath("songs")
 
@@ -102,9 +104,31 @@ class MusicSelector:
     def __repr__(self):
         return f"TITLE: {self.title}, ARTIST: {self.artist}, BPM: {self.bpm}"
 
-if __name__ == "__main__":
-    # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+class MusicPlayer():
 
+    def __init__(self, title, song_folder=None, difficulty=None) -> None:
+        logging.debug("MUSIC: Initializing")
+
+        self.difficulty = difficulty
+
+        song = get_from_title(song_list, title)
+        self.artist = song["artist"]
+        self.title = song["title"]
+        self.bpm = song["bpm"]
+        self.filename = song["filename"]
+
+        self.path = os.path.join(song_folder if song_folder is not None else DEFAULT_SONG_FOLDER, self.filename)
+        logging.debug(f"MUSIC: path set to {self.path}")
+        pygame.mixer.init()
+        pygame.mixer.music.load(self.path)
+    
+    def play_song(self):
+        pygame.mixer.music.play()
+
+
+if __name__ == "__main__": 
+    # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    
     print("Beginning to music test script")
 
     parsed = parse_song_filename(os.listdir(DEFAULT_SONG_FOLDER)[0])
@@ -117,11 +141,13 @@ if __name__ == "__main__":
     print(f"here is the filename: {ms_song_filename}")
 
     print()
-    ms = MusicSelector("I Gotta Feeling")
+    ms = MusicPlayer("I Gotta Feeling")
     logging.info(ms)
 
     # Currently blocks when playing the song. Need to find a way to play in the background
     # Investigating the python multiprocessing library
-    ms.play_song(3)
+    ms.play_song()
     logging.debug("In main")
     
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
