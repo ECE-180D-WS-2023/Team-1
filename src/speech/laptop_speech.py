@@ -3,6 +3,7 @@ import sys
 import sounddevice as sd
 import json
 import logging
+import paho.mqtt.client as mqtt
 
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
@@ -148,10 +149,38 @@ class KeywordRecognizer():
 
         self.q.put(bytes(indata))
 
+class SpeechPublisher():
+
+    def __init__(self, topic: str) -> None:
+        self.topic = topic
+
+        # initialize MQTT values
+        self.client = mqtt.Client()
+        self.client.on_connect = self._on_connect
+        self.client.on_disconnect = self._on_disconnect
+        self.client.connect_async('mqtt.eclipseprojects.io')
+        self.client.loop_start()
+        self.client.publish(self.topic, 1, qos=1)
+    
+    def publish(self, text: str) -> None:
+        self.client.publish(self.topic, text, qos=1) # publish on MQTT
+
+    def _on_connect(self, client, userdata, flags, rc):
+        client.subscribe(self.topic, qos=1)
+        print("Connection returned result: " + str(rc))
+    
+    def _on_disconnect(self, client, userdata, rc):
+        if rc != 0:
+            print('Unexpected Disconnect')
+        else:
+            print('Expected Disconnect')
+
 
 if __name__ == "__main__":
     import config
     special_words = config.SPECIAL_WORDS
+
+    spub = SpeechPublisher("ECE180/Team1/speech/item1")
 
     KeywordRecognizer.print_all_sound_devices()
     KeywordRecognizer.print_sound_device(0)
@@ -164,5 +193,7 @@ if __name__ == "__main__":
             new, word = myrec.test_data(d, True)
             if new:
                 print(f"WORD: {word}")
+                spub.publish(word)
+    
     except (KeyboardInterrupt, EOFError):
         print('Received KeyboardInterrupt')
