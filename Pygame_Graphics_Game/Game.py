@@ -161,7 +161,7 @@ class Game():
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
                 if (imu_mqtt.imu_action_1_received_flag):
                     pygame.event.post(pygame.event.Event(ACTION_1))
-                    imu_action_1 = imu_mqtt.IMU_ACTION
+                    imu_action_1 = imu_mqtt.IMU_ACTION_1
                     print("action received: ", imu_action_1)
                     imu_mqtt.imu_action_1_received_flag = False
                 if (imu_mqtt.imu_action_2_received_flag):

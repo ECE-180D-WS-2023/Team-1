@@ -10,7 +10,7 @@ ACTION_LEFT = 'l'
 ACTION_ROTATE = 'r'
 ACTION_FORWARD = 'f'
 
-SUBSCRIPTION = "ktanna/test"
+SUBSCRIPTION = "ktanna/motion"
 
 # on mqtt message, update the flag and also store the action
 # the game loop will make the flag false for next action
@@ -22,11 +22,13 @@ def imu_mqtt_on_message(client, userdata, message):
     global IMU_ACTION_2
     global imu_action_2_received_flag
 
+    print(message.payload)
+
     if str(message.payload)[0:4] == "b'p1":
-        IMU_ACTION_1 = str(message.payload)[4:-1]
+        IMU_ACTION_1 = str(message.payload)[5:-1]
         imu_action_1_received_flag = True
     elif str(message.payload)[0:4] == "b'p2":
-        IMU_ACTION_2 = str(message.payload)[4:-1]
+        IMU_ACTION_2 = str(message.payload)[5:-1]
         imu_action_2_received_flag = True
 
 def imu_mqtt_on_connect(client, userdata, flags, rc):
