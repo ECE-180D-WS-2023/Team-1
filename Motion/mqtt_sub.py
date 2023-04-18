@@ -6,7 +6,7 @@ def on_connect(client, userdata, flags, rc):
   print("Connection returned result: " + str(rc))
   # Subscribing in on_connect() means that if we lose the connection and
   # reconnect then subscriptions will be renewed.
-  client.subscribe("ktanna/motion1", qos=1)
+  client.subscribe("ktanna/motion", qos=1)
 
 # The callback of the client when it disconnects.
 def on_disconnect(client, userdata, rc):
