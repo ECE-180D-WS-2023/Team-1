@@ -142,7 +142,7 @@ class localize:
     def detect(self):
         if not self.calibrated:
             self.calibrate()
-        #if self.players == 1:
-        detect_position(self.colors, self.camera, self.players)
-        #else:
-            #detect_order(self.colors, self.camera)
+        if self.players == 1:
+            detect_position(self.colors, self.camera)
+        else:
+            detect_position_2(self.colors, self.camera)
