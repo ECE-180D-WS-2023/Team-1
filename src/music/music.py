@@ -136,6 +136,12 @@ if __name__ == "__main__":
 
     song_list = list_songs()
     print(song_list)
+    print()
+
+    # Show each song in the list in a title - artist format
+    for s in song_list:
+        print(f'Title: {s["title"]} - Artist {s["artist"]}')
+    print()
 
     ms_song_filename = get_from_title(song_list, "I Gotta Feeling")
     print(f"here is the filename: {ms_song_filename}")
