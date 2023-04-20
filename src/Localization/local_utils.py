@@ -92,10 +92,10 @@ def in_border_range(tol, x, x2, y, y2, w, h): # find if in the border range
 def detect_position(colors, camera,): # gives position of one color
     cap = cv2.VideoCapture(camera) # start webcam capture (0 for onboard camera, 1 for USB camera)
     # Perform thresholding
-    c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 150) # red
+    c1_lower, c1_upper = threshold(colors['c1'], 5, 100, 100) # red
     border_lower, border_upper = threshold(colors['c2'], 5, 100, 100) # green
 
-    tol = 5 # border tolerance
+    tol = 3 # border tolerance
     atol = 500 # area tolerance
 
     # initialize MQTT values
@@ -203,11 +203,11 @@ def detect_position(colors, camera,): # gives position of one color
     cv2.destroyAllWindows()
 
 # TWO PLAYER
-def detect_position_2(colors, camera): # gives position of one color
+def detect_position_2(colors, camera, verbose = False): # gives position of one color
     cap = cv2.VideoCapture(camera) # start webcam capture (0 for onboard camera, 1 for USB camera)
     # Perform thresholding
-    c1_lower, c1_upper = threshold(colors['c1'], 5, 150, 150) # red
-    c2_lower, c2_upper = threshold(colors['c2'], 5, 150, 150) # blue
+    c1_lower, c1_upper = threshold(colors['c1'], 5, 100, 100) # red
+    c2_lower, c2_upper = threshold(colors['c2'], 5, 100, 100) # blue
     border_lower, border_upper = threshold(colors['c3'], 5, 100, 100) # green
 
     tol = 5 # border tolerance
@@ -222,7 +222,10 @@ def detect_position_2(colors, camera): # gives position of one color
     client.publish("ktanna/local", 1, qos =1)
 
     start = True # done calibrating
-
+    last_rx = 0 # last red absolute position
+    last_rp = 0 # last red position (1 through 4)
+    last_bx = 0 # last blue absolute position
+    last_bp = 0 # last blue position (1 through 4)
     # Start reading in orders
     while (start):
         # Reading the video from the webcam in image frames
@@ -247,6 +250,7 @@ def detect_position_2(colors, camera): # gives position of one color
         # Bools to store if we see a certain color:
         red = False
         rx = 0
+        
         blue = False
         bx = 0
         # Creating contour to track red color
@@ -264,15 +268,16 @@ def detect_position_2(colors, camera): # gives position of one color
                     if in_border_range(tol, x, x2, y, y2, w, h): # if green border is in vicinity of the color square, we have properly detected color
                         rx = x
                         red = True
-                        # frame = cv2.rectangle(frame, (x, y), 
-                        #                         (x + w, y + h), 
-                        #                         (0, 0, 255), 2)
-                        # frame = cv2.rectangle(frame, (x2, y2), 
-                        #                         (x2 + w2, y2 + h2), 
-                        #                         (0, 255, 0), 2)
-                        # cv2.putText(frame, "Red Color", (x, y),
-                        #             cv2.FONT_HERSHEY_SIMPLEX, 1.0,
-                        #             (0, 0, 255))
+                        if verbose:
+                            frame = cv2.rectangle(frame, (x, y), 
+                                                    (x + w, y + h), 
+                                                    (0, 0, 255), 2)
+                            frame = cv2.rectangle(frame, (x2, y2), 
+                                                    (x2 + w2, y2 + h2), 
+                                                    (0, 255, 0), 2)
+                            cv2.putText(frame, "Red Color", (x, y),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                                        (0, 0, 255))
         contoursb, hierarchyb = cv2.findContours(blue_mask,
                                             cv2.RETR_TREE,
                                             cv2.CHAIN_APPROX_SIMPLE)
@@ -286,17 +291,19 @@ def detect_position_2(colors, camera): # gives position of one color
                     if in_border_range(tol, x, x2, y, y2, w, h): # if green border is in vicinity of the color square, we have properly detected color
                         bx = x
                         blue = True
-                        # frame = cv2.rectangle(frame, (x, y), 
-                        #                         (x + w, y + h), 
-                        #                         (0, 0, 255), 2)
-                        # frame = cv2.rectangle(frame, (x2, y2), 
-                        #                         (x2 + w2, y2 + h2), 
-                        #                         (0, 0, 255), 2)
-                        # cv2.putText(frame, "Blue Color", (x, y),
-                        #             cv2.FONT_HERSHEY_SIMPLEX, 1.0,
-                        #             (255, 0, 0))
+                        if verbose:
+                            frame = cv2.rectangle(frame, (x, y), 
+                                                    (x + w, y + h), 
+                                                    (0, 0, 255), 2)
+                            frame = cv2.rectangle(frame, (x2, y2), 
+                                                    (x2 + w2, y2 + h2), 
+                                                    (0, 0, 255), 2)
+                            cv2.putText(frame, "Blue Color", (x, y),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                                        (255, 0, 0))
 
         # Player position ranges between 0 and 640
+        mqtt_send = ''
         
         if red:
             position = 0
@@ -308,49 +315,50 @@ def detect_position_2(colors, camera): # gives position of one color
                 position = 2
             else:
                 position = 1
-            # print('Player position: ', position)
-            position_str1 = ''
-            position_str1 = str(position) + ',' + str(rx)
             if position != 0:
-                # if players == 2:
-                position_str1 = ''
-                position_str1 = str(position) + ',' + str(rx)
-            if blue:
-                position = 0
-                if (bx < 160):
-                    position = 4
-                elif(bx >= 160 and bx < 320):
-                    position = 3
-                elif (bx >= 320 and bx < 480):
-                    position = 2
-                else:
-                    position = 1
-                if position != 0:
-                # print('Player position: ', position)
-                    position_str = ''
-                    position_str = ',' + position_str1 + ',' + str(position) + ',' + str(bx) + ','
-                    client.publish("ktanna/local", position_str, qos=1) # publish on MQTT
+                last_rp = position
+                last_rx = rx
+            
+        if blue:
+            position = 0
+            if (bx < 160):
+                position = 4
+            elif(bx >= 160 and bx < 320):
+                position = 3
+            elif (bx >= 320 and bx < 480):
+                position = 2
+            else:
+                position = 1
+            if position != 0:
+                last_bp = position
+                last_bx = bx
+
+        mqtt_send = ','+ str(last_rp) + ',' + str(last_rx) + ',' + str(last_bp) + ',' + str(last_bx) + ','
+        client.publish("ktanna/local", mqtt_send, qos=1) # publish on MQTT
         # commented out showing frame
-        """
-        flip = cv2.flip(frame,1) # mirror frame for visual understanding
-        cv2.putText(flip, "zone 1", (10, 240),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                    (0, 255, 0))
-        cv2.putText(flip, "zone 2", (170, 240),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                    (0, 255, 0))
-        cv2.putText(flip, "zone 3", (330, 240),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                    (0, 255, 0))
-        cv2.putText(flip, "zone 4", (490, 240),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                                    (0, 255, 0))
-        line_thickness = 2
-        cv2.line(flip, (160, 0), (160, 480), (0, 255, 0), thickness=line_thickness)
-        cv2.line(flip, (320, 0), (320, 480), (0, 255, 0), thickness=line_thickness)
-        cv2.line(flip, (480, 0), (480, 480), (0, 255, 0), thickness=line_thickness)
-        cv2.imshow("Color Detection in Real-Time", flip)
-        """
+        
+        if verbose:
+            flip = cv2.flip(frame,1) # mirror frame for visual understanding
+        
+            cv2.putText(flip, "zone 1", (10, 240),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                        (0, 255, 0))
+            cv2.putText(flip, "zone 2", (170, 240),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                        (0, 255, 0))
+            cv2.putText(flip, "zone 3", (330, 240),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                        (0, 255, 0))
+            cv2.putText(flip, "zone 4", (490, 240),
+                                        cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                        (0, 255, 0))
+            line_thickness = 2
+            cv2.line(flip, (160, 0), (160, 480), (0, 255, 0), thickness=line_thickness)
+            cv2.line(flip, (320, 0), (320, 480), (0, 255, 0), thickness=line_thickness)
+            cv2.line(flip, (480, 0), (480, 480), (0, 255, 0), thickness=line_thickness)
+            
+            cv2.imshow("Color Detection in Real-Time", flip)
+        
         if cv2.waitKey(10) & 0xFF == ord('q'):
             break
 
