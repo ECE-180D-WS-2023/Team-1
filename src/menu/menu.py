@@ -21,7 +21,12 @@ from pygame.locals import (
 
 # to do: (note: work in src)
 # add custom controllers to buttons so that if a certain flag is raised, they will perform the action
-# 
+#
+
+# TODO 4/20/2023: 
+# Make mqtt file w/ the onmessage, disconnect, connect (look at imu_mqtt.py)
+# import from file, make mqtt client then set the onconnect functions (etc) to the function from file
+# parse in 
 
 class Button:
     def __init__(self, text, x_pos, y_pos, enabled, screen):
@@ -88,9 +93,6 @@ class Menu():
         pygame.init()
         res = (800,600) # screen resolution
         screen = pygame.display.set_mode(res) # opens up a window 
-        white = (255,255,255) # white color
-        blue_light = (172,213,239) # light shade of the button 
-        blue_dark = (38,145,211)  # dark shade of the button 
         width = screen.get_width() # stores the width of the screen into a variable 
         height = screen.get_height() # stores the height of the screen into a variable 
         smallfont = pygame.font.SysFont('Ariel',35) # defining a font 
