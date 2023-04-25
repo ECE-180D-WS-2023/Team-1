@@ -40,7 +40,7 @@ class localize:
         - detect(self)
             detect color information
     """
-    def __init__(self, players=None, camera=None):
+    def __init__(self, players=None, camera=None, verbose = None):
         if players == None or players == 1:
             self.players = 1 # default single player
         elif players == 2: 
@@ -54,6 +54,10 @@ class localize:
             self.camera = 1 # default to USB camera
         else:
             self.camera = 0 # otherwise 
+        if verbose == None:
+            self.verbose = False
+        elif verbose == True:
+            self.verbose = True
 
     def calibrate(self, recalibrate=None): 
         if self.calibrated:
@@ -145,4 +149,7 @@ class localize:
         if self.players == 1:
             detect_position(self.colors, self.camera)
         else:
-            detect_position_2(self.colors, self.camera)
+            if self.verbose == True:
+                detect_position_2(self.colors, self.camera, True)
+            else:
+                detect_position_2(self.colors, self.camera)

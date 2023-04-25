@@ -89,7 +89,7 @@ def in_border_range(tol, x, x2, y, y2, w, h): # find if in the border range
     return False
 
 # SINGLE PLAYER
-def detect_position(colors, camera,): # gives position of one color
+def detect_position(colors, camera): # gives position of one color
     cap = cv2.VideoCapture(camera) # start webcam capture (0 for onboard camera, 1 for USB camera)
     # Perform thresholding
     c1_lower, c1_upper = threshold(colors['c1'], 5, 100, 100) # red
@@ -254,12 +254,15 @@ def detect_position_2(colors, camera, verbose = False): # gives position of one 
         blue = False
         bx = 0
         # Creating contour to track red color
-        contours, hierarchy = cv2.findContours(red_mask,
+        contours, _ = cv2.findContours(red_mask,
                                             cv2.RETR_TREE,
                                             cv2.CHAIN_APPROX_SIMPLE)
         contours2, _ = cv2.findContours(border_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE) # detect green border
+        contoursb, _ = cv2.findContours(blue_mask,
+                                            cv2.RETR_TREE,
+                                            cv2.CHAIN_APPROX_SIMPLE)
         
-        for pic, contour in enumerate(contours):
+        for _, contour in enumerate(contours):
             area = cv2.contourArea(contour)
             if(area > atol):
                 x, y, w, h = cv2.boundingRect(contour)
@@ -278,10 +281,9 @@ def detect_position_2(colors, camera, verbose = False): # gives position of one 
                             cv2.putText(frame, "Red Color", (x, y),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                         (0, 0, 255))
-        contoursb, hierarchyb = cv2.findContours(blue_mask,
-                                            cv2.RETR_TREE,
-                                            cv2.CHAIN_APPROX_SIMPLE)
-        for pic, contour in enumerate(contoursb):
+                        break
+                    
+        for _, contour in enumerate(contoursb):
             area = cv2.contourArea(contour)
             if(area > atol):
                 x, y, w, h = cv2.boundingRect(contour)
@@ -297,10 +299,11 @@ def detect_position_2(colors, camera, verbose = False): # gives position of one 
                                                     (0, 0, 255), 2)
                             frame = cv2.rectangle(frame, (x2, y2), 
                                                     (x2 + w2, y2 + h2), 
-                                                    (0, 0, 255), 2)
+                                                    (0, 255, 0), 2)
                             cv2.putText(frame, "Blue Color", (x, y),
                                         cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                         (255, 0, 0))
+                        break
 
         # Player position ranges between 0 and 640
         mqtt_send = ''
@@ -311,13 +314,12 @@ def detect_position_2(colors, camera, verbose = False): # gives position of one 
                 position = 4
             elif(rx >= 160 and rx < 320):
                 position = 3
-            elif (rx >= 320 and rx < 480):
+            elif (rx >= 320 and rx <= 480):
                 position = 2
             else:
                 position = 1
-            if position != 0:
-                last_rp = position
-                last_rx = rx
+            last_rp = position
+            last_rx = rx
             
         if blue:
             position = 0
@@ -325,13 +327,12 @@ def detect_position_2(colors, camera, verbose = False): # gives position of one 
                 position = 4
             elif(bx >= 160 and bx < 320):
                 position = 3
-            elif (bx >= 320 and bx < 480):
+            elif (bx >= 320 and bx <= 480):
                 position = 2
             else:
                 position = 1
-            if position != 0:
-                last_bp = position
-                last_bx = bx
+            last_bp = position
+            last_bx = bx
 
         mqtt_send = ','+ str(last_rp) + ',' + str(last_rx) + ',' + str(last_bp) + ',' + str(last_bx) + ','
         client.publish("ktanna/local", mqtt_send, qos=1) # publish on MQTT
