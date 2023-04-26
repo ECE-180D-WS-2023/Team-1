@@ -31,12 +31,21 @@ class Note(pygame.sprite.Sprite):
         self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
         self.color = ""
-        # randomly generate either 1 or 2 for color
-        if (random.randint(1,2) == 1):
-            self.color = COLOR_1
-        else:
-            self.color = COLOR_2
         
+        # if 1 player, the color will always be red
+        if (globals.NUM_PLAYERS == 1):
+            self.color = COLOR_1
+        # if 2 player, the color will be red/blue random
+        elif (globals.NUM_PLAYERS == 2):
+            # randomly generate either 1 or 2 for color
+            if (random.randint(1,2) == 1):
+                self.color = COLOR_1
+            else:
+                self.color = COLOR_2
+        
+        
+
+
         # color in the square according to its lane
         self.surf.fill(self.color)
 

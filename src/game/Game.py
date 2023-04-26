@@ -4,9 +4,8 @@ import logging
 
 from game import mqtt_lib
 
-
 from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
-from .Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time, time_between_motion
+from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time, time_between_motion
 from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
 from .Player import Player
@@ -30,8 +29,13 @@ class Game():
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING
     # ACTION_2
-    def start(self, num_players=2):
-        # setup vars
+    def start(self, num_players=2, bpm=30):
+        # setup global vars
+        # set num players globally so Notes know to only create 1 color
+        globals.NUM_PLAYERS = num_players
+        # set bpm
+        globals.BPM = bpm
+        
         # Initialize pygame
         logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
         pygame.init()
@@ -85,6 +89,8 @@ class Game():
         # note spawning timer
         SPAWNNOTE = pygame.USEREVENT + 1
         pygame.time.set_timer(SPAWNNOTE, int(0))
+        # calculate note spawn speed according to bpm
+        note_spawn_speed_ms = ((1/globals.BPM)*60)*1000
 
         # received action from imu event for player 1
         ACTION_1 = pygame.USEREVENT + 2
@@ -117,7 +123,7 @@ class Game():
                         if (self.pause == True):
                             pygame.time.set_timer(SPAWNNOTE, 0)
                         elif (self.pause == False):
-                            pygame.time.set_timer(SPAWNNOTE, int(NOTE_SPAWN_SPEED_MS))
+                            pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
 
 
                     else:
