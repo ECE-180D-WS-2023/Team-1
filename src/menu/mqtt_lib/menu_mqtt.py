@@ -25,17 +25,17 @@ def menu_mqtt_on_message(client, userdata, message):
     global ONE_PLAYER_CLICK # 1p
     global TWO_PLAYER_CLICK # 2p
     global RETURN_CLICK # rq
-    if re.search("ga", str(message.payload)):
+    if re.search("start", str(message.payload)):
         START_CLICK = True
-    elif re.search("sc", str(message.payload)):
+    elif re.search("settings", str(message.payload)):
         SETTINGS_CLICK = True
-    elif re.search("tc", str(message.payload)):
+    elif re.search("tutorial", str(message.payload)):
         TUTORIAL_CLICK = True
-    elif re.search("qc", str(message.payload)):
+    elif re.search("quit", str(message.payload)):
         QUIT_CLICK = True
-    elif re.search("st", str(message.payload)):
+    elif re.search("single", str(message.payload)):
         SINGLE_TEAM_CLICK = True
-    elif re.search("mt", str(message.payload)):
+    elif re.search("multi", str(message.payload)):
         MULTI_TEAM_CLICK = True
     elif re.search("1p", str(message.payload)):
         ONE_PLAYER_CLICK = True

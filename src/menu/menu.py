@@ -5,9 +5,8 @@ import pygame_menu
 import pygame_menu.controls
 from pygame_menu.controls import Controller
 import paho.mqtt.client as mqtt
-from mqtt_lib import menu_mqtt_on_connect
-from mqtt_lib import menu_mqtt_on_message
-from mqtt_lib import menu_mqtt_on_disconnect
+from menu import mqtt_lib
+
 
 
 # TODO HELP ???
@@ -178,15 +177,16 @@ class Menu():
         multi = False
         player_num = 1
 
-        # TODO girl help
-        """global START_CLICK # ga
-        global SETTINGS_CLICK # sc
-        global TUTORIAL_CLICK # tc
-        global QUIT_CLICK # qc
-        global SINGLE_TEAM_CLICK # st
-        global MULTI_TEAM_CLICK # mt
-        global ONE_PLAYER_CLICK # 1p
-        global TWO_PLAYER_CLICK # 2p"""
+        # global flags
+        start_click = mqtt_lib.menu_mqtt.START_CLICK # ga
+        settings_click = mqtt_lib.menu_mqtt.SETTINGS_CLICK # sc
+        tutorial_click = mqtt_lib.menu_mqtt.TUTORIAL_CLICK # tc
+        quit_click = mqtt_lib.menu_mqtt.QUIT_CLICK # qc
+        single_team_click = mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK # st
+        multi_team_click = mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK # mt
+        one_player_click = mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK # 1p
+        two_player_click = mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK # 2p
+        return_click = mqtt_lib.menu_mqtt.RETURN_CLICK
         
         while True: 
             # fills the screen with a color 
@@ -213,15 +213,17 @@ class Menu():
             
             for ev in pygame.event.get(): 
                 
-                if ev.type == pygame.QUIT: 
+                if ev.type == pygame.QUIT or quit_click: 
+                    quit_click = False
                     pygame.quit() 
                     
                 #checks if a mouse is clicked 
                 if ev.type == pygame.MOUSEBUTTONDOWN: 
                     if menu_screen:
                         #if the mouse is clicked on the button the game is terminated 
-                        if start_button.check_click(): # TODO ADD FLAG
+                        if start_button.check_click() or start_click:
                             #TODO send any flags to game here
+                            start_click = False
                             print("Start game!")
                             song_screen = True
                             start_button.enabled = False
@@ -230,13 +232,15 @@ class Menu():
                             quit_button.enabled = False
                             back_button.enabled = True
                             #return {multi, two_player}
-                        if quit_button.check_click(): # TODO ADD FLAG
+                        if quit_button.check_click() or quit_click:
                             print("Time to quit!")
                             print("Multi: ", multi)
                             print("# players: ", player_num)
+                            quit_click = False
                             pygame.quit()
                             exit() 
-                        if tutorial_button.check_click(): # TODO ADD FLAG
+                        if tutorial_button.check_click() or tutorial_click:
+                            tutorial_click = False
                             tutorial_screen = True
                             menu_screen = False
                             # toggle buttons
@@ -246,7 +250,8 @@ class Menu():
                             quit_button.enabled = False
                             back_button.enabled = True
                             break
-                        if settings_button.check_click(): # TODO ADD FLAG
+                        if settings_button.check_click() or settings_click:
+                            settings_click = False
                             settings_screen = True
                             menu_screen = False
                             # toggle buttons
@@ -259,17 +264,24 @@ class Menu():
                             back_button.enabled = True
                             break
                     if settings_screen:
-                        if remote_button.check_toggle_click(): # TODO ADD FLAG
+                        if remote_button.check_toggle_click() or return_click:
+                            return_click = False
                             remote_button.toggle = not remote_button.toggle
                             multi = not multi
-                        if player_button.check_toggle_click(): # TODO ADD FLAG
+                        if player_button.check_toggle_click():
                             player_button.toggle = not player_button.toggle
                             if player_num == 1:
                                 player_num = 2
                             elif player_num == 2:
                                 player_num = 1
-                
-                        if back_button.check_click(): # TODO ADD FLAG
+                        elif single_team_click and player_num == 2:
+                            single_team_click = False
+                            player_num = 1
+                        elif multi_team_click and player_num == 1:
+                            multi_team_click = False
+                            player_num = 2
+                        if back_button.check_click() or return_click: # TODO ADD FLAG
+                            return_click = False
                             menu_screen = True
                             settings_screen = False
                             # toggle buttons
@@ -282,7 +294,8 @@ class Menu():
                             back_button.enabled = False
                             break
                     if tutorial_screen:
-                        if back_button.check_click(): # TODO ADD FLAG
+                        if back_button.check_click() or return_click: # TODO ADD FLAG
+                            return_click = False
                             menu_screen = True
                             tutorial_screen = False
                             # toggle buttons
@@ -293,7 +306,8 @@ class Menu():
                             back_button.enabled = False
                             break
                     if song_screen:
-                        if back_button.check_click(): # TODO ADD FLAG
+                        if back_button.check_click() or return_click: # TODO ADD FLAG
+                            return_click = False
                             menu_screen = True
                             song_screen = False
                             # toggle buttons
