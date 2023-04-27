@@ -1,52 +1,50 @@
 import pygame
-import logging
 import paho.mqtt.client as mqtt
+import logging
 
-# Internal Package imports
 from game import mqtt_lib
-import speech
 
-# TODO: Move these files to their own packages
 from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
-from .Settings import NOTE_SPAWN_SPEED_MS, SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, update_time, time_between_motion
-from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE
-from .Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
+from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time, time_between_motion
+from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
+from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
+from .Player import Player
 from .Text import Text
 from . import globals
 
 from pygame.locals import (
     K_q,
-    K_1,
+    K_p,
     KEYDOWN,
     QUIT,
 )
 
-# TODO: Move this comment to where it matters
 # note that height grows downward, the top left is 0, 0 and bottom right is width, height
 
 class Game():
     def __init__(self):
+        self.pause = True
         pass
 
-    def __calc_points(self, action_input_result):
-        if action_input_result == SUCCESS:
-            globals.points += 1
-        elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY or action_input_result == WRONG_LANE:
-            # allow players to try again as long as the thing is not gone yet
-            # no point deduction for too early or wrong motion
-            globals.points -= 0
-
-    def start(self):
-        # setup vars
+    # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
+    # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING
+    # ACTION_2
+    def start(self, num_players=2, bpm=30):
+        # setup global vars
+        # set num players globally so Notes know to only create 1 color
+        globals.NUM_PLAYERS = num_players
+        # set bpm
+        globals.BPM = bpm
+        
         # Initialize pygame
-        logging.info(f"GAME: Starting the game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
+        logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
+        logging.info("MQTT: Setting up IMU MQTT Listener")
         # initialize mqtt for imu
         # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and rotate
         # check imu_mqtt for which channel its listening to
-        logging.info("MQTT: Preparing IMU MQTT connection")
         imu_mqtt_client = mqtt.Client()
         imu_mqtt_client.on_connect = mqtt_lib.imu_mqtt_on_connect
         imu_mqtt_client.on_disconnect = mqtt_lib.imu_mqtt_on_disconnect
@@ -56,11 +54,11 @@ class Game():
         # for initialize mqtt
         pygame.time.wait(MQTT_CALIBRATION_TIME)
 
+        logging.info("MQTT: Setting up Localization MQTT Listener")
         # initialize and calibrate video feed
         # this should output something like "1" for zone 1
         # local = localize(camera=0)
         # local.detect()
-        logging.info("MQTT: Preparing localization MQTT connection")
         localization_mqtt_client = mqtt.Client()
         localization_mqtt_client.on_connect = mqtt_lib.localization_mqtt_on_connect
         localization_mqtt_client.on_disconnect = mqtt_lib.localization_mqtt_on_disconnect
@@ -68,163 +66,176 @@ class Game():
         localization_mqtt_client.connect_async('mqtt.eclipseprojects.io')
         localization_mqtt_client.loop_start()
         pygame.time.wait(LOCALIZATION_CALIBRATION_TIME)
-
-        # motion timer
-        last_motion = pygame.time.get_ticks()
         
         # instantiate sprite groups
         notes = pygame.sprite.Group()
+        players = pygame.sprite.Group()
+        players.add(Player(1))
+        if(num_players == 2):
+            players.add(Player(2))
+
         # text for hitzone, for results, and points
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
+        paused_text = Text(text="Press P To Start", rect=(10, SCREEN_HEIGHT/3))
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
+        paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
 
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
 
+
         # note spawning timer
         SPAWNNOTE = pygame.USEREVENT + 1
-        pygame.time.set_timer(SPAWNNOTE, int(NOTE_SPAWN_SPEED_MS))
+        pygame.time.set_timer(SPAWNNOTE, int(0))
+        # calculate note spawn speed according to bpm
+        note_spawn_speed_ms = ((1/globals.BPM)*60)*1000
 
-        # received action from imu event
-        ACTION = pygame.USEREVENT + 2
+        # received action from imu event for player 1
+        ACTION_1 = pygame.USEREVENT + 2
         # where the action is stored
-        imu_action = None
-
-        # TODO Button on esp32 remote was pressed
-        SPEECH_BUTTON = pygame.USEREVENT + 3
-        speech_flag = True
+        imu_action_1 = None
+        
+        # this is here defined as an event even if unused when only 1p
+        # received action from imu event for player 2
+        ACTION_2 = pygame.USEREVENT + 3
+        # where the action is stored
+        imu_action_2 = None
 
         # custom note update per speed along with note fall speed
-        last_time = pygame.time.get_ticks()
+        last_note_update = pygame.time.get_ticks()
 
         # variable to store result of key_press attempts
         action_input_result = ""
 
-        # TODO: Make this less horrible looking
         # Variable to keep the main loop running
         running = True
-        try:
-            myrec = speech.KeywordRecognizer(0, speech.config.SPECIAL_WORDS)
-            while running:
-                for event in pygame.event.get():
-                    # check if q is pressed then leave
-                    if event.type == KEYDOWN:
-                        if event.key == K_q:
-                            running = False
-                        elif event.key == K_1:
-                            print("First pressed")
-                            myrec.clear_q()
-                            print(f"QUEUE: {myrec.q.queue}")
-                        else:
-                            # calculate which note is the lowest and then process key press accordingly based
-                            # on that note's letter
-                            if (notes):
-                                lowest_note = get_lowest_note(notes)
-                                #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
-                                #print(localization_mqtt.player_location)
-                                action_input_result = lowest_note.process_action_location(
-                                    pygame.key.name(event.key), 
-                                    mqtt_lib.localization_mqtt.player_location
-                                    )
-                                self.__calc_points(action_input_result)
-                            else:
-                                action_input_result = "No Notes Yet!"
-                            globals.action_input_result_text.update(text=action_input_result)
-                    # Check for QUIT event. If QUIT, then set running to false.
-                    elif event.type == QUIT:
+        while running:
+            for event in pygame.event.get():
+                # check if q is pressed then leave
+                if event.type == KEYDOWN:
+                    if event.key == K_q:
                         running = False
-                    # spawn note event
-                    elif event.type == SPAWNNOTE:
-                        new_note = Note()
-                        notes.add(new_note)
-                        all_sprites.add(new_note)
-                    # if we receive some action from imu
-                    elif event.type == ACTION:
+                    elif event.key == K_p:
+                        self.pause = not self.pause
+                        paused_text.update(text="Paused")
+                        if (self.pause == True):
+                            pygame.time.set_timer(SPAWNNOTE, 0)
+                        elif (self.pause == False):
+                            pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+
+
+                    else:
+                        # calculate which note is the lowest and then process key press accordingly based
+                        # on that note's letter
                         if (notes):
-                            #print("should process action")
-                            #print(imu_action)
-                            # when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
                             lowest_note = get_lowest_note(notes)
-                            # FILL IN NOTE'S process_action ONCE ACTIONS ARE KNOWN
-                            # process key works for now since it is just diff letters
-                            action_input_result = lowest_note.process_action_location(imu_action, localization_mqtt.player_location)
+                            #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
+                            #print(localization_mqtt.player_location)
+                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), mqtt_lib.localization_mqtt.player1_location, 1)
                             self.__calc_points(action_input_result)
                         else:
                             action_input_result = "No Notes Yet!"
                         globals.action_input_result_text.update(text=action_input_result)
-                
-                # Check if the keyboard or remote button was pressed
-                keys = pygame.key.get_pressed()
-                if keys[K_1]:
-                    speech_flag = True
-                else:
-                    speech_flag = False
-
-                # Vosk speech recognizer call
-                if speech_flag:
-                    # print("GETTING SPEECH DATA")
-                    d = myrec.get_data()
-                    new, word = myrec.test_data(d, verbose=True)
-                    if new:
-                        print(f"WORD: {word}")
-                        if word == "pause":
-                            logging.debug("SPEECH: Pause detected")
-                            print("PAUSE DETECTED: PAUSING THE GAME")
-                        elif word == "exit":
-                            logging.debug("SPEECH: Exit detected")
-                            print("EXIT DETECTED: EXITING THE GAME")
-                            running = False
-
-                # if action registered by imu, do the event notification and put the action into imu_action
-                # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
-                # then when imu_action_received is True, do the custom event post
-                # in the loop above, when handling custom event, reset imu_action_received_flag to False to make sure it doesn't re-trigger
-                if (mqtt_lib.imu_mqtt.imu_action_received_flag):
-                    #print("received action flag")
-                    if (pygame.time.get_ticks() - last_motion > time_between_motion):
-                        #print("action event triggered")
-                        pygame.event.post(pygame.event.Event(ACTION))
-                        imu_action = mqtt_lib.imu_mqtt.IMU_ACTION
-                        last_motion = pygame.time.get_ticks()
-                        print("action received: ", imu_action)
-                        mqtt_lib.imu_mqtt.imu_action_received_flag = False
+                # Check for QUIT event. If QUIT, then set running to false.
+                elif event.type == QUIT:
+                    running = False
+                # spawn note event
+                elif event.type == SPAWNNOTE:
+                    new_note = Note()
+                    notes.add(new_note)
+                    all_sprites.add(new_note)
+                # if we receive some action from imu
+                elif event.type == ACTION_1:
+                    if (notes):
+                        lowest_note = get_lowest_note(notes)
+                        # process key works for now since it is just diff letters
+                        action_input_result = lowest_note.process_action_location(imu_action_1, mqtt_lib.localization_mqtt.player1_location, 1)
+                        self.__calc_points(action_input_result)
                     else:
-                        mqtt_lib.imu_mqtt.imu_action_received_flag = False
+                        action_input_result = "No Notes Yet!"
+                    globals.action_input_result_text.update(text=action_input_result)
+                # this should never be true in 1p bcus action_2 should never be raised
+                elif event.type == ACTION_2:
+                    if (notes):
+                        lowest_note = get_lowest_note(notes)
+                        # process key works for now since it is just diff letters
+                        action_input_result = lowest_note.process_action_location(imu_action_2, mqtt_lib.localization_mqtt.player2_location, 2)
+                        self.__calc_points(action_input_result)
+                    else:
+                        action_input_result = "No Notes Yet!"
+                    globals.action_input_result_text.update(text=action_input_result)
 
+            # when pause game, also don't allow action to be read in and dont
+            # let there be updated notes
+            if not self.pause:
+            # if action registered by imu, do the event notification and put the action into imu_action
+            # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
+            # because the imu_mqtt runs in parallel, we want to do this flag true and false 
+                if (mqtt_lib.imu_mqtt.imu_action_1_received_flag):
+                    pygame.event.post(pygame.event.Event(ACTION_1))
+                    imu_action_1 = mqtt_lib.imu_mqtt.IMU_ACTION_1
+                    print("action received: ", imu_action_1)
+                    mqtt_lib.imu_mqtt.imu_action_1_received_flag = False
+                if (num_players == 2):
+                    if (mqtt_lib.imu_mqtt.imu_action_2_received_flag):
+                        pygame.event.post(pygame.event.Event(ACTION_2))
+                        imu_action_2 = mqtt_lib.imu_mqtt.IMU_ACTION_2
+                        print("action received: ", imu_action_2)
+                        mqtt_lib.imu_mqtt.imu_action_2_received_flag = False
                 # update note positions
-                if (pygame.time.get_ticks() - last_time > update_time):
+                if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     notes.update()
-                    last_time = pygame.time.get_ticks()
+                    last_note_update = pygame.time.get_ticks()
 
-                # Fill the screen with black
-                screen.fill((255, 255, 255))
+            # update player location
+            players.update()
 
-                # include text to indicate hit zone
-                # include text to indicate point record
-                # include vertical lines to divide into 4 columns/lanes
-                pygame.draw.line(screen, (0, 0, 0), (COLUMN_1, 0), (COLUMN_1, SCREEN_HEIGHT))
-                pygame.draw.line(screen, (0, 0, 0), (COLUMN_2, 0), (COLUMN_2, SCREEN_HEIGHT))
-                pygame.draw.line(screen, (0, 0, 0), (COLUMN_3, 0), (COLUMN_3, SCREEN_HEIGHT))
-                pygame.draw.line(screen, (0, 0, 0), (COLUMN_4, 0), (COLUMN_4, SCREEN_HEIGHT))
-                # display hit zone
-                # horizontal line to indicate hit zone
-                pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
+            # Fill the screen with black
+            screen.fill((255, 255, 255))
 
-                # draw all sprites
-                for note in notes:
-                    screen.blit(note.surf, note.rect)
-                
-                # text for key press results
-                screen.blit(result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
-                # text for points
-                globals.points_text.update(text="Points: " + str(globals.points))
-                screen.blit(points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
-                # text for hitzone indicator
-                screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
+            # include text to indicate hit zone
+            # include text to indicate point record
+            # include vertical lines to divide into 4 columns/lanes
+            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_1, 0), (LINE_COLUMN_1, SCREEN_HEIGHT))
+            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_2, 0), (LINE_COLUMN_2, SCREEN_HEIGHT))
+            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_3, 0), (LINE_COLUMN_3, SCREEN_HEIGHT))
+            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_4, 0), (LINE_COLUMN_4, SCREEN_HEIGHT))
+            # display hit zone
+            # horizontal line to indicate hit zone
+            pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
 
-                # Update the display
-                pygame.display.flip()
-        except(KeyboardInterrupt, EOFError):
-            print('Received KeyboardInterrupt')
+            # draw all sprites
+            for note in notes:
+                screen.blit(note.surf, note.rect)
+            for player in players:
+                screen.blit(player.surf, player.rect)
+
+            # text for key press results
+            screen.blit(result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
+            # text for points
+            globals.points_text.update(text="Points: " + str(globals.points))
+            screen.blit(points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
+            # text for hitzone indicator
+            screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
+            
+            # text for pause
+            if (self.pause):
+                print_paused = paused_font.render(paused_text.text, True, (0,0,0))
+                print_paused_rect = print_paused.get_rect()
+                print_paused_rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
+                screen.blit(print_paused, print_paused_rect)
+
+            # Update the display
+            pygame.display.flip()
+
+    def __calc_points(self, action_input_result):
+        if action_input_result == SUCCESS:
+            globals.points += 1
+        elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY or action_input_result == WRONG_LANE:
+            # allow players to try again as long as the thing is not gone yet
+            # no point deduction for too early or wrong motion
+            globals.points -= 0
+
+    

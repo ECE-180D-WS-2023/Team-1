@@ -1,9 +1,3 @@
 root - INFO - GAME: Beginning the main game loop
-root - INFO - GAME: Starting the game with: Width:800, Height:600
-root - INFO - MQTT: Preparing IMU MQTT connection
-root - INFO - MQTT: Preparing localization MQTT connection
-root - INFO - SPEECH: Starting the recognizer!
-root - INFO - SPEECH: Cleared Queue
-root - INFO - SPEECH: Cleared Queue
-root - DEBUG - SPEECH: COMMAND exit DETECTED!
-root - DEBUG - SPEECH: Exit detected
+root - INFO - GAME: Starting 2P game with: Width:800, Height:600
+root - INFO - MQTT: Setting up IMU MQTT Listener
