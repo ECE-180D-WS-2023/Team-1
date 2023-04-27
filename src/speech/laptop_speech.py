@@ -45,7 +45,7 @@ class KeywordRecognizer():
         samplerate = int(device_info["default_samplerate"])
 
         self.mic = sd.RawInputStream(samplerate=samplerate, blocksize=8000,
-                                     device=device_info["name"], dtype="int16",
+                                     device=device_info["index"], dtype="int16",
                                      channels=1, callback=self.callback)
         # print("AAAA")
         self.mic.start()
