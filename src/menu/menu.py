@@ -19,9 +19,6 @@ from pygame.locals import (
 # upon "tutorial," should go to tutorial mode (not implemented yet)
 # upon "settings," go to settings page and choose remote vs normal mode
 
-# to do: (note: work in src)
-# add custom controllers to buttons so that if a certain flag is raised, they will perform the action
-#
 
 # TODO 4/20/2023: 
 # Make mqtt file w/ the onmessage, disconnect, connect (look at imu_mqtt.py)
@@ -29,12 +26,15 @@ from pygame.locals import (
 # parse in 
 
 class Button:
-    def __init__(self, text, x_pos, y_pos, enabled, screen):
+    def __init__(self, text, x_pos, y_pos, enabled, screen, x_size = 300, y_size=40, toggle = True):
         self.text = text
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.enabled = enabled
         self.screen = screen
+        self.x_size = 300
+        self.y_size=40
+        self.toggle = toggle
         #self.draw()
 
     def draw(self):
@@ -43,7 +43,7 @@ class Button:
             return
         font = pygame.font.Font('freesansbold.ttf', 20)
         button_text = font.render(self.text, True, 'black')
-        button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (300, 40))
+        button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (self.x_size, self.y_size))
         if self.check_hover():
             pygame.draw.rect(self.screen, 'purple', button_rect, 0, 5)
         else: # TODO could add color to parameters
@@ -51,6 +51,35 @@ class Button:
         # add outline to button
         pygame.draw.rect(self.screen, 'black', button_rect, 2, 5)
         self.screen.blit(button_text, (self.x_pos+100, self.y_pos+10))
+    
+    def draw_toggle(self):
+        if not self.enabled:
+            return
+        font = pygame.font.Font('freesansbold.ttf', 20)
+        option0_text = font.render(self.text[0], True, 'black')
+        option1_text = font.render(self.text[1], True, 'black')
+        option0_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (145, 40))
+        option1_rect = pygame.rect.Rect((self.x_pos + 150, self.y_pos), (145, 40))
+        
+        """if self.check_hover():
+            pygame.draw.rect(self.screen, 'purple', button_rect, 0, 5)
+        else: 
+            pygame.draw.rect(self.screen, 'pink', button_rect, 0 , 5)"""
+        if self.toggle:
+            pygame.draw.rect(self.screen, 'light blue', option0_rect, 0, 5)
+            pygame.draw.rect(self.screen, 'pink', option1_rect, 0, 5)
+            if self.check_toggle_hover(option1_rect):
+                pygame.draw.rect(self.screen, 'purple', option1_rect, 0, 5)
+        else:
+            pygame.draw.rect(self.screen, 'pink', option0_rect, 0, 5)
+            pygame.draw.rect(self.screen, 'light blue', option1_rect, 0, 5)
+            if self.check_toggle_hover(option0_rect):
+                pygame.draw.rect(self.screen, 'purple', option0_rect, 0, 5)
+        # add outline to button
+        pygame.draw.rect(self.screen, 'black', option0_rect, 2, 5)
+        pygame.draw.rect(self.screen, 'black', option1_rect, 2, 5)
+        self.screen.blit(option0_text, (self.x_pos+20, self.y_pos+10))
+        self.screen.blit(option1_text, (self.x_pos+170, self.y_pos+10))
 
     # checks if button has been clicked
     # TODO add flags to trigger condition
@@ -64,10 +93,32 @@ class Button:
             return True
         else:
             return False
+    
+    def check_toggle_click(self):
+        if not self.enabled:
+            return
+        mouse_pos = pygame.mouse.get_pos()
+        left_click = pygame.mouse.get_pressed()[0]
+        if self.toggle:
+            x = self.x_pos + 150
+        else:
+            x = self.x_pos
+        opt_rect = pygame.rect.Rect((x, self.y_pos), (145, 40))
+        if left_click and opt_rect.collidepoint(mouse_pos) and self.enabled:
+            return True
+        else:
+            return False
 
     def check_hover(self):
         mouse_pos = pygame.mouse.get_pos()
         button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (300, 40))
+        if button_rect.collidepoint(mouse_pos) and self.enabled:
+            return True
+        else:
+            return False
+        
+    def check_toggle_hover(self, button_rect):
+        mouse_pos = pygame.mouse.get_pos()
         if button_rect.collidepoint(mouse_pos) and self.enabled:
             return True
         else:
@@ -108,7 +159,11 @@ class Menu():
         tutorial_button = Button('Tutorial', 250, 320, True, screen)
         quit_button = Button('Quit', 250, 370, True, screen)
 
-        remote_button = Button('Remote', 250, 320, False, screen)
+        remote_text = ['Single Team', 'Multi Team']
+        remote_button = Button(remote_text, 250, 270, False, screen)
+        player_text = ['One Player', 'Two Player']
+        player_button = Button(player_text, 250, 320, False, screen)
+
         back_button = Button('Return', 250, 370, False, screen)
         
         while True: 
@@ -124,14 +179,14 @@ class Menu():
             if song_screen:
                 screen.blit(tbd_text, (300, 300))
 
-
             #TODO add tutorial screen
             start_button.draw()
             settings_button.draw()
             tutorial_button.draw()
             quit_button.draw()
 
-            remote_button.draw()
+            remote_button.draw_toggle()
+            player_button.draw_toggle()
             back_button.draw()
             
             for ev in pygame.event.get(): 
@@ -175,9 +230,14 @@ class Menu():
                             tutorial_button.enabled = False
                             quit_button.enabled = False
                             remote_button.enabled = True
+                            player_button.enabled = True
                             back_button.enabled = True
                             break
                     if settings_screen:
+                        if remote_button.check_toggle_click():
+                            remote_button.toggle = not remote_button.toggle
+                        if player_button.check_toggle_click():
+                            player_button.toggle = not player_button.toggle
                         if back_button.check_click():
                             menu_screen = True
                             settings_screen = False
@@ -187,6 +247,7 @@ class Menu():
                             tutorial_button.enabled = True
                             quit_button.enabled = True
                             remote_button.enabled = False
+                            player_button.enabled = False
                             back_button.enabled = False
                             break
                     if tutorial_screen:
