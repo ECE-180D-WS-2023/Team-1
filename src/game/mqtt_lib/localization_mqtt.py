@@ -1,4 +1,8 @@
-player_location = "1"
+player1_location = 4
+player1_coords = 0
+
+player2_location = 4
+player2_coords = 0
 
 SUBSCRIPTION = "ktanna/local"
 
@@ -6,8 +10,33 @@ SUBSCRIPTION = "ktanna/local"
 def localization_mqtt_on_message(client, userdata, message):
     # print('Received message: "' + str(message.payload) + '" on topic "' +
     #      message.topic + '" with QoS ' + str(message.qos))
-    global player_location
-    player_location = str(message.payload)[2]
+    global player1_location
+    global player1_coords
+    global player2_location
+    global player2_coords
+
+    # output of localization looks like:
+        # "b'p2,4,109"
+        # for player#, zone, absolute position
+    # Received message: "b'2,400,1,528'" on topic "ktanna/local" with QoS 1
+    # print(message.payload)
+    # print(str(message.payload)[3:-1])
+    coords_split = str(message.payload)[3:-1].split(",")
+    # print(len(coords_split))
+    # print(coords_split)
+    player1_location = int(coords_split[0])
+    player1_coords = int(coords_split[1])
+    player2_location = int(coords_split[2])
+    player2_coords = int(coords_split[3])
+
+    # print(player1_location, player1_coords, player2_location, player2_coords)
+
+    # if (int(str(message.payload)[3]) == 1):
+    #     player1_location = int(str(message.payload)[5])
+    #     player1_coords = int(str(message.payload)[7:-1])
+    # elif (int(str(message.payload)[3]) == 2):
+    #     player2_location = int(str(message.payload)[5])
+    #     player2_coords = int(str(message.payload)[7:-1])
 
 def localization_mqtt_on_connect(client, userdata, flags, rc):
     print("Connection returned result: " + str(rc))

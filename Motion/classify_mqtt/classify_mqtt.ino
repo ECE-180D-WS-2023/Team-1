@@ -1,3 +1,4 @@
+// SparkFun ESP32 Thing
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include "arduino_secrets.h"

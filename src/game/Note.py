@@ -8,59 +8,46 @@ SUCCESS = "Nice!"
 TOO_EARLY = "Too Early!"
 WRONG_KEY = "Wrong Motion!"
 WRONG_LANE = "Wrong Lane!"
+WRONG_COLOR = "Wrong Color!"
 
 TOO_LATE = "Too Late!"
 
-COLUMN_COLOR_1 = (255, 204, 203) #r
-COLUMN_COLOR_2 = (144, 238, 144) #g
-COLUMN_COLOR_3 = (173, 216, 230) #b
-COLUMN_COLOR_4 = (255,255,102) #y
+# we want only r and b column colors now
+COLOR_1 = (255, 204, 203) #r
+COLOR_2 = (173, 216, 230) #b
+COLOR_3 = COLOR_1
+COLOR_4 = COLOR_2
+
+#COLOR_2 = (144, 238, 144) #g
+#COLOR_3 = (173, 216, 230) #b
+#COLOR_4 = (255,255,102) #y
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):
-    """ # legacy code where it just displays color
     def __init__(self):
         super(Note, self).__init__()
         self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
-        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
         
-        # color in the square according to its lane
-        if (self.lane == COLUMN_1):
-            self.surf.fill(COLUMN_COLOR_1)
-        elif (self.lane == COLUMN_2):
-            self.surf.fill(COLUMN_COLOR_2)
-        elif (self.lane == COLUMN_3):
-            self.surf.fill(COLUMN_COLOR_3)
-        elif (self.lane == COLUMN_4):
-            self.surf.fill(COLUMN_COLOR_4)
+        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
-        # self.surf.fill((0, 100, 100)) # default color
-        self.rect = self.surf.get_rect(
-            center=(
-                # random.randint(NOTE_WIDTH/2, SCREEN_WIDTH-(NOTE_WIDTH/2)), # for randomly on screen
-            self.lane, 0
-            )
-        )
+        self.color = ""
         
-        # the letter assigned to note, randomly generated
-        self.char = random.choice(KEYS)
-        self.letter = self.char
-    """
-    def __init__(self):
-        super(Note, self).__init__()
-        self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        # if 1 player, the color will always be red
+        if (globals.NUM_PLAYERS == 1):
+            self.color = COLOR_1
+        # if 2 player, the color will be red/blue random
+        elif (globals.NUM_PLAYERS == 2):
+            # randomly generate either 1 or 2 for color
+            if (random.randint(1,2) == 1):
+                self.color = COLOR_1
+            else:
+                self.color = COLOR_2
         
-        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
         
+
+
         # color in the square according to its lane
-        if (self.lane == COLUMN_1):
-            self.surf.fill(COLUMN_COLOR_1)
-        elif (self.lane == COLUMN_2):
-            self.surf.fill(COLUMN_COLOR_2)
-        elif (self.lane == COLUMN_3):
-            self.surf.fill(COLUMN_COLOR_3)
-        elif (self.lane == COLUMN_4):
-            self.surf.fill(COLUMN_COLOR_4)
+        self.surf.fill(self.color)
 
         # self.surf.fill((0, 100, 100)) # default color
         self.rect = self.surf.get_rect(
@@ -116,11 +103,14 @@ class Note(pygame.sprite.Sprite):
             return WRONG_KEY
 
     # if we have <imu or keyboard> AND <localization>
-    def process_action_location(self, action, location):
+    def process_action_location(self, action, location, player_num):
+        # check that the player cleared the correct color
         # if the key press is correct and is also in the hit zone AND also in the correct column
-        if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location):
+        if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location) and self.correct_color(player_num):
             self.kill()
             return SUCCESS
+        elif not self.correct_color(player_num):
+            return WRONG_COLOR
         elif not self.correct_column(location):
             return WRONG_LANE
         elif action == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
@@ -132,16 +122,24 @@ class Note(pygame.sprite.Sprite):
     # note that the input column should be a string, either "1", "2", "3", or "4"
     # this is based on what localization script outputs
     def correct_column(self, column):
-        if self.lane == COLUMN_1 and column == "1":
+        if self.lane == COLUMN_1 and column == 1:
             return True
-        if self.lane == COLUMN_2 and column == "2":
+        if self.lane == COLUMN_2 and column == 2:
             return True
-        if self.lane == COLUMN_3 and column == "3":
+        if self.lane == COLUMN_3 and column == 3:
             return True
-        if self.lane == COLUMN_4 and column == "4":
+        if self.lane == COLUMN_4 and column == 4:
             return True
         return False
 
+    def correct_color(self, player_num):
+        if player_num == 1:
+            if self.color == COLOR_1 or self.color == COLOR_3:
+                return True
+        elif player_num == 2:
+            if self.color == COLOR_2 or self.color == COLOR_4:
+                return True
+        return False
 
 # calculates lowest key and returns that note
 def get_lowest_note(notes):
