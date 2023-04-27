@@ -231,7 +231,9 @@ class Menu():
                             tutorial_button.enabled = False
                             quit_button.enabled = False
                             back_button.enabled = True
-                            #return {multi, two_player}
+                            return {multi, player_num}
+                            pygame.quit()
+                            exit() 
                         if quit_button.check_click() or quit_click:
                             print("Time to quit!")
                             print("Multi: ", multi)
