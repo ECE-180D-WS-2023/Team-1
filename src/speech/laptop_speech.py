@@ -150,35 +150,6 @@ class KeywordRecognizer():
 
         self.q.put(bytes(indata))
 
-class SpeechMQTT():
-
-    def __init__(self, topic: str) -> None:
-        self.topic = topic
-
-        # initialize MQTT values
-        self.client = mqtt.Client()
-        self.client.on_connect = self._on_connect
-        self.client.on_disconnect = self._on_disconnect
-        self.client.connect_async('mqtt.eclipseprojects.io')
-        self.client.loop_start()
-        self.client.publish(self.topic, 1, qos=1)
-
-    def _on_message(self, client, userdata, message):
-        # print('Received message: "' + str(message.payload) + '" on topic "' +
-        #      message.topic + '" with QoS ' + str(message.qos))
-        msg_str = str(message.payload)[2]
-        print(msg_str)
-
-    def _on_connect(self, client, userdata, flags, rc):
-        client.subscribe(self.topic, qos=1)
-        print("Connection returned result: " + str(rc))
-    
-    def _on_disconnect(self, client, userdata, rc):
-        if rc != 0:
-            print('Unexpected Disconnect')
-        else:
-            print('Expected Disconnect')
-
    
 class SpeechPublisher():
 
@@ -194,8 +165,6 @@ class SpeechPublisher():
         self.client.publish(self.topic, 1, qos=1)
 
     def _on_message(self, client, userdata, message):
-        # print('Received message: "' + str(message.payload) + '" on topic "' +
-        #      message.topic + '" with QoS ' + str(message.qos))
         msg_str = str(message.payload)[2]
         print(msg_str)
 
@@ -260,15 +229,13 @@ class ButtonListener():
 
     # on message, just update the player_location that the game is using for localization
     def _on_message(self, client, userdata, message):
-        # print('Received message: "' + str(message.payload) + '" on topic "' +
-              # message.topic + '" with QoS ' + str(message.qos))
         msg_str = message.payload.decode() 
         # print(msg_str)
 
-        if message.payload.decode() == "H":
+        if msg_str == "H":
             self.button_high = True
             # print("button High")
-        elif message.payload.decode() == "L":
+        elif msg_str == "L":
             self.button_high = False
             self.end_timer = time.time()
             # print(f"button Low {self.end_timer}")
@@ -287,13 +254,12 @@ if __name__ == "__main__":
     try:
         myrec = KeywordRecognizer(0, special_words)
         while True:
-            # if blis.button_high:
-                # Get the top of the queue and pass through our recognizer
-                d = myrec.get_data()
-                new, word = myrec.test_data(d, True)
-                if blis.button_active(2) and new:
-                    print(f"NEW: {new} \t WORD: {word} BUTTON: {blis.button_high}")
-                    spub.publish(word)
+            # Get the top of the queue and pass through our recognizer
+            d = myrec.get_data()
+            new, word = myrec.test_data(d, True)
+            if blis.button_active(2) and new:
+                print(f"NEW: {new} \t WORD: {word} BUTTON: {blis.button_high}")
+                spub.publish(word)
     
     except (KeyboardInterrupt, EOFError):
         print('Received KeyboardInterrupt')
