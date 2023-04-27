@@ -9,5 +9,5 @@ BPM = 30
 NUM_PLAYERS = 2
 
 # need these here for Note to update when missed also
-points_text = Text(text= "Points: 0", rect= (SCREEN_WIDTH - (SCREEN_WIDTH/6), 70))
+points_text = Text(text= "Points: 0", rect= (SCREEN_WIDTH - (SCREEN_WIDTH/8), 70))
 action_input_result_text = Text(text= "Good Luck!", rect=(SCREEN_WIDTH - (SCREEN_WIDTH/5) + 15, 20))
