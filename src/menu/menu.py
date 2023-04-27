@@ -4,32 +4,38 @@ import pygame
 import pygame_menu
 import pygame_menu.controls
 from pygame_menu.controls import Controller
+import paho.mqtt.client as mqtt
+from menu import mqtt_lib
 
-from pygame.locals import (
-    K_q,
-    K_1,
-    KEYDOWN,
-    QUIT,
-)
+
+
+# TODO HELP ???
+#from menu import menu_mqtt
 
 #TODO (spring quarter)
 # goal: menu integrated with voice controls and gameplay
 # upon "start game," should go to song selection screen
-    # for now, should just launch the game
-# upon "tutorial," should go to tutorial mode (not implemented yet)
-# upon "settings," go to settings page and choose remote vs normal mode
+    # for now, should just launch the game - done
+    # need to send information from menu to game --> returns an array of booleans for multi/single and 1p/2p
+        # idk what im gonna do for song selection yet
+# upon "tutorial," should go to tutorial mode (not implemented yet) - done
+# upon "settings," go to settings page and choose one team vs multi team, 1p vs 2p - done
 
-# to do: (note: work in src)
-# add custom controllers to buttons so that if a certain flag is raised, they will perform the action
-# 
+
+# TODO 4/20/2023: 
+# Make mqtt file w/ the onmessage, disconnect, connect (look at imu_mqtt.py) - done
+    # i gotta tell andrew the codes so he can write the messages 
 
 class Button:
-    def __init__(self, text, x_pos, y_pos, enabled, screen):
+    def __init__(self, text, x_pos, y_pos, enabled, screen, x_size = 300, y_size=40, toggle = True):
         self.text = text
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.enabled = enabled
         self.screen = screen
+        self.x_size = 300
+        self.y_size= 40
+        self.toggle = toggle
         #self.draw()
 
     def draw(self):
@@ -38,14 +44,39 @@ class Button:
             return
         font = pygame.font.Font('freesansbold.ttf', 20)
         button_text = font.render(self.text, True, 'black')
-        button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (300, 40))
+        button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (self.x_size, self.y_size))
         if self.check_hover():
             pygame.draw.rect(self.screen, 'purple', button_rect, 0, 5)
-        else: # TODO could add color to parameters
+        else:
             pygame.draw.rect(self.screen, 'pink', button_rect, 0 , 5)
         # add outline to button
         pygame.draw.rect(self.screen, 'black', button_rect, 2, 5)
         self.screen.blit(button_text, (self.x_pos+100, self.y_pos+10))
+    
+    def draw_toggle(self):
+        if not self.enabled:
+            return
+        font = pygame.font.Font('freesansbold.ttf', 20)
+        option0_text = font.render(self.text[0], True, 'black')
+        option1_text = font.render(self.text[1], True, 'black')
+        option0_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (145, 40))
+        option1_rect = pygame.rect.Rect((self.x_pos + 150, self.y_pos), (145, 40))
+        
+        if self.toggle:
+            pygame.draw.rect(self.screen, 'light blue', option0_rect, 0, 5)
+            pygame.draw.rect(self.screen, 'pink', option1_rect, 0, 5)
+            if self.check_toggle_hover(option1_rect):
+                pygame.draw.rect(self.screen, 'purple', option1_rect, 0, 5)
+        else:
+            pygame.draw.rect(self.screen, 'pink', option0_rect, 0, 5)
+            pygame.draw.rect(self.screen, 'light blue', option1_rect, 0, 5)
+            if self.check_toggle_hover(option0_rect):
+                pygame.draw.rect(self.screen, 'purple', option0_rect, 0, 5)
+        # add outline to button
+        pygame.draw.rect(self.screen, 'black', option0_rect, 2, 5)
+        pygame.draw.rect(self.screen, 'black', option1_rect, 2, 5)
+        self.screen.blit(option0_text, (self.x_pos+20, self.y_pos+10))
+        self.screen.blit(option1_text, (self.x_pos+170, self.y_pos+10))
 
     # checks if button has been clicked
     # TODO add flags to trigger condition
@@ -59,10 +90,32 @@ class Button:
             return True
         else:
             return False
+    
+    def check_toggle_click(self):
+        if not self.enabled:
+            return
+        mouse_pos = pygame.mouse.get_pos()
+        left_click = pygame.mouse.get_pressed()[0]
+        if self.toggle:
+            x = self.x_pos + 150
+        else:
+            x = self.x_pos
+        opt_rect = pygame.rect.Rect((x, self.y_pos), (145, 40))
+        if left_click and opt_rect.collidepoint(mouse_pos) and self.enabled:
+            return True
+        else:
+            return False
 
     def check_hover(self):
         mouse_pos = pygame.mouse.get_pos()
         button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (300, 40))
+        if button_rect.collidepoint(mouse_pos) and self.enabled:
+            return True
+        else:
+            return False
+        
+    def check_toggle_hover(self, button_rect):
+        mouse_pos = pygame.mouse.get_pos()
         if button_rect.collidepoint(mouse_pos) and self.enabled:
             return True
         else:
@@ -86,11 +139,18 @@ class Menu():
     def start(self):
         # initializing the constructor 
         pygame.init()
+
+        # TODO girl help 
+        #initializing mqtt client for voice recognition
+        menu_mqtt_client = mqtt.Client()
+        menu_mqtt_client.on_connect = mqtt_lib.menu_mqtt_on_connect
+        menu_mqtt_client.on_disconnect = mqtt_lib.menu_mqtt_on_disconnect
+        menu_mqtt_client.on_message = mqtt_lib.menu_mqtt_on_message
+        menu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
+        menu_mqtt_client.loop_start()
+
         res = (800,600) # screen resolution
         screen = pygame.display.set_mode(res) # opens up a window 
-        white = (255,255,255) # white color
-        blue_light = (172,213,239) # light shade of the button 
-        blue_dark = (38,145,211)  # dark shade of the button 
         width = screen.get_width() # stores the width of the screen into a variable 
         height = screen.get_height() # stores the height of the screen into a variable 
         smallfont = pygame.font.SysFont('Ariel',35) # defining a font 
@@ -106,8 +166,27 @@ class Menu():
         tutorial_button = Button('Tutorial', 250, 320, True, screen)
         quit_button = Button('Quit', 250, 370, True, screen)
 
-        remote_button = Button('Remote', 250, 320, False, screen)
+        remote_text = ['Single Team', 'Multi Team']
+        remote_button = Button(remote_text, 250, 270, False, screen)
+        player_text = ['One Player', 'Two Player']
+        player_button = Button(player_text, 250, 320, False, screen)
         back_button = Button('Return', 250, 370, False, screen)
+
+        # values to be returned: [mt/st, 1p/2p]
+            # also will add song name or smth idk how yet
+        multi = False
+        player_num = 1
+
+        # global flags
+        start_click = mqtt_lib.menu_mqtt.START_CLICK # ga
+        settings_click = mqtt_lib.menu_mqtt.SETTINGS_CLICK # sc
+        tutorial_click = mqtt_lib.menu_mqtt.TUTORIAL_CLICK # tc
+        quit_click = mqtt_lib.menu_mqtt.QUIT_CLICK # qc
+        single_team_click = mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK # st
+        multi_team_click = mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK # mt
+        one_player_click = mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK # 1p
+        two_player_click = mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK # 2p
+        return_click = mqtt_lib.menu_mqtt.RETURN_CLICK
         
         while True: 
             # fills the screen with a color 
@@ -122,27 +201,29 @@ class Menu():
             if song_screen:
                 screen.blit(tbd_text, (300, 300))
 
-
             #TODO add tutorial screen
             start_button.draw()
             settings_button.draw()
             tutorial_button.draw()
             quit_button.draw()
 
-            remote_button.draw()
+            remote_button.draw_toggle()
+            player_button.draw_toggle()
             back_button.draw()
             
             for ev in pygame.event.get(): 
                 
-                if ev.type == pygame.QUIT: 
+                if ev.type == pygame.QUIT or quit_click: 
+                    quit_click = False
                     pygame.quit() 
                     
                 #checks if a mouse is clicked 
                 if ev.type == pygame.MOUSEBUTTONDOWN: 
                     if menu_screen:
                         #if the mouse is clicked on the button the game is terminated 
-                        if start_button.check_click():
+                        if start_button.check_click() or start_click:
                             #TODO send any flags to game here
+                            start_click = False
                             print("Start game!")
                             song_screen = True
                             start_button.enabled = False
@@ -150,11 +231,16 @@ class Menu():
                             tutorial_button.enabled = False
                             quit_button.enabled = False
                             back_button.enabled = True
-                        if quit_button.check_click():
+                            #return {multi, two_player}
+                        if quit_button.check_click() or quit_click:
                             print("Time to quit!")
+                            print("Multi: ", multi)
+                            print("# players: ", player_num)
+                            quit_click = False
                             pygame.quit()
                             exit() 
-                        if tutorial_button.check_click():
+                        if tutorial_button.check_click() or tutorial_click:
+                            tutorial_click = False
                             tutorial_screen = True
                             menu_screen = False
                             # toggle buttons
@@ -164,7 +250,8 @@ class Menu():
                             quit_button.enabled = False
                             back_button.enabled = True
                             break
-                        if settings_button.check_click():
+                        if settings_button.check_click() or settings_click:
+                            settings_click = False
                             settings_screen = True
                             menu_screen = False
                             # toggle buttons
@@ -173,10 +260,28 @@ class Menu():
                             tutorial_button.enabled = False
                             quit_button.enabled = False
                             remote_button.enabled = True
+                            player_button.enabled = True
                             back_button.enabled = True
                             break
                     if settings_screen:
-                        if back_button.check_click():
+                        if remote_button.check_toggle_click() or return_click:
+                            return_click = False
+                            remote_button.toggle = not remote_button.toggle
+                            multi = not multi
+                        if player_button.check_toggle_click():
+                            player_button.toggle = not player_button.toggle
+                            if player_num == 1:
+                                player_num = 2
+                            elif player_num == 2:
+                                player_num = 1
+                        elif single_team_click and player_num == 2:
+                            single_team_click = False
+                            player_num = 1
+                        elif multi_team_click and player_num == 1:
+                            multi_team_click = False
+                            player_num = 2
+                        if back_button.check_click() or return_click: # TODO ADD FLAG
+                            return_click = False
                             menu_screen = True
                             settings_screen = False
                             # toggle buttons
@@ -185,10 +290,12 @@ class Menu():
                             tutorial_button.enabled = True
                             quit_button.enabled = True
                             remote_button.enabled = False
+                            player_button.enabled = False
                             back_button.enabled = False
                             break
                     if tutorial_screen:
-                        if back_button.check_click():
+                        if back_button.check_click() or return_click: # TODO ADD FLAG
+                            return_click = False
                             menu_screen = True
                             tutorial_screen = False
                             # toggle buttons
@@ -199,7 +306,8 @@ class Menu():
                             back_button.enabled = False
                             break
                     if song_screen:
-                        if back_button.check_click():
+                        if back_button.check_click() or return_click: # TODO ADD FLAG
+                            return_click = False
                             menu_screen = True
                             song_screen = False
                             # toggle buttons
@@ -213,100 +321,3 @@ class Menu():
             # updates the frames of the game 
             pygame.display.update() 
 
-
-
-
-
-
-
-
-        # old code
-        """pygame.init()
-        # create game window
-        SCREEN_WIDTH = 800
-        SCREEN_HEIGHT = 600
-
-        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Main Menu")
-
-        x, y = screen.get_size()
-        # settings
-        Settings = pygame_menu.Menu("Settings", x, y, theme=pygame_menu.themes.THEME_BLUE)
-        Settings.add.button('Calibration')
-        mode_button = Settings.add.dropselect(
-            title='Mode?',
-            items=[('One team', 0),
-                ('Remote multiplayer', 1)],
-            font_size=24,
-            selection_option_font_size=24
-        )
-
-        # game display window placeholder
-        Gameplay = pygame_menu.Menu("Gameplay", x, y, theme=pygame_menu.themes.THEME_BLUE)
-
-        # tutorial display window placeholder
-        Tutorial = pygame_menu.Menu("Tutorial", x, y, theme=pygame_menu.themes.THEME_BLUE)
-
-        # song menu display window
-        Songs = pygame_menu.Menu("Song Selection", x, y, theme=pygame_menu.themes.THEME_BLUE)
-
-        # menu
-        go = True
-
-        # button flags
-        START_FLAG = False
-
-        # other flags
-        SPEECH_FLAG = False
-
-        start_controller = Controller()
-        start_controller.apply = self.button_apply(flag=START_FLAG)
-
-        # main menu
-        mymenu = pygame_menu.Menu("Human Guitar Hero!", x, y, theme=pygame_menu.themes.THEME_BLUE)
-        start = mymenu.add.button('Start game!', Gameplay)
-        start.set_controller(start_controller)
-        tutorial = mymenu.add.button('Tutorial', Tutorial)
-        settings = mymenu.add.button('Settings', Settings)
-        quitb = mymenu.add.button('Quit', pygame_menu.events.EXIT)
-
-
-        while go:
-            self.draw_background(screen)
-
-            events = pygame.event.get()
-            
-            if mymenu.is_enabled():
-                mymenu.update(events)
-                mymenu.draw(screen)
-
-            for event in events:
-                if event.type == KEYDOWN:
-                    if event.key == K_q:
-                        go = False
-                    elif event.key == K_s:
-                        START_FLAG = True
-                
-            
-            pygame.display.update()
-
-        pygame.quit()"""
-
-
-
-# old code for button
-"""# stores the (x,y) coordinates into 
-# the variable as a tuple 
-mouse = pygame.mouse.get_pos() 
-
-# if mouse is hovered on a button it 
-# changes to lighter shade 
-if width/2 <= mouse[0] <= width/2+140 and height/2 <= mouse[1] <= height/2+40: 
-    pygame.draw.rect(screen,blue_light,[width/2-30,height/2,200,40]) 
-    
-else: 
-    pygame.draw.rect(screen,blue_dark,[width/2-30,height/2,200,40]) 
-
-
-# superimposing the text onto our button 
-screen.blit(start_text , (width/2+50,height/2)) """

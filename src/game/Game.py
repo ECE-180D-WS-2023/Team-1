@@ -212,19 +212,22 @@ class Game():
             for player in players:
                 screen.blit(player.surf, player.rect)
 
-            # text for key press results
+            # text for gesture results
             screen.blit(result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
-            # text for points
+            
+            # update text for points
             globals.points_text.update(text="Points: " + str(globals.points))
-            screen.blit(points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
+            # print points
+            # screen.blit(points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
+            print_points, print_points_rect = self.__clean_print(font=points_font, Text=globals.points_text, center=globals.points_text.rect, color=(0,0,0))
+            screen.blit(print_points, print_points_rect)
+
             # text for hitzone indicator
             screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
             
             # text for pause
             if (self.pause):
-                print_paused = paused_font.render(paused_text.text, True, (0,0,0))
-                print_paused_rect = print_paused.get_rect()
-                print_paused_rect.center = (SCREEN_WIDTH//2, SCREEN_HEIGHT//2)
+                print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
 
             # Update the display
@@ -237,5 +240,19 @@ class Game():
             # allow players to try again as long as the thing is not gone yet
             # no point deduction for too early or wrong motion
             globals.points -= 0
+
+    # function that helps print aligned to center
+    # params:
+    #   font
+    #   Text object
+    #   center is the desired tuple (x,y) you want text to be centered at
+    #   color is color of text
+    # returns you the thing you can use to print and its corresponding centered rect around center
+    # e.g., you can just screen.blit(ret1, ret2)
+    def __clean_print(self, font, Text, center, color=(0,0,0)):
+        print_text = font.render(Text.text, True, color)
+        print_text_rect = print_text.get_rect()
+        print_text_rect.center = center
+        return(print_text, print_text_rect)
 
     
