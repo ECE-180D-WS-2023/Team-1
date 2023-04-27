@@ -243,6 +243,8 @@ class ButtonListener():
 
 if __name__ == "__main__":
     import config
+
+    DEBUG_MIC = True
     special_words = config.SPECIAL_WORDS
 
     spub = SpeechPublisher("ECE180/Team1/speech/p1")
@@ -257,7 +259,7 @@ if __name__ == "__main__":
             # Get the top of the queue and pass through our recognizer
             d = myrec.get_data()
             new, word = myrec.test_data(d, True)
-            if blis.button_active(2) and new:
+            if (blis.button_active(2) or DEBUG_MIC) and new:
                 print(f"NEW: {new} \t WORD: {word} BUTTON: {blis.button_high}")
                 spub.publish(word)
     
