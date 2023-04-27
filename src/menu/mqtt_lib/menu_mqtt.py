@@ -1,15 +1,4 @@
 import re
-
-# on_message modifies this and stores the motion in this variable
-IMU_ACTION = ""
-imu_action_received_flag = False
-
-# ACTION CONSTS -- these are unused since just using KEYS in settings
-ACTION_UP = 'u'
-ACTION_LEFT = 'l'
-ACTION_ROTATE = 'r'
-ACTION_FORWARD = 'f'
-
 # start, settings, tutorial, quit, single team, multi team, 1 player, 2 player
 START_CLICK = False # key = ga
 SETTINGS_CLICK = False # key = sc
@@ -19,6 +8,7 @@ SINGLE_TEAM_CLICK = False # key = st
 MULTI_TEAM_CLICK = False # key = mt
 ONE_PLAYER_CLICK = False # key = 1p
 TWO_PLAYER_CLICK = False # key = 2p
+RETURN_CLICK = False # key = rq
 
 
 SUBSCRIPTION = "ktanna/menu"
@@ -26,16 +16,34 @@ SUBSCRIPTION = "ktanna/menu"
 def menu_mqtt_on_message(client, userdata, message):
     # may need global variables
     # parse message and set flags
-    global START_CLICK
-    global SETTINGS_CLICK
-    global TUTORIAL_CLICK
-    global QUIT_CLICK
-    global SINGLE_TEAM_CLICK 
-    global MULTI_TEAM_CLICK
-    global ONE_PLAYER_CLICK 
-    global TWO_PLAYER_CLICK
-    if re.search("bing bong", str(message.payload)):
+    global START_CLICK # ga
+    global SETTINGS_CLICK # sc
+    global TUTORIAL_CLICK # tc
+    global QUIT_CLICK # qc
+    global SINGLE_TEAM_CLICK # st
+    global MULTI_TEAM_CLICK # mt
+    global ONE_PLAYER_CLICK # 1p
+    global TWO_PLAYER_CLICK # 2p
+    global RETURN_CLICK # rq
+    if re.search("ga", str(message.payload)):
         START_CLICK = True
+    elif re.search("sc", str(message.payload)):
+        SETTINGS_CLICK = True
+    elif re.search("tc", str(message.payload)):
+        TUTORIAL_CLICK = True
+    elif re.search("qc", str(message.payload)):
+        QUIT_CLICK = True
+    elif re.search("st", str(message.payload)):
+        SINGLE_TEAM_CLICK = True
+    elif re.search("mt", str(message.payload)):
+        MULTI_TEAM_CLICK = True
+    elif re.search("1p", str(message.payload)):
+        ONE_PLAYER_CLICK = True
+    elif re.search("1p", str(message.payload)):
+        TWO_PLAYER_CLICK = True
+    elif re.search("rq", str(message.payload)):
+        RETURN_CLICK = True
+    
         
 
 def menu_mqtt_on_connect(client, userdata, flags, rc):
