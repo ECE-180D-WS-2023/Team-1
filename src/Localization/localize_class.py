@@ -54,7 +54,7 @@ class localize:
             self.camera = 1 # default to USB camera
         else:
             self.camera = 0 # otherwise 
-        if verbose == None:
+        if verbose == None or verbose == False:
             self.verbose = False
         elif verbose == True:
             self.verbose = True
