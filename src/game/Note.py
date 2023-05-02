@@ -94,8 +94,9 @@ class Note(pygame.sprite.Sprite):
     # Remove the note when it passes the bottom edge of the screen
     def update(self):
         self.rect.move_ip(0, NOTE_FALL_SPEED)
+
         # if the note goes off the edge, return too_late to indicate that the note ran out
-        if self.rect.top > SCREEN_HEIGHT:
+        if self.alive and self.rect.top > SCREEN_HEIGHT:
             #print(points)
             globals.points -= 1
             globals.action_input_result_text.update(text="Missed!")
@@ -108,20 +109,23 @@ class Note(pygame.sprite.Sprite):
     # if we only have keyboard
     def process_key(self, pressed_keys):
         # if the key press is correct and is also in the hit zone
-        if pressed_keys == self.char and self.rect.bottom > HIT_ZONE_LOWER:
-            self.kill()
-            return SUCCESS
-        elif pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
-            return TOO_EARLY
-        else:
-            return WRONG_KEY
+        if self.alive:
+            if pressed_keys == self.char and self.rect.bottom > HIT_ZONE_LOWER:
+                self.alive = False
+                self.__note_cleared()
+                return SUCCESS
+            elif pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
+                return TOO_EARLY
+            else:
+                return WRONG_KEY
 
     # if we have <imu or keyboard> AND <localization>
     def process_action_location(self, action, location, player_num):
         # check that the player cleared the correct color
         # if the key press is correct and is also in the hit zone AND also in the correct column
         if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location) and self.correct_color(player_num):
-            self.kill()
+            self.alive = False
+            self.__note_cleared()
             return SUCCESS
         elif not self.correct_color(player_num):
             return WRONG_COLOR
@@ -154,8 +158,13 @@ class Note(pygame.sprite.Sprite):
             if self.color == COLOR_2 or self.color == COLOR_4:
                 return True
         return False
+    
+    def __note_cleared(self):
+        self.surf.fill(pygame.Color('white'))
+        check_mark_image = pygame.image.load("sprites/check_mark2_40.png")
+        self.surf.blit(check_mark_image, (0, 0))
 
-# calculates lowest key and returns that note
+# calculates lowest living note and returns that note
 def get_lowest_note(notes):
-    lowest_note = max(notes, key=lambda x: x.rect.top)
+    lowest_note = max(notes, key=lambda x: x.rect.top if x.alive else -1)
     return lowest_note

@@ -7,10 +7,7 @@ if __name__ == "__main__":
     DEBUG_MIC = True
     special_words = config.SPECIAL_WORDS
    
-    # KeywordRecognizer.print_all_sound_devices()
-    # KeywordRecognizer.print_sound_device(0)
-
-    print(sd.query_devices())
+    print(sd.query_devices(1))
 
     print(sd.query_devices(2))
     
