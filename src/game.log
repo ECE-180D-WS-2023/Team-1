@@ -2,3 +2,4 @@ root - INFO - GAME: Beginning the main game loop
 root - INFO - GAME: Starting 2P game with: Width:800, Height:600
 root - INFO - MQTT: Setting up IMU MQTT Listener
 root - INFO - MQTT: Setting up Localization MQTT Listener
+root - INFO - MQTT: Setting up Voice Recog MQTT Listener

@@ -15,6 +15,7 @@ from . import globals
 from pygame.locals import (
     K_q,
     K_p,
+    K_s,
     KEYDOWN,
     QUIT,
 )
@@ -23,8 +24,14 @@ from pygame.locals import (
 
 class Game():
     def __init__(self):
-        self.pause = True
-        pass
+        # for pausing game
+        self.pause = False
+
+        # for starting game loop
+        self.running = False
+
+        # for starting the actual game inside the game loop
+        self.start_game = False
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING
@@ -67,6 +74,15 @@ class Game():
         localization_mqtt_client.loop_start()
         pygame.time.wait(LOCALIZATION_CALIBRATION_TIME)
         
+        logging.info("MQTT: Setting up Voice Recog MQTT Listener")
+        voice_mqtt_client = mqtt.Client()
+        voice_mqtt_client.on_connect = mqtt_lib.voice_mqtt_on_connect
+        voice_mqtt_client.on_disconnect = mqtt_lib.voice_mqtt_on_disconnect
+        voice_mqtt_client.on_message = mqtt_lib.voice_mqtt_on_message
+        voice_mqtt_client.connect_async('mqtt.eclipseprojects.io')
+        voice_mqtt_client.loop_start()
+        pygame.time.wait(MQTT_CALIBRATION_TIME)
+
         # instantiate sprite groups
         notes = pygame.sprite.Group()
         players = pygame.sprite.Group()
@@ -76,7 +92,8 @@ class Game():
 
         # text for hitzone, for results, and points
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
-        paused_text = Text(text="Press P To Start", rect=(10, SCREEN_HEIGHT/3))
+        paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
+        start_game_text = Text(text="Press S To Start", rect=(10, SCREEN_HEIGHT/3))
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
@@ -109,23 +126,22 @@ class Game():
         # variable to store result of key_press attempts
         action_input_result = ""
 
+        # stores previous pause state to know whether we resumed or not to continue note generation
+        prev_pause = False
+        prev_start_game = False
+
         # Variable to keep the main loop running
-        running = True
-        while running:
+        self.running = True
+        while self.running:
             for event in pygame.event.get():
                 # check if q is pressed then leave
                 if event.type == KEYDOWN:
                     if event.key == K_q:
-                        running = False
+                        self.running = False
                     elif event.key == K_p:
                         self.pause = not self.pause
-                        paused_text.update(text="Paused")
-                        if (self.pause == True):
-                            pygame.time.set_timer(SPAWNNOTE, 0)
-                        elif (self.pause == False):
-                            pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
-
-
+                    elif event.key == K_s:
+                        self.start_game = True
                     else:
                         # calculate which note is the lowest and then process key press accordingly based
                         # on that note's letter
@@ -140,7 +156,7 @@ class Game():
                         globals.action_input_result_text.update(text=action_input_result)
                 # Check for QUIT event. If QUIT, then set running to false.
                 elif event.type == QUIT:
-                    running = False
+                    self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
                     new_note = Note()
@@ -167,9 +183,32 @@ class Game():
                         action_input_result = "No Notes Yet!"
                     globals.action_input_result_text.update(text=action_input_result)
 
+
+            # handle voice recognition stuff
+            if mqtt_lib.voice_mqtt.voice_received_flag:
+                self.__interpret_voice_recog(mqtt_lib.voice_mqtt.voice_message)
+                mqtt_lib.voice_mqtt.voice_received_flag = False
+            # handling pause -> unpause transition to resume note spawning timer
+                # if we just started to pause, set note spawning timer to 0
+                # if we just resumed the game, set note spawning timer back to normal
+            if self.pause:
+                if prev_pause == False:
+                    pygame.time.set_timer(SPAWNNOTE, 0)
+                prev_pause = True
+            elif not self.pause:
+                if prev_pause == True:
+                    pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                prev_pause = False
+            # same with start_game to start the note timer
+            if self.start_game:
+                if prev_start_game == False:
+                    pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                prev_start_game = True
+
+
             # when pause game, also don't allow action to be read in and dont
             # let there be updated notes
-            if not self.pause:
+            if self.start_game and not self.pause:
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
@@ -188,6 +227,7 @@ class Game():
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     notes.update()
                     last_note_update = pygame.time.get_ticks()
+                
 
             # update player location
             players.update()
@@ -225,6 +265,12 @@ class Game():
             # text for hitzone indicator
             screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
             
+            # if game hasnt started yet, display the startgame text
+            if (not self.start_game):
+                print_start_game, print_start_game_rect = self.__clean_print(font=paused_font, Text=start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+                screen.blit(print_start_game, print_start_game_rect)
+                # do not allow the game to be paused while game has not started
+                self.pause = False
             # text for pause
             if (self.pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
@@ -255,4 +301,13 @@ class Game():
         print_text_rect.center = center
         return(print_text, print_text_rect)
 
-    
+    # parse the voice_message received from voice mqtt
+    def __interpret_voice_recog(self, voice_message):
+        if (voice_message == "pause"):
+            self.pause = not self.pause
+        elif (voice_message == "quit"):
+            self.running = False
+        elif (voice_message == "continue"):
+            self.pause = False
+        elif (voice_message == "start"):
+            self.start_game = True
