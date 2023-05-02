@@ -1,5 +1,6 @@
 import logging
 from game import Game
+from menu import Menu
 #from speech import laptop_speech, config
 
 
@@ -16,6 +17,8 @@ logging.basicConfig(filename='game.log', filemode='w',
 
 # eventually will have tutorial or whatever here
 # maybe do mygame.tutorial instead when triggered by menu
+mymenu = Menu()
+info = mymenu.start()
 mygame = Game()
 logging.info("GAME: Beginning the main game loop")
-mygame.start(num_players=2)
+mygame.start(num_players=info[1])
