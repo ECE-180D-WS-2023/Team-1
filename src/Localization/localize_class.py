@@ -73,6 +73,8 @@ class localize:
         color = 0
 
         while color < self.color:
+            if cv2.waitKey(10) & 0xFF == ord('q'):
+                break
             # Capture frame-by-frame
             _, frame = cap.read()
             flip = cv2.flip(frame,1)

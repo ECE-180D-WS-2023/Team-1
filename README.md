@@ -1,7 +1,9 @@
 # Team-1: JAAK
 
 ```bash
+pip install pygame
 pip install vosk 
+pip install keyboard
 pip install sounddevice 
 pip install soundfile
 pip install pyaudio
