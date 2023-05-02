@@ -24,27 +24,38 @@ COLOR_4 = COLOR_2
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, color=None, lane=None, char=None):
         super(Note, self).__init__()
-        self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        if lane == None:
+            self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        elif lane == 1:
+            self.lane = COLUMN_1
+        elif lane == 2:
+            self.lane = COLUMN_2
+        elif lane == 3:
+            self.lane = COLUMN_3
+        else:
+            self.lane = COLUMN_4
         
         self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
         self.color = ""
         
         # if 1 player, the color will always be red
-        if (globals.NUM_PLAYERS == 1):
-            self.color = COLOR_1
-        # if 2 player, the color will be red/blue random
-        elif (globals.NUM_PLAYERS == 2):
-            # randomly generate either 1 or 2 for color
-            if (random.randint(1,2) == 1):
+        if color == None:
+            if (globals.NUM_PLAYERS == 1):
                 self.color = COLOR_1
-            else:
-                self.color = COLOR_2
-        
-        
-
+            # if 2 player, the color will be red/blue random
+            elif (globals.NUM_PLAYERS == 2):
+                # randomly generate either 1 or 2 for color
+                if (random.randint(1,2) == 1):
+                    self.color = COLOR_1
+                else:
+                    self.color = COLOR_2
+        elif color == 1:
+            self.color = COLOR_1
+        else:
+            self.color == 2
 
         # color in the square according to its lane
         self.surf.fill(self.color)
@@ -57,8 +68,11 @@ class Note(pygame.sprite.Sprite):
             )
         )
         
+        if char == None:
         # the letter assigned to note, randomly generated
-        self.char = random.choice(KEYS)
+            self.char = random.choice(KEYS)
+        else:
+            self.char = char
         self.letter = self.char
 
         # give the correct image accordingly
