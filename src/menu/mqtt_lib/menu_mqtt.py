@@ -37,11 +37,11 @@ def menu_mqtt_on_message(client, userdata, message):
         SINGLE_TEAM_CLICK = True
     elif re.search("multi", str(message.payload)):
         MULTI_TEAM_CLICK = True
-    elif re.search("1p", str(message.payload)):
+    elif re.search("one", str(message.payload)):
         ONE_PLAYER_CLICK = True
-    elif re.search("1p", str(message.payload)):
+    elif re.search("two", str(message.payload)):
         TWO_PLAYER_CLICK = True
-    elif re.search("rq", str(message.payload)):
+    elif re.search("back", str(message.payload)):
         RETURN_CLICK = True
     
         

@@ -231,9 +231,7 @@ class Menu():
                             tutorial_button.enabled = False
                             quit_button.enabled = False
                             back_button.enabled = True
-                            return {multi, player_num}
-                            pygame.quit()
-                            exit() 
+                            return [multi, player_num]
                         if quit_button.check_click() or quit_click:
                             print("Time to quit!")
                             print("Multi: ", multi)
@@ -270,17 +268,23 @@ class Menu():
                             return_click = False
                             remote_button.toggle = not remote_button.toggle
                             multi = not multi
+                        elif multi_team_click and not multi:
+                            multi = True
+                            multi_team_click = False
+                        elif single_team_click and multi:
+                            multi = False
+                            single_team_click = False
                         if player_button.check_toggle_click():
                             player_button.toggle = not player_button.toggle
                             if player_num == 1:
                                 player_num = 2
                             elif player_num == 2:
                                 player_num = 1
-                        elif single_team_click and player_num == 2:
-                            single_team_click = False
+                        elif one_player_click and player_num == 2:
+                            one_player_click = False
                             player_num = 1
-                        elif multi_team_click and player_num == 1:
-                            multi_team_click = False
+                        elif two_player_click and player_num == 1:
+                            two_player_click = False
                             player_num = 2
                         if back_button.check_click() or return_click: # TODO ADD FLAG
                             return_click = False
