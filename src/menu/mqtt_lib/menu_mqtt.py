@@ -11,7 +11,7 @@ TWO_PLAYER_CLICK = False # key = 2p
 RETURN_CLICK = False # key = rq
 
 
-SUBSCRIPTION = "ktanna/menu"
+SUBSCRIPTION = "ECE180/Team1/speech/p1"
 
 def menu_mqtt_on_message(client, userdata, message):
     # may need global variables

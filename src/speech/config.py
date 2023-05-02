@@ -18,4 +18,9 @@ SPECIAL_WORDS = {
     "two" : ["to", "too", "do"],
     "i'm excited" : ["i'm actually"],
     "exit" : ["exactly"],
+    "quit" : [],
+    "back" : [],
+    "single" : [],
+    "multi" : [],
+    "settings" : []
 }
