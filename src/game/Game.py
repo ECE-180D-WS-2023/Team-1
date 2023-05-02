@@ -34,8 +34,7 @@ class Game():
         self.start_game = False
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
-    # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING
-    # ACTION_2
+    # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING ACTION_2
     def start(self, num_players=2, bpm=30):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
@@ -301,7 +300,7 @@ class Game():
         print_text_rect.center = center
         return(print_text, print_text_rect)
 
-    # parse the voice_message received from voice mqtt
+    # parse the voice_message received from voice mqtt and set flags accordingly
     def __interpret_voice_recog(self, voice_message):
         if (voice_message == "pause"):
             self.pause = not self.pause
