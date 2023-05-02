@@ -5,9 +5,9 @@ import logging
 from game import mqtt_lib
 
 from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
-from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time, time_between_motion
+from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
 from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
-from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, MQTT_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME
+from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME
 from .Player import Player
 from .Text import Text
 from . import globals
@@ -59,7 +59,7 @@ class Game():
         imu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
         imu_mqtt_client.loop_start()
         # for initialize mqtt
-        pygame.time.wait(MQTT_CALIBRATION_TIME)
+        pygame.time.wait(IMU_CALIBRATION_TIME)
 
         logging.info("MQTT: Setting up Localization MQTT Listener")
         # initialize and calibrate video feed
@@ -81,7 +81,7 @@ class Game():
         voice_mqtt_client.on_message = mqtt_lib.voice_mqtt_on_message
         voice_mqtt_client.connect_async('mqtt.eclipseprojects.io')
         voice_mqtt_client.loop_start()
-        pygame.time.wait(MQTT_CALIBRATION_TIME)
+        pygame.time.wait(VOICE_CALIBRATION_TIME)
 
         # instantiate sprite groups
         notes = pygame.sprite.Group()
