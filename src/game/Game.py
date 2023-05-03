@@ -76,7 +76,8 @@ class Game():
 
         # text for hitzone, for results, and points
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
-        paused_text = Text(text="Press P To Start", rect=(10, SCREEN_HEIGHT/3))
+        paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
+        start_game_text = Text(text="Press S To Start", rect=(10, SCREEN_HEIGHT/3))
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
         paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
@@ -103,13 +104,19 @@ class Game():
         score = 0
         last_score = 0
         points = 0
+        self.start_game = False
+        self.pause = False
+        prev_start_game = False
 
         while (score < completed_score):
             for event in pygame.event.get():
                 # check if q is pressed then leave
                 if event.type == KEYDOWN:
                     if event.key == K_q:
-                        running = False
+                        score = completed_score
+                        break
+                    elif event.key == K_s:
+                        self.start_game = True
                     elif event.key == K_p:
                         self.pause = not self.pause
                         paused_text.update(text="Paused")
@@ -163,9 +170,14 @@ class Game():
                         action_input_result = "No Notes Yet!"
                     globals.action_input_result_text.update(text=action_input_result)
             
+            # same with start_game to start the note timer
+            if self.start_game:
+                if prev_start_game == False:
+                    pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                prev_start_game = True
             # when pause game, also don't allow action to be read in and dont
             # let there be updated notes
-            if not self.pause:
+            if self.start_game and not self.pause:
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
@@ -222,10 +234,16 @@ class Game():
             if (self.pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
+            if (not self.start_game):
+                print_start_game, print_start_game_rect = self.__clean_print(font=paused_font, Text=start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+                screen.blit(print_start_game, print_start_game_rect)
+                # do not allow the game to be paused while game has not started
+                self.pause = False
 
             # Update the display
             pygame.display.flip()
         globals.points = 0
+        self.start_game = False
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING ACTION_2
