@@ -124,8 +124,19 @@ class Game():
                             pygame.time.set_timer(SPAWNNOTE, 0)
                         elif (self.pause == False):
                             pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
-
-
+                    elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
+                        if (event.key == K_1):
+                            mqtt_lib.localization_mqtt.player1_location = 1
+                            mqtt_lib.localization_mqtt.player1_coords = 560
+                        elif (event.key == K_2):
+                            mqtt_lib.localization_mqtt.player1_location = 2
+                            mqtt_lib.localization_mqtt.player1_coords = 400
+                        elif (event.key == K_3):
+                            mqtt_lib.localization_mqtt.player1_location = 3
+                            mqtt_lib.localization_mqtt.player1_coords = 240
+                        elif (event.key == K_4):
+                            mqtt_lib.localization_mqtt.player1_location = 4 
+                            mqtt_lib.localization_mqtt.player1_coords = 80
                     else:
                         # calculate which note is the lowest and then process key press accordingly based
                         # on that note's letter
