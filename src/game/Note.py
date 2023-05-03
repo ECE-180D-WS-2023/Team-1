@@ -113,10 +113,11 @@ class Note(pygame.sprite.Sprite):
             self.rect.x = self.init_x
 
         # if the note goes off the edge, return too_late to indicate that the note ran out
-        if self.alive and self.rect.top > SCREEN_HEIGHT:
+        if self.rect.top > SCREEN_HEIGHT:
             #print(points)
-            globals.points -= 1
-            globals.action_input_result_text.update(text="Missed!")
+            if self.alive:
+                globals.points -= 1
+                globals.action_input_result_text.update(text="Missed!")
             self.kill()
     
 
