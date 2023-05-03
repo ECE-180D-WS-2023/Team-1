@@ -53,7 +53,7 @@ class Game():
         imu_mqtt_client.on_message = mqtt_lib.imu_mqtt_on_message
         imu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
         imu_mqtt_client.loop_start()
-        pygame.time.wait(MQTT_CALIBRATION_TIME)
+        pygame.time.wait(IMU_CALIBRATION_TIME)
 
         logging.info("MQTT: Setting up Localization MQTT Listener")
         localization_mqtt_client = mqtt.Client()
