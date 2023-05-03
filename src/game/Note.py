@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 from .Settings import NOTE_FALL_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, NOTE_WIDTH, NOTE_HEIGHT, KEYS, HIT_ZONE_LOWER
 from .Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
 from . import globals
@@ -18,6 +19,11 @@ COLOR_2 = (173, 216, 230) #b
 COLOR_3 = COLOR_1
 COLOR_4 = COLOR_2
 
+# when gesture incorrect, shake the note
+SHAKE_AMPLITUDE = 10
+SHAKE_PERIOD = 4
+INCORRECT_SHAKE_TIME = 20*math.pi
+
 #COLOR_2 = (144, 238, 144) #g
 #COLOR_3 = (173, 216, 230) #b
 #COLOR_4 = (255,255,102) #y
@@ -27,6 +33,7 @@ class Note(pygame.sprite.Sprite):
     def __init__(self):
         super(Note, self).__init__()
         self.alive = True
+        self.shake_time = 0
 
         self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
         
@@ -55,6 +62,7 @@ class Note(pygame.sprite.Sprite):
             self.lane, 0
             )
         )
+        self.init_x = self.rect.x
         
         # the letter assigned to note, randomly generated
         self.char = random.choice(KEYS)
@@ -80,6 +88,13 @@ class Note(pygame.sprite.Sprite):
     def update(self):
         self.rect.move_ip(0, NOTE_FALL_SPEED)
 
+        # for shaking when incorrect
+        if self.shake_time > 0:
+            self.shake_time -= 1
+            self.rect.x += int(SHAKE_AMPLITUDE*math.sin(((2*math.pi)/SHAKE_PERIOD) * self.shake_time))
+        else:
+            self.rect.x = self.init_x
+
         # if the note goes off the edge, return too_late to indicate that the note ran out
         if self.alive and self.rect.top > SCREEN_HEIGHT:
             #print(points)
@@ -99,10 +114,13 @@ class Note(pygame.sprite.Sprite):
                 self.alive = False
                 self.__note_cleared()
                 return SUCCESS
-            elif pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
-                return TOO_EARLY
-            else:
-                return WRONG_KEY
+            # if incorrect
+            else: 
+                self.shake_time = INCORRECT_SHAKE_TIME
+                if pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
+                    return TOO_EARLY
+                else:
+                    return WRONG_KEY
 
     # if we have <imu or keyboard> AND <localization>
     def process_action_location(self, action, location, player_num):
@@ -112,14 +130,17 @@ class Note(pygame.sprite.Sprite):
             self.alive = False
             self.__note_cleared()
             return SUCCESS
-        elif not self.correct_color(player_num):
-            return WRONG_COLOR
-        elif not self.correct_column(location):
-            return WRONG_LANE
-        elif action == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
-            return TOO_EARLY
+        # if incorrect
         else:
-            return WRONG_KEY
+            self.shake_time = INCORRECT_SHAKE_TIME
+            if not self.correct_color(player_num):
+                return WRONG_COLOR
+            elif not self.correct_column(location):
+                return WRONG_LANE
+            elif action == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
+                return TOO_EARLY
+            else:
+                return WRONG_KEY
     
     # checks if the player is in the same column as the note
     # note that the input column should be a string, either "1", "2", "3", or "4"
