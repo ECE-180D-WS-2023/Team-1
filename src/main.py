@@ -19,6 +19,7 @@ logging.basicConfig(filename='game.log', filemode='w',
 # maybe do mygame.tutorial instead when triggered by menu
 mymenu = Menu()
 info = mymenu.start()
+print(info)
 mygame = Game()
 logging.info("GAME: Beginning the main game loop")
 mygame.start(num_players=info[1])
