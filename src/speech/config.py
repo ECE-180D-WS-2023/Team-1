@@ -16,11 +16,18 @@ SPECIAL_WORDS = {
     "enter": ["under", "after"],
     "one" : ["won"],
     "two" : ["to", "too", "do"],
+    "a" : [],
+    "b" : ["be"],
+    "c" : ["see"],
+    "d" : ["the"],
+    "e" : ["he"],
+    "f" : [],
     "i'm excited" : ["i'm actually"],
     "exit" : ["exactly"],
     "quit" : [],
-    "back" : [],
+    "return" : [],
     "single" : [],
     "multi" : [],
-    "settings" : []
+    "settings" : [],
+    "tutorial" : []
 }

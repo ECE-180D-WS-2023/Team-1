@@ -9,7 +9,13 @@ MULTI_TEAM_CLICK = False # key = mt
 ONE_PLAYER_CLICK = False # key = 1p
 TWO_PLAYER_CLICK = False # key = 2p
 RETURN_CLICK = False # key = rq
-
+MESSAGE_RECEIVED = False
+SONG_A = False
+SONG_B = False
+SONG_C = False
+SONG_D = False
+SONG_E = False
+SONG_F = False
 
 SUBSCRIPTION = "ECE180/Team1/speech/p1"
 
@@ -25,29 +31,67 @@ def menu_mqtt_on_message(client, userdata, message):
     global ONE_PLAYER_CLICK # 1p
     global TWO_PLAYER_CLICK # 2p
     global RETURN_CLICK # rq
-    if re.search("start", str(message.payload)):
+    global MESSAGE_RECEIVED
+    global SONG_A
+    global SONG_B
+    global SONG_C
+    global SONG_D
+    global SONG_E
+    global SONG_F
+    msg_str = message.payload.decode()
+    MESSAGE_RECEIVED = True
+    print(msg_str)
+    if re.search("start", msg_str):
+        print("Received start!")
         START_CLICK = True
-    elif re.search("settings", str(message.payload)):
+    elif re.search("settings", msg_str):
+        print("Received settings!")
         SETTINGS_CLICK = True
-    elif re.search("tutorial", str(message.payload)):
+    elif re.search("tutorial", msg_str):
+        print("Received tutorial!")
         TUTORIAL_CLICK = True
-    elif re.search("quit", str(message.payload)):
+    elif re.search("quit", msg_str):
+        print("Received quit!")
         QUIT_CLICK = True
-    elif re.search("single", str(message.payload)):
+    elif re.search("single", msg_str):
+        print("Received single!")
         SINGLE_TEAM_CLICK = True
-    elif re.search("multi", str(message.payload)):
+    elif re.search("multi", msg_str):
+        print("Received multi!")
         MULTI_TEAM_CLICK = True
-    elif re.search("one", str(message.payload)):
+    elif re.search("one player", msg_str):
+        print("Received one player!")
         ONE_PLAYER_CLICK = True
-    elif re.search("two", str(message.payload)):
+    elif re.search("two player", msg_str):
+        print("Received two player!")
         TWO_PLAYER_CLICK = True
-    elif re.search("back", str(message.payload)):
+    elif re.search("back", msg_str):
+        print("Received back!")
         RETURN_CLICK = True
+    elif re.search("a", msg_str):
+        print("Received A!")
+        SONG_A = True
+    elif re.search("b", msg_str):
+        print("Received B!")
+        SONG_B = True
+    elif re.search("c", msg_str):
+        print("Received C!")
+        SONG_C = True
+    elif re.search("e", msg_str):
+        print("Received D!")
+        SONG_D = True
+    elif re.search("e", msg_str):
+        print("Received E!")
+        SONG_E = True
+    elif re.search("F", msg_str):
+        print("Received F!")
+        SONG_F = True
+
     
         
 
 def menu_mqtt_on_connect(client, userdata, flags, rc):
-    print("Connection returned result: " + str(rc))
+    print("Speech connection returned result: " + str(rc))
     client.subscribe(SUBSCRIPTION, qos=1)
 
 # The callback of the client when it disconnects.
