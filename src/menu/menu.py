@@ -209,7 +209,7 @@ class Menu():
 
             tutorial = False
 
-            print("Settings click status: ", settings_click)
+            #print("Settings click status: ", settings_click)
 
             screen.fill((242,152,152)) 
 
