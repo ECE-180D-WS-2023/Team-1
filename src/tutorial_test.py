@@ -19,4 +19,4 @@ logging.basicConfig(filename='game.log', filemode='w',
 # maybe do mygame.tutorial instead when triggered by menu
 mygame = Game()
 logging.info("GAME: Beginning the main game loop")
-mygame.tutorial(num_players=1)
+mygame.tutorial(num_players=2)

@@ -63,8 +63,8 @@ class Note(pygame.sprite.Sprite):
                     self.color = COLOR_2
         elif color == 1:
             self.color = COLOR_1
-        else:
-            self.color == 2
+        elif color == 2:
+            self.color = COLOR_2
 
         # color in the square according to its lane
         self.surf.fill(self.color)

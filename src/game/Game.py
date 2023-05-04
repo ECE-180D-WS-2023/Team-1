@@ -92,7 +92,7 @@ class Game():
 
         last_note_update = pygame.time.get_ticks()
         action_input_result = ""
-        if num_players == 2:
+        if num_players == 1:
             notes_list = [[1,1,'u'], [1,2,'l'], [1,3,'f'], [1,4,'r']] # TO_DO: create lists for player note patterns for tutorial
         else:
             notes_list = [[1,1,'u'], [1,2,'l'], [1,3,'f'], [1,4,'r'], [2,1,'u'], [2,2,'l'], [2,3,'f'], [2,4,'r']]
