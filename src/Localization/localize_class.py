@@ -100,14 +100,6 @@ class localize:
                     cv2.putText(flip, "Green Border Color", (300, 100),
                                         cv2.FONT_HERSHEY_SIMPLEX, 
                                         1.0, (0, 255, 0))
-            # if color == 2:
-            #     cv2.putText(flip, "Orange Color", (300, 100),
-            #                                 cv2.FONT_HERSHEY_SIMPLEX, 
-            #                                 1.0, (0, 164, 255))
-            # if color == 3:
-            #     cv2.putText(flip, "Purple Color", (300, 100),
-            #                             cv2.FONT_HERSHEY_SIMPLEX, 
-            #                             1.0, (245, 0, 147))
             if color == 2:
                 cv2.putText(flip, "Green Border Color", (300, 100),
                                         cv2.FONT_HERSHEY_SIMPLEX, 
@@ -130,14 +122,6 @@ class localize:
                 color_key = 'c' + str(color+1)
                 self.colors[color_key] = HSV_vals[0][0]
                 color += 1
-                # if (color == 1):
-                #     print("Input orange color by aligning in central box and striking c key")
-                # if (color == 2):
-                #     print("Input blue color by aligning in central box and striking c key")
-                # if (color == 3):
-                #     print("Input purple color by aligning in central box and striking c key")
-                # if (color == 4):
-                #     print("Input green border color by aligning in central box and striking c key")
         
         print("Colors collected")
         print(self.colors)
