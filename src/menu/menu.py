@@ -207,6 +207,8 @@ class Menu():
             song_e = mqtt_lib.menu_mqtt.SONG_E
             song_f = mqtt_lib.menu_mqtt.SONG_F
 
+            tutorial = False
+
             print("Settings click status: ", settings_click)
 
             screen.fill((242,152,152)) 
@@ -279,7 +281,9 @@ class Menu():
                             tutorial_button.enabled = False
                             quit_button.enabled = False
                             back_button.enabled = True
-                            break
+                            tutorial = True
+                            return [multi, player_num, song1_button.text, tutorial]
+                            #break
                         elif settings_button.check_click() or settings_click:
                             mqtt_lib.menu_mqtt.SETTINGS_CLICK = False
                             settings_screen = True
@@ -339,8 +343,8 @@ class Menu():
                             player_button.toggle = not player_button.toggle
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
                             player_num = 2
-                    if tutorial_screen:
-                        if back_button.check_click() or return_click: # TODO ADD FLAG
+                    """if tutorial_screen:
+                        if back_button.check_click() or return_click: 
                             mqtt_lib.menu_mqtt.RETURN_CLICK = False
                             menu_screen = True
                             tutorial_screen = False
@@ -350,7 +354,8 @@ class Menu():
                             tutorial_button.enabled = True
                             quit_button.enabled = True
                             back_button.enabled = False
-                            break
+                            tutorial = True
+                            return [multi, player_num, tutorial]"""
                     if song_screen:
                         if song_back_button.check_click() or return_click: # TODO ADD FLAG
                             mqtt_lib.menu_mqtt.RETURN_CLICK = False
@@ -371,16 +376,16 @@ class Menu():
                             break
                         elif song1_button.check_click() or song_a:
                             mqtt_lib.menu_mqtt.SONG_A = False
-                            return [multi, player_num, song1_button.text]
+                            return [multi, player_num, song1_button.text, tutorial]
                         elif song2_button.check_click() or song_b:
                             mqtt_lib.menu_mqtt.SONG_B = False
-                            return [multi, player_num, song2_button.text]
+                            return [multi, player_num, song2_button.text, tutorial]
                         elif song3_button.check_click() or song_c:
                             mqtt_lib.menu_mqtt.SONG_C = False
-                            return [multi, player_num, song3_button.text]
+                            return [multi, player_num, song3_button.text, tutorial]
                         elif song4_button.check_click() or song_d:
                             mqtt_lib.menu_mqtt.SONG_D = False
-                            return [multi, player_num, song4_button.text]
+                            return [multi, player_num, song4_button.text, tutorial]
                         elif song5_button.check_click() or song_e:
                             mqtt_lib.menu_mqtt.SONG_E = False
                             return [multi, player_num, song5_button.text]
