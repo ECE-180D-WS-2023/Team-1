@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 from .Settings import NOTE_FALL_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, NOTE_WIDTH, NOTE_HEIGHT, KEYS, HIT_ZONE_LOWER
 from .Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
 from . import globals
@@ -18,33 +19,52 @@ COLOR_2 = (173, 216, 230) #b
 COLOR_3 = COLOR_1
 COLOR_4 = COLOR_2
 
+# when gesture incorrect, shake the note
+SHAKE_AMPLITUDE = 10
+SHAKE_PERIOD = 4
+INCORRECT_SHAKE_TIME = 20*math.pi
+
 #COLOR_2 = (144, 238, 144) #g
 #COLOR_3 = (173, 216, 230) #b
 #COLOR_4 = (255,255,102) #y
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, color=None, lane=None, char=None):
         super(Note, self).__init__()
-        self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        self.alive = True
+        self.shake_time = 0
+
+        if lane == None:
+            self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        elif lane == 1:
+            self.lane = COLUMN_1
+        elif lane == 2:
+            self.lane = COLUMN_2
+        elif lane == 3:
+            self.lane = COLUMN_3
+        else:
+            self.lane = COLUMN_4
         
         self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
         self.color = ""
         
         # if 1 player, the color will always be red
-        if (globals.NUM_PLAYERS == 1):
-            self.color = COLOR_1
-        # if 2 player, the color will be red/blue random
-        elif (globals.NUM_PLAYERS == 2):
-            # randomly generate either 1 or 2 for color
-            if (random.randint(1,2) == 1):
+        if color == None:
+            if (globals.NUM_PLAYERS == 1):
                 self.color = COLOR_1
-            else:
-                self.color = COLOR_2
-        
-        
-
+            # if 2 player, the color will be red/blue random
+            elif (globals.NUM_PLAYERS == 2):
+                # randomly generate either 1 or 2 for color
+                if (random.randint(1,2) == 1):
+                    self.color = COLOR_1
+                else:
+                    self.color = COLOR_2
+        elif color == 1:
+            self.color = COLOR_1
+        else:
+            self.color == 2
 
         # color in the square according to its lane
         self.surf.fill(self.color)
@@ -56,9 +76,13 @@ class Note(pygame.sprite.Sprite):
             self.lane, 0
             )
         )
+        self.init_x = self.rect.x
         
+        if char == None:
         # the letter assigned to note, randomly generated
-        self.char = random.choice(KEYS)
+            self.char = random.choice(KEYS)
+        else:
+            self.char = char
         self.letter = self.char
 
         # give the correct image accordingly
@@ -80,11 +104,20 @@ class Note(pygame.sprite.Sprite):
     # Remove the note when it passes the bottom edge of the screen
     def update(self):
         self.rect.move_ip(0, NOTE_FALL_SPEED)
+
+        # for shaking when incorrect
+        if self.shake_time > 0:
+            self.shake_time -= 1
+            self.rect.x += int(SHAKE_AMPLITUDE*math.sin(((2*math.pi)/SHAKE_PERIOD) * self.shake_time))
+        else:
+            self.rect.x = self.init_x
+
         # if the note goes off the edge, return too_late to indicate that the note ran out
         if self.rect.top > SCREEN_HEIGHT:
             #print(points)
-            globals.points -= 1
-            globals.action_input_result_text.update(text="Missed!")
+            if self.alive:
+                globals.points -= 1
+                globals.action_input_result_text.update(text="Missed!")
             self.kill()
     
 
@@ -94,29 +127,38 @@ class Note(pygame.sprite.Sprite):
     # if we only have keyboard
     def process_key(self, pressed_keys):
         # if the key press is correct and is also in the hit zone
-        if pressed_keys == self.char and self.rect.bottom > HIT_ZONE_LOWER:
-            self.kill()
-            return SUCCESS
-        elif pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
-            return TOO_EARLY
-        else:
-            return WRONG_KEY
+        if self.alive:
+            if pressed_keys == self.char and self.rect.bottom > HIT_ZONE_LOWER:
+                self.alive = False
+                self.__note_cleared()
+                return SUCCESS
+            # if incorrect
+            else: 
+                self.shake_time = INCORRECT_SHAKE_TIME
+                if pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
+                    return TOO_EARLY
+                else:
+                    return WRONG_KEY
 
     # if we have <imu or keyboard> AND <localization>
     def process_action_location(self, action, location, player_num):
         # check that the player cleared the correct color
         # if the key press is correct and is also in the hit zone AND also in the correct column
         if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location) and self.correct_color(player_num):
-            self.kill()
+            self.alive = False
+            self.__note_cleared()
             return SUCCESS
-        elif not self.correct_color(player_num):
-            return WRONG_COLOR
-        elif not self.correct_column(location):
-            return WRONG_LANE
-        elif action == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
-            return TOO_EARLY
+        # if incorrect
         else:
-            return WRONG_KEY
+            self.shake_time = INCORRECT_SHAKE_TIME
+            if not self.correct_color(player_num):
+                return WRONG_COLOR
+            elif not self.correct_column(location):
+                return WRONG_LANE
+            elif action == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
+                return TOO_EARLY
+            else:
+                return WRONG_KEY
     
     # checks if the player is in the same column as the note
     # note that the input column should be a string, either "1", "2", "3", or "4"
@@ -140,8 +182,13 @@ class Note(pygame.sprite.Sprite):
             if self.color == COLOR_2 or self.color == COLOR_4:
                 return True
         return False
+    
+    def __note_cleared(self):
+        self.surf.fill(pygame.Color('white'))
+        check_mark_image = pygame.image.load("sprites/check_mark2_40.png")
+        self.surf.blit(check_mark_image, (0, 0))
 
-# calculates lowest key and returns that note
+# calculates lowest living note and returns that note
 def get_lowest_note(notes):
-    lowest_note = max(notes, key=lambda x: x.rect.top)
+    lowest_note = max(notes, key=lambda x: x.rect.top if x.alive else -1)
     return lowest_note
