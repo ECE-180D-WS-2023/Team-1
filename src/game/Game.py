@@ -75,9 +75,18 @@ class Game():
         all_sprites = pygame.sprite.Group()
 
         # text for hitzone, for results, and points
+        instructions = {
+            'u':" lift remote upward rapidly when note enters hit-zone.",
+            'f':" push remote forward rapidly when note enters hit-zone.",
+            'l':" swipe remote leftward rapidly when note enters hit-zone.",
+            'r':" rotate remote counterclockwise rapidly when note enters hit-zone.",
+            1 : "Align box into column of note & ",
+            2 : "Align box into column of note & ",
+        }
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
         paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
         start_game_text = Text(text="Press S To Start", rect=(10, SCREEN_HEIGHT/3))
+        instruction_text = Text(text="", rect=(10, SCREEN_HEIGHT/3))
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
         paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
@@ -107,6 +116,7 @@ class Game():
         self.start_game = False
         self.pause = False
         prev_start_game = False
+        player_color=(255,0,0)
 
         while (score < completed_score):
             for event in pygame.event.get():
@@ -157,6 +167,9 @@ class Game():
                     color_idx = notes_list[score][0]
                     lane_idx = notes_list[score][1]
                     char_idx = notes_list[score][2]
+                    if color_idx == 2:
+                        player_color=(0,0,255)
+                    instruction_text = Text(text=instructions[color_idx]+instructions[char_idx], rect=(10, SCREEN_HEIGHT/3))
                     new_note = Note(color=color_idx, lane=lane_idx, char=char_idx)
                     notes.add(new_note)
                     all_sprites.add(new_note)
@@ -245,11 +258,14 @@ class Game():
             if (self.pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
-            if (not self.start_game):
+            elif (not self.start_game):
                 print_start_game, print_start_game_rect = self.__clean_print(font=paused_font, Text=start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_start_game, print_start_game_rect)
                 # do not allow the game to be paused while game has not started
                 self.pause = False
+            else:
+                print_inst, print_inst_rect = self.__clean_print(font=result_font, Text=instruction_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color=player_color)
+                screen.blit(print_inst, print_inst_rect)
 
             # Update the display
             pygame.display.flip()

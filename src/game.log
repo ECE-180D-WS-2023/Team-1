@@ -1,0 +1,4 @@
+root - INFO - GAME: Beginning the main game loop
+root - INFO - Tutorial: Starting 2P tutorial with: Width:800, Height:600
+root - INFO - MQTT: Setting up IMU MQTT Listener
+root - INFO - MQTT: Setting up Localization MQTT Listener
