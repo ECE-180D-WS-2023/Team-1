@@ -75,9 +75,18 @@ class Game():
         all_sprites = pygame.sprite.Group()
 
         # text for hitzone, for results, and points
+        instructions = {
+            'u':" lift remote upward rapidly when note enters hit-zone.",
+            'f':" push remote forward rapidly when note enters hit-zone.",
+            'l':" swipe remote leftward rapidly when note enters hit-zone.",
+            'r':" rotate remote counterclockwise rapidly when note enters hit-zone.",
+            1 : "Align box into column of note & ",
+            2 : "Align box into column of note & ",
+        }
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
         paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
         start_game_text = Text(text="Press S To Start", rect=(10, SCREEN_HEIGHT/3))
+        instruction_text = Text(text="", rect=(10, SCREEN_HEIGHT/3))
         result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
         hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
         paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
@@ -107,6 +116,7 @@ class Game():
         self.start_game = False
         self.pause = False
         prev_start_game = False
+        player_color=(255,0,0)
 
         while (score < completed_score):
             for event in pygame.event.get():
@@ -157,6 +167,9 @@ class Game():
                     color_idx = notes_list[score][0]
                     lane_idx = notes_list[score][1]
                     char_idx = notes_list[score][2]
+                    if color_idx == 2:
+                        player_color=(0,0,255)
+                    instruction_text = Text(text=instructions[color_idx]+instructions[char_idx], rect=(10, SCREEN_HEIGHT/3))
                     new_note = Note(color=color_idx, lane=lane_idx, char=char_idx)
                     notes.add(new_note)
                     all_sprites.add(new_note)
@@ -245,11 +258,14 @@ class Game():
             if (self.pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
-            if (not self.start_game):
+            elif (not self.start_game):
                 print_start_game, print_start_game_rect = self.__clean_print(font=paused_font, Text=start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_start_game, print_start_game_rect)
                 # do not allow the game to be paused while game has not started
                 self.pause = False
+            else:
+                print_inst, print_inst_rect = self.__clean_print(font=result_font, Text=instruction_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color=player_color)
+                screen.blit(print_inst, print_inst_rect)
 
             # Update the display
             pygame.display.flip()
@@ -258,7 +274,7 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING ACTION_2
-    def start(self, num_players=2, bpm=30):
+    def start(self, num_players=2, bpm=30, song_title="A: "):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
@@ -270,6 +286,10 @@ class Game():
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
+        # initialize sounds
+        pygame.mixer.init()
+        self.__load_music(song_title)
+
         logging.info("MQTT: Setting up IMU MQTT Listener")
         # initialize mqtt for imu
         # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and rotate
@@ -429,15 +449,18 @@ class Game():
             if self.pause:
                 if prev_pause == False:
                     pygame.time.set_timer(SPAWNNOTE, 0)
+                    pygame.mixer.music.pause()
                 prev_pause = True
             elif not self.pause:
                 if prev_pause == True:
                     pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                    pygame.mixer.music.unpause()
                 prev_pause = False
-            # same with start_game to start the note timer
+            # same with start_game to start the note timer and start music
             if self.start_game:
                 if prev_start_game == False:
                     pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                    pygame.mixer.music.play()
                 prev_start_game = True
 
 
@@ -514,6 +537,10 @@ class Game():
             # Update the display
             pygame.display.flip()
 
+            # stop music if game done
+            if (self.running == False):
+                pygame.mixer.music.stop()
+
     def __calc_points(self, action_input_result):
         if action_input_result == SUCCESS:
             globals.points += 1
@@ -546,3 +573,10 @@ class Game():
             self.pause = False
         elif (voice_message == "start"):
             self.start_game = True
+
+    def __load_music(self, song_title):
+        if song_title[0] == 'A':
+            pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
+        else:
+            pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
+        pygame.mixer.music.set_volume(0.5)
