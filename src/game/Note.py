@@ -30,10 +30,14 @@ INCORRECT_SHAKE_TIME = 20*math.pi
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):
-    def __init__(self, color=None, lane=None, char=None):
+    def __init__(self, color=None, lane=None, char=None, seed=None):
         super(Note, self).__init__()
         self.alive = True
         self.shake_time = 0
+        self.seed = seed
+
+        # Seed random number generator with seed
+        random.seed(self.seed)
 
         if lane == None:
             self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])

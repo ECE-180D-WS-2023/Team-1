@@ -414,7 +414,7 @@ class Game():
                     self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
-                    new_note = Note()
+                    new_note = Note(seed=(song_title+str(pygame.mixer.music.get_pos())))
                     notes.add(new_note)
                     all_sprites.add(new_note)
                 # if we receive some action from imu
