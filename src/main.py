@@ -27,5 +27,4 @@ while run:
         mymenu.start()
     else:
         logging.info("GAME: Beginning the main game loop")
-        print("BAAAA")
         mygame.start(num_players=info[1])

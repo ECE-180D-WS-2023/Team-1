@@ -59,13 +59,13 @@ def menu_mqtt_on_message(client, userdata, message):
     elif re.search("multi", msg_str):
         print("Received multi!")
         MULTI_TEAM_CLICK = True
-    elif re.search("one player", msg_str):
+    elif re.search("one", msg_str):
         print("Received one player!")
         ONE_PLAYER_CLICK = True
-    elif re.search("two player", msg_str):
+    elif re.search("two", msg_str):
         print("Received two player!")
         TWO_PLAYER_CLICK = True
-    elif re.search("back", msg_str):
+    elif re.search("return", msg_str):
         print("Received back!")
         RETURN_CLICK = True
     elif re.search("a", msg_str):
@@ -77,13 +77,13 @@ def menu_mqtt_on_message(client, userdata, message):
     elif re.search("c", msg_str):
         print("Received C!")
         SONG_C = True
-    elif re.search("e", msg_str):
+    elif re.search("d", msg_str):
         print("Received D!")
         SONG_D = True
     elif re.search("e", msg_str):
         print("Received E!")
         SONG_E = True
-    elif re.search("F", msg_str):
+    elif re.search("f", msg_str):
         print("Received F!")
         SONG_F = True
 

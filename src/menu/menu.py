@@ -190,22 +190,26 @@ class Menu():
             #print("loooop")
 
             # global flags
-            start_click = mqtt_lib.menu_mqtt.START_CLICK # ga
-            settings_click = mqtt_lib.menu_mqtt.SETTINGS_CLICK # sc
-            tutorial_click = mqtt_lib.menu_mqtt.TUTORIAL_CLICK # tc
             quit_click = mqtt_lib.menu_mqtt.QUIT_CLICK # qc
-            single_team_click = mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK # st
-            multi_team_click = mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK # mt
-            one_player_click = mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK # 1p
-            two_player_click = mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK # 2p
             return_click = mqtt_lib.menu_mqtt.RETURN_CLICK
             message_received = mqtt_lib.menu_mqtt.MESSAGE_RECEIVED
-            song_a = mqtt_lib.menu_mqtt.SONG_A
-            song_b = mqtt_lib.menu_mqtt.SONG_B
-            song_c = mqtt_lib.menu_mqtt.SONG_C
-            song_d = mqtt_lib.menu_mqtt.SONG_D
-            song_e = mqtt_lib.menu_mqtt.SONG_E
-            song_f = mqtt_lib.menu_mqtt.SONG_F
+
+            """mqtt_lib.menu_mqtt.START_CLICK  = False# ga
+            mqtt_lib.menu_mqtt.SETTINGS_CLICK = False # sc
+            mqtt_lib.menu_mqtt.TUTORIAL_CLICK = False# tc
+            mqtt_lib.menu_mqtt.QUIT_CLICK = False# qc
+            mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK = False# st
+            mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK = False# mt
+            mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK = False# 1p
+            mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK = False# 2p
+            mqtt_lib.menu_mqtt.RETURN_CLICK = False
+            mqtt_lib.menu_mqtt.MESSAGE_RECEIVED = False
+            mqtt_lib.menu_mqtt.SONG_A = False
+            mqtt_lib.menu_mqtt.SONG_B = False
+            mqtt_lib.menu_mqtt.SONG_C = False
+            mqtt_lib.menu_mqtt.SONG_D = False
+            mqtt_lib.menu_mqtt.SONG_E = False
+            mqtt_lib.menu_mqtt.SONG_F = False"""
 
             tutorial = False
 
@@ -245,7 +249,9 @@ class Menu():
                 #checks if a mouse is clicked or message was received
                 if ev.type == pygame.MOUSEBUTTONDOWN or ev.type == MESSAGE:
                     if menu_screen:
-                        #if the mouse is clicked on the button the game is terminated 
+                        start_click = mqtt_lib.menu_mqtt.START_CLICK # ga
+                        settings_click = mqtt_lib.menu_mqtt.SETTINGS_CLICK # sc
+                        tutorial_click = mqtt_lib.menu_mqtt.TUTORIAL_CLICK # tc                        #if the mouse is clicked on the button the game is terminated 
                         if start_button.check_click() or start_click:
                             #TODO send any flags to game here
                             mqtt_lib.menu_mqtt.START_CLICK = False
@@ -265,9 +271,9 @@ class Menu():
                             break
                             #return [multi, player_num]
                         elif quit_button.check_click() or quit_click:
-                            print("Time to quit!")
-                            print("Multi: ", multi)
-                            print("# players: ", player_num)
+                            #print("Time to quit!")
+                            #print("Multi: ", multi)
+                            #print("# players: ", player_num)
                             mqtt_lib.menu_mqtt.QUIT_CLICK = False
                             pygame.quit()
                             exit() 
@@ -302,6 +308,10 @@ class Menu():
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
                             break
                     if settings_screen:
+                        single_team_click = mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK # st
+                        multi_team_click = mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK # mt
+                        one_player_click = mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK # 1p
+                        two_player_click = mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK # 2p
                         if back_button.check_click() or return_click: # TODO ADD FLAG
                             mqtt_lib.menu_mqtt.RETURN_CLICK = False
                             print("back to da menu")
@@ -329,17 +339,17 @@ class Menu():
                             remote_button.toggle = not remote_button.toggle
                             single_team_click = False
                             mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK= False
-                        elif player_button.check_toggle_click():
+                        if player_button.check_toggle_click():
                             player_button.toggle = not player_button.toggle
                             if player_num == 1:
                                 player_num = 2
                             elif player_num == 2:
                                 player_num = 1
-                        elif one_player_click and player_num == 2:
+                        elif one_player_click:
                             mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK= False
                             player_button.toggle = not player_button.toggle
                             player_num = 1
-                        elif two_player_click and player_num == 1:
+                        elif two_player_click:
                             player_button.toggle = not player_button.toggle
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
                             player_num = 2
@@ -357,6 +367,13 @@ class Menu():
                             tutorial = True
                             return [multi, player_num, tutorial]"""
                     if song_screen:
+                        song_a = mqtt_lib.menu_mqtt.SONG_A
+                        song_b = mqtt_lib.menu_mqtt.SONG_B
+                        song_c = mqtt_lib.menu_mqtt.SONG_C
+                        song_d = mqtt_lib.menu_mqtt.SONG_D
+                        song_e = mqtt_lib.menu_mqtt.SONG_E
+                        song_f = mqtt_lib.menu_mqtt.SONG_F
+                        tutorial = False
                         if song_back_button.check_click() or return_click: # TODO ADD FLAG
                             mqtt_lib.menu_mqtt.RETURN_CLICK = False
                             menu_screen = True
@@ -388,10 +405,10 @@ class Menu():
                             return [multi, player_num, song4_button.text, tutorial]
                         elif song5_button.check_click() or song_e:
                             mqtt_lib.menu_mqtt.SONG_E = False
-                            return [multi, player_num, song5_button.text]
+                            return [multi, player_num, song5_button.text, tutorial]
                         elif song6_button.check_click() or song_f:
                             mqtt_lib.menu_mqtt.SONG_F = False
-                            return [multi, player_num, song6_button.text]
+                            return [multi, player_num, song6_button.text, tutorial]
             if message_received:
                 pygame.event.post(pygame.event.Event(MESSAGE))
                 message_received = False
