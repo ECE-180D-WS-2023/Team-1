@@ -274,7 +274,7 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING ACTION_2
-    def start(self, num_players=2, bpm=30):
+    def start(self, num_players=2, bpm=30, song_title="A: "):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
@@ -286,6 +286,10 @@ class Game():
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
+        # initialize sounds
+        pygame.mixer.init()
+        self.__load_music(song_title)
+
         logging.info("MQTT: Setting up IMU MQTT Listener")
         # initialize mqtt for imu
         # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and rotate
@@ -445,15 +449,18 @@ class Game():
             if self.pause:
                 if prev_pause == False:
                     pygame.time.set_timer(SPAWNNOTE, 0)
+                    pygame.mixer.music.pause()
                 prev_pause = True
             elif not self.pause:
                 if prev_pause == True:
                     pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                    pygame.mixer.music.unpause()
                 prev_pause = False
-            # same with start_game to start the note timer
+            # same with start_game to start the note timer and start music
             if self.start_game:
                 if prev_start_game == False:
                     pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                    pygame.mixer.music.play()
                 prev_start_game = True
 
 
@@ -530,6 +537,10 @@ class Game():
             # Update the display
             pygame.display.flip()
 
+            # stop music if game done
+            if (self.running == False):
+                pygame.mixer.music.stop()
+
     def __calc_points(self, action_input_result):
         if action_input_result == SUCCESS:
             globals.points += 1
@@ -562,3 +573,10 @@ class Game():
             self.pause = False
         elif (voice_message == "start"):
             self.start_game = True
+
+    def __load_music(self, song_title):
+        if song_title[0] == 'A':
+            pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
+        else:
+            pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
+        pygame.mixer.music.set_volume(0.5)
