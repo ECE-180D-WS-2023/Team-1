@@ -40,12 +40,15 @@ class Game():
         # for starting the actual game inside the game loop
         self.start_game = False
 
+        # bpm of game
+        self.bpm = 30
+
         
 
-    def tutorial(self, num_players=2, bpm=10): #tutorial mode of the game (Slow bpm to spawn notes)
+    def tutorial(self, num_players=2): #tutorial mode of the game (Slow bpm to spawn notes)
         globals.NUM_PLAYERS = num_players
         # set bpm
-        globals.BPM = bpm
+        self.bpm = 10
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -98,7 +101,7 @@ class Game():
 
         SPAWNNOTE = pygame.USEREVENT + 1
         pygame.time.set_timer(SPAWNNOTE, int(0))
-        note_spawn_speed_ms = ((1/globals.BPM)*60)*1000
+        note_spawn_speed_ms = ((1/self.bpm)*60)*1000
         ACTION_1 = pygame.USEREVENT + 2
         imu_action_1 = None
         ACTION_2 = pygame.USEREVENT + 3
@@ -279,19 +282,17 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING ACTION_2
-    def start(self, num_players=2, bpm=30, song_title="A: "):
+    def start(self, num_players=2, song_title="A: "):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
-        # set bpm
-        globals.BPM = bpm
         
         # Initialize pygame
         logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
-        # initialize sounds
+        # initialize sounds and bpm
         pygame.mixer.init()
         self.__load_music(song_title)
 
@@ -363,7 +364,7 @@ class Game():
         SPAWNNOTE = pygame.USEREVENT + 1
         pygame.time.set_timer(SPAWNNOTE, int(0))
         # calculate note spawn speed according to bpm
-        note_spawn_speed_ms = ((1/globals.BPM)*60)*1000
+        note_spawn_speed_ms = ((1/self.bpm)*60)*1000*3
 
         # received action from imu event for player 1
         ACTION_1 = pygame.USEREVENT + 2
@@ -599,7 +600,24 @@ class Game():
 
     def __load_music(self, song_title):
         if song_title[0] == 'A':
+            pygame.mixer.music.load("music/songs/Black_Eyed_Peas--I_Gotta_Feeling--128bpm.wav")
+            self.bpm = 128
+        elif song_title[0] == 'B':
+            pygame.mixer.music.load("music/songs/Ethel_Cain--American_Teenager--120bpm.wav")
+            self.bpm = 120
+        elif song_title[0] == 'C':
+            pygame.mixer.music.load("music/songs/Gotye--Somebody_That_I_Used_to_Know--129bpm.wav")
+            self.bpm = 129
+        elif song_title[0] == 'D':
             pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
+            self.bpm = 130
+        elif song_title[0] == 'E':
+            pygame.mixer.music.load("music/songs/The_Beatles--All_You_Need_Is_Love--103bpm.wav")
+            self.bpm = 103
+        elif song_title[0] == 'F':
+            pygame.mixer.music.load("music/songs/The_Beatles--While_My_Guitar_Gently_Weeps--115bpm.wav")
+            self.bpm = 115
         else:
             pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
+            self.bpm = 130
         pygame.mixer.music.set_volume(0.5)

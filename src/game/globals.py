@@ -5,7 +5,6 @@ from .Settings import SCREEN_WIDTH
 points = 0
 
 # these need to be used by multiple modules
-BPM = 30
 NUM_PLAYERS = 2
 
 # need these here for Note to update when missed also
