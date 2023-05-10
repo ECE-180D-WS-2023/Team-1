@@ -7,7 +7,7 @@ from game import mqtt_lib
 from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
 from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
-from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME
+from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
 from .Player import Player
 from .Text import Text
 from . import globals
@@ -16,6 +16,7 @@ from pygame.locals import (
     K_q,
     K_p,
     K_s,
+    K_b, # for mimicking button press
     K_1,
     K_2,
     K_3,
@@ -30,12 +31,16 @@ class Game():
     def __init__(self):
         # for pausing game
         self.pause = False
+        # for pausing the game while button is pressed
+        self.button_pause = False
 
         # for starting game loop
         self.running = False
 
         # for starting the actual game inside the game loop
         self.start_game = False
+
+        
 
     def tutorial(self, num_players=2, bpm=10): #tutorial mode of the game (Slow bpm to spawn notes)
         globals.NUM_PLAYERS = num_players
@@ -201,7 +206,7 @@ class Game():
                 prev_start_game = True
             # when pause game, also don't allow action to be read in and dont
             # let there be updated notes
-            if self.start_game and not self.pause:
+            if self.start_game and not self.pause and not self.button_pause:
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
@@ -255,7 +260,7 @@ class Game():
             screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
             
             # text for pause
-            if (self.pause):
+            if (self.pause or self.button_pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
             elif (not self.start_game):
@@ -325,6 +330,15 @@ class Game():
         voice_mqtt_client.loop_start()
         pygame.time.wait(VOICE_CALIBRATION_TIME)
 
+        logging.info("MQTT: Setting up Button MQTT Listener")
+        button_mqtt_client = mqtt.Client()
+        button_mqtt_client.on_connect = mqtt_lib.button_mqtt_on_connect
+        button_mqtt_client.on_disconnect = mqtt_lib.button_mqtt_on_disconnect
+        button_mqtt_client.on_message = mqtt_lib.button_mqtt_on_message
+        button_mqtt_client.connect_async('mqtt.eclipseprojects.io')
+        button_mqtt_client.loop_start()
+        pygame.time.wait(BUTTON_CALIBRATION_TIME)
+
         # instantiate sprite groups
         notes = pygame.sprite.Group()
         players = pygame.sprite.Group()
@@ -384,6 +398,8 @@ class Game():
                         self.pause = not self.pause
                     elif event.key == K_s:
                         self.start_game = True
+                    elif event.key == K_b:
+                        mqtt_lib.button_mqtt.button_high = not mqtt_lib.button_mqtt.button_high
                     elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
                         if (event.key == K_1):
                             mqtt_lib.localization_mqtt.player1_location = 1
@@ -446,12 +462,12 @@ class Game():
             # handling pause -> unpause transition to resume note spawning timer
                 # if we just started to pause, set note spawning timer to 0
                 # if we just resumed the game, set note spawning timer back to normal
-            if self.pause:
+            if self.pause or self.button_pause:
                 if prev_pause == False:
                     pygame.time.set_timer(SPAWNNOTE, 0)
                     pygame.mixer.music.pause()
                 prev_pause = True
-            elif not self.pause:
+            else:
                 if prev_pause == True:
                     pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
                     pygame.mixer.music.unpause()
@@ -466,7 +482,7 @@ class Game():
 
             # when pause game, also don't allow action to be read in and dont
             # let there be updated notes
-            if self.start_game and not self.pause:
+            if self.start_game and not (self.pause or self.button_pause):
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
@@ -485,7 +501,14 @@ class Game():
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     notes.update()
                     last_note_update = pygame.time.get_ticks()
-                
+
+            # this is bad because if the game is currently paused and the player just taps the button, itll unpause the game
+            # we only want to unpause if currently is actually not paused
+            # this means we need a true pause state and temporary button pause
+            if mqtt_lib.button_mqtt.button_high == False:
+                self.button_pause = False
+            elif mqtt_lib.button_mqtt.button_high == True:
+                self.button_pause = True
 
             # update player location
             players.update()
@@ -530,7 +553,7 @@ class Game():
                 # do not allow the game to be paused while game has not started
                 self.pause = False
             # text for pause
-            if (self.pause):
+            if (self.pause or self.button_pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
 
