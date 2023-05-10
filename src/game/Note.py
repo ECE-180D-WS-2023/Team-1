@@ -38,9 +38,15 @@ class Note(pygame.sprite.Sprite):
 
         # Seed random number generator with seed
         random.seed(self.seed)
+        
+        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
+        self.color = ""
+        
+        # set note lane
         if lane == None:
             self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        # for tutorial manually setting the columns
         elif lane == 1:
             self.lane = COLUMN_1
         elif lane == 2:
@@ -49,11 +55,9 @@ class Note(pygame.sprite.Sprite):
             self.lane = COLUMN_3
         else:
             self.lane = COLUMN_4
-        
-        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
-        self.color = ""
-        
+
+        # set note color
         # if 1 player, the color will always be red
         if color == None:
             if (globals.NUM_PLAYERS == 1):
@@ -64,6 +68,12 @@ class Note(pygame.sprite.Sprite):
                 if (random.randint(1,2) == 1):
                     self.color = COLOR_1
                 else:
+                    self.color = COLOR_2
+                
+                # If 2 player, then manual override the first column notes to be red and right-most column notes to be blue
+                if (self.lane == COLUMN_1):
+                    self.color = COLOR_1
+                elif self.lane == COLUMN_4:
                     self.color = COLOR_2
         elif color == 1:
             self.color = COLOR_1
