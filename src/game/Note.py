@@ -20,9 +20,9 @@ COLOR_3 = COLOR_1
 COLOR_4 = COLOR_2
 
 # when gesture incorrect, shake the note
-SHAKE_AMPLITUDE = 10
-SHAKE_PERIOD = 4
-INCORRECT_SHAKE_TIME = 20*math.pi
+SHAKE_AMPLITUDE = 6
+SHAKE_PERIOD = 15
+INCORRECT_SHAKE_TIME = 30*math.pi
 
 #COLOR_2 = (144, 238, 144) #g
 #COLOR_3 = (173, 216, 230) #b
