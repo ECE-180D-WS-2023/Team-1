@@ -598,6 +598,7 @@ class Game():
         elif (voice_message == "start"):
             self.start_game = True
 
+    # loads music and bpm from song_title passed-in param
     def __load_music(self, song_title):
         if song_title[0] == 'A':
             pygame.mixer.music.load("music/songs/Black_Eyed_Peas--I_Gotta_Feeling--128bpm.wav")

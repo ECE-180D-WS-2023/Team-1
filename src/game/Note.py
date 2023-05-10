@@ -16,8 +16,6 @@ TOO_LATE = "Too Late!"
 # we want only r and b column colors now
 COLOR_1 = (255, 204, 203) #r
 COLOR_2 = (173, 216, 230) #b
-COLOR_3 = COLOR_1
-COLOR_4 = COLOR_2
 
 # when gesture incorrect, shake the note
 SHAKE_AMPLITUDE = 6
@@ -190,10 +188,10 @@ class Note(pygame.sprite.Sprite):
 
     def correct_color(self, player_num):
         if player_num == 1:
-            if self.color == COLOR_1 or self.color == COLOR_3:
+            if self.color == COLOR_1:
                 return True
         elif player_num == 2:
-            if self.color == COLOR_2 or self.color == COLOR_4:
+            if self.color == COLOR_2:
                 return True
         return False
     
