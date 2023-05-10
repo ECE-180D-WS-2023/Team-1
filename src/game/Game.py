@@ -503,14 +503,6 @@ class Game():
                     notes.update()
                     last_note_update = pygame.time.get_ticks()
 
-            # this is bad because if the game is currently paused and the player just taps the button, itll unpause the game
-            # we only want to unpause if currently is actually not paused
-            # this means we need a true pause state and temporary button pause
-            if mqtt_lib.button_mqtt.button_high == False:
-                self.button_pause = False
-            elif mqtt_lib.button_mqtt.button_high == True:
-                self.button_pause = True
-
             # update player location
             players.update()
 
@@ -553,6 +545,8 @@ class Game():
                 screen.blit(print_start_game, print_start_game_rect)
                 # do not allow the game to be paused while game has not started
                 self.pause = False
+                self.button_pause = False
+            
             # text for pause
             if (self.pause or self.button_pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
@@ -564,6 +558,17 @@ class Game():
             # stop music if game done
             if (self.running == False):
                 pygame.mixer.music.stop()
+            # stop game if music done
+            if self.start_game:
+                if not (self.pause or self.button_pause):
+                    if not pygame.mixer.music.get_busy():
+                        self.running = False
+            
+            # set self.button_pause when button high/low
+            if mqtt_lib.button_mqtt.button_high == False:
+                self.button_pause = False
+            elif mqtt_lib.button_mqtt.button_high == True:
+                self.button_pause = True
 
     def __calc_points(self, action_input_result):
         if action_input_result == SUCCESS:
