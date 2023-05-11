@@ -7,7 +7,7 @@ from game import mqtt_lib
 from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
 from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
-from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME
+from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
 from .Player import Player
 from .Text import Text
 from . import globals
@@ -16,6 +16,7 @@ from pygame.locals import (
     K_q,
     K_p,
     K_s,
+    K_b, # for mimicking button press
     K_1,
     K_2,
     K_3,
@@ -30,6 +31,8 @@ class Game():
     def __init__(self):
         # for pausing game
         self.pause = False
+        # for pausing the game while button is pressed
+        self.button_pause = False
 
         # for starting game loop
         self.running = False
@@ -37,10 +40,15 @@ class Game():
         # for starting the actual game inside the game loop
         self.start_game = False
 
-    def tutorial(self, num_players=2, bpm=10): #tutorial mode of the game (Slow bpm to spawn notes)
+        # bpm of game
+        self.bpm = 30
+
+        
+
+    def tutorial(self, num_players=2): #tutorial mode of the game (Slow bpm to spawn notes)
         globals.NUM_PLAYERS = num_players
         # set bpm
-        globals.BPM = bpm
+        self.bpm = 10
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -93,7 +101,7 @@ class Game():
 
         SPAWNNOTE = pygame.USEREVENT + 1
         pygame.time.set_timer(SPAWNNOTE, int(0))
-        note_spawn_speed_ms = ((1/globals.BPM)*60)*1000
+        note_spawn_speed_ms = ((1/self.bpm)*60)*1000
         ACTION_1 = pygame.USEREVENT + 2
         imu_action_1 = None
         ACTION_2 = pygame.USEREVENT + 3
@@ -201,7 +209,7 @@ class Game():
                 prev_start_game = True
             # when pause game, also don't allow action to be read in and dont
             # let there be updated notes
-            if self.start_game and not self.pause:
+            if self.start_game and not self.pause and not self.button_pause:
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
@@ -255,7 +263,7 @@ class Game():
             screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
             
             # text for pause
-            if (self.pause):
+            if (self.pause or self.button_pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
             elif (not self.start_game):
@@ -274,19 +282,17 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING ACTION_2
-    def start(self, num_players=2, bpm=30, song_title="A: "):
+    def start(self, num_players=2, song_title="A: "):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
-        # set bpm
-        globals.BPM = bpm
         
         # Initialize pygame
         logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
         pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         
-        # initialize sounds
+        # initialize sounds and bpm
         pygame.mixer.init()
         self.__load_music(song_title)
 
@@ -325,6 +331,15 @@ class Game():
         voice_mqtt_client.loop_start()
         pygame.time.wait(VOICE_CALIBRATION_TIME)
 
+        logging.info("MQTT: Setting up Button MQTT Listener")
+        button_mqtt_client = mqtt.Client()
+        button_mqtt_client.on_connect = mqtt_lib.button_mqtt_on_connect
+        button_mqtt_client.on_disconnect = mqtt_lib.button_mqtt_on_disconnect
+        button_mqtt_client.on_message = mqtt_lib.button_mqtt_on_message
+        button_mqtt_client.connect_async('mqtt.eclipseprojects.io')
+        button_mqtt_client.loop_start()
+        pygame.time.wait(BUTTON_CALIBRATION_TIME)
+
         # instantiate sprite groups
         notes = pygame.sprite.Group()
         players = pygame.sprite.Group()
@@ -349,7 +364,7 @@ class Game():
         SPAWNNOTE = pygame.USEREVENT + 1
         pygame.time.set_timer(SPAWNNOTE, int(0))
         # calculate note spawn speed according to bpm
-        note_spawn_speed_ms = ((1/globals.BPM)*60)*1000
+        note_spawn_speed_ms = ((1/self.bpm)*60)*1000*3
 
         # received action from imu event for player 1
         ACTION_1 = pygame.USEREVENT + 2
@@ -384,6 +399,8 @@ class Game():
                         self.pause = not self.pause
                     elif event.key == K_s:
                         self.start_game = True
+                    elif event.key == K_b:
+                        mqtt_lib.button_mqtt.button_high = not mqtt_lib.button_mqtt.button_high
                     elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
                         if (event.key == K_1):
                             mqtt_lib.localization_mqtt.player1_location = 1
@@ -414,7 +431,7 @@ class Game():
                     self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
-                    new_note = Note()
+                    new_note = Note(seed=(song_title+str(pygame.mixer.music.get_pos())))
                     notes.add(new_note)
                     all_sprites.add(new_note)
                 # if we receive some action from imu
@@ -446,12 +463,12 @@ class Game():
             # handling pause -> unpause transition to resume note spawning timer
                 # if we just started to pause, set note spawning timer to 0
                 # if we just resumed the game, set note spawning timer back to normal
-            if self.pause:
+            if self.pause or self.button_pause:
                 if prev_pause == False:
                     pygame.time.set_timer(SPAWNNOTE, 0)
                     pygame.mixer.music.pause()
                 prev_pause = True
-            elif not self.pause:
+            else:
                 if prev_pause == True:
                     pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
                     pygame.mixer.music.unpause()
@@ -466,7 +483,7 @@ class Game():
 
             # when pause game, also don't allow action to be read in and dont
             # let there be updated notes
-            if self.start_game and not self.pause:
+            if self.start_game and not (self.pause or self.button_pause):
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
@@ -485,7 +502,6 @@ class Game():
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     notes.update()
                     last_note_update = pygame.time.get_ticks()
-                
 
             # update player location
             players.update()
@@ -529,8 +545,10 @@ class Game():
                 screen.blit(print_start_game, print_start_game_rect)
                 # do not allow the game to be paused while game has not started
                 self.pause = False
+                self.button_pause = False
+            
             # text for pause
-            if (self.pause):
+            if (self.pause or self.button_pause):
                 print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
 
@@ -540,6 +558,17 @@ class Game():
             # stop music if game done
             if (self.running == False):
                 pygame.mixer.music.stop()
+            # stop game if music done
+            if self.start_game:
+                if not (self.pause or self.button_pause):
+                    if not pygame.mixer.music.get_busy():
+                        self.running = False
+            
+            # set self.button_pause when button high/low
+            if mqtt_lib.button_mqtt.button_high == False:
+                self.button_pause = False
+            elif mqtt_lib.button_mqtt.button_high == True:
+                self.button_pause = True
 
     def __calc_points(self, action_input_result):
         if action_input_result == SUCCESS:
@@ -574,9 +603,27 @@ class Game():
         elif (voice_message == "start"):
             self.start_game = True
 
+    # loads music and bpm from song_title passed-in param
     def __load_music(self, song_title):
         if song_title[0] == 'A':
+            pygame.mixer.music.load("music/songs/Black_Eyed_Peas--I_Gotta_Feeling--128bpm.wav")
+            self.bpm = 128
+        elif song_title[0] == 'B':
+            pygame.mixer.music.load("music/songs/Ethel_Cain--American_Teenager--120bpm.wav")
+            self.bpm = 120
+        elif song_title[0] == 'C':
+            pygame.mixer.music.load("music/songs/Gotye--Somebody_That_I_Used_to_Know--129bpm.wav")
+            self.bpm = 129
+        elif song_title[0] == 'D':
             pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
+            self.bpm = 130
+        elif song_title[0] == 'E':
+            pygame.mixer.music.load("music/songs/The_Beatles--All_You_Need_Is_Love--103bpm.wav")
+            self.bpm = 103
+        elif song_title[0] == 'F':
+            pygame.mixer.music.load("music/songs/The_Beatles--While_My_Guitar_Gently_Weeps--115bpm.wav")
+            self.bpm = 115
         else:
             pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
+            self.bpm = 130
         pygame.mixer.music.set_volume(0.5)

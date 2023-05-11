@@ -27,4 +27,4 @@ while run:
         mymenu.start()
     else:
         logging.info("GAME: Beginning the main game loop")
-        mygame.start(num_players=info[1])
+        mygame.start(num_players=info[1], song_title=info[2])

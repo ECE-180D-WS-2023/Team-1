@@ -16,13 +16,11 @@ TOO_LATE = "Too Late!"
 # we want only r and b column colors now
 COLOR_1 = (255, 204, 203) #r
 COLOR_2 = (173, 216, 230) #b
-COLOR_3 = COLOR_1
-COLOR_4 = COLOR_2
 
 # when gesture incorrect, shake the note
-SHAKE_AMPLITUDE = 10
-SHAKE_PERIOD = 4
-INCORRECT_SHAKE_TIME = 20*math.pi
+SHAKE_AMPLITUDE = 6
+SHAKE_PERIOD = 15
+INCORRECT_SHAKE_TIME = 30*math.pi
 
 #COLOR_2 = (144, 238, 144) #g
 #COLOR_3 = (173, 216, 230) #b
@@ -30,13 +28,23 @@ INCORRECT_SHAKE_TIME = 20*math.pi
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):
-    def __init__(self, color=None, lane=None, char=None):
+    def __init__(self, color=None, lane=None, char=None, seed=None):
         super(Note, self).__init__()
         self.alive = True
         self.shake_time = 0
+        self.seed = seed
 
+        # Seed random number generator with seed
+        random.seed(self.seed)
+        
+        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
+
+        self.color = ""
+        
+        # set note lane
         if lane == None:
             self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        # for tutorial manually setting the columns
         elif lane == 1:
             self.lane = COLUMN_1
         elif lane == 2:
@@ -45,11 +53,9 @@ class Note(pygame.sprite.Sprite):
             self.lane = COLUMN_3
         else:
             self.lane = COLUMN_4
-        
-        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
-        self.color = ""
-        
+
+        # set note color
         # if 1 player, the color will always be red
         if color == None:
             if (globals.NUM_PLAYERS == 1):
@@ -60,6 +66,12 @@ class Note(pygame.sprite.Sprite):
                 if (random.randint(1,2) == 1):
                     self.color = COLOR_1
                 else:
+                    self.color = COLOR_2
+                
+                # If 2 player, then manual override the first column notes to be red and right-most column notes to be blue
+                if (self.lane == COLUMN_1):
+                    self.color = COLOR_1
+                elif self.lane == COLUMN_4:
                     self.color = COLOR_2
         elif color == 1:
             self.color = COLOR_1
@@ -176,10 +188,10 @@ class Note(pygame.sprite.Sprite):
 
     def correct_color(self, player_num):
         if player_num == 1:
-            if self.color == COLOR_1 or self.color == COLOR_3:
+            if self.color == COLOR_1:
                 return True
         elif player_num == 2:
-            if self.color == COLOR_2 or self.color == COLOR_4:
+            if self.color == COLOR_2:
                 return True
         return False
     
