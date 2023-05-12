@@ -1,3 +1,5 @@
+//This script is for Player 1, Team 1
+
 // SparkFun ESP32 Thing
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -5,22 +7,18 @@
 #include <Wire.h>
 #include "SparkFun_ISM330DHCX.h"
 #define LED_BLUE 13 //for calibration indication
-#define BUTTON 14 //for button
+#define BUTTON 12 //for button (works for both versions of the microcontroller)
 
 #define SERIAL_PORT Serial
-
-
-
 
 // WiFi
 const char *ssid = SECRET_SSID; // Enter your WiFi name
 const char *password = SECRET_PASS;  // Enter WiFi password
 
-// MQTT Broker
+// MQTT Broker motion
 const char *mqtt_broker = "mqtt.eclipseprojects.io";
 const char *topic = "ktanna/motion";
-// const char *mqtt_username = "emqx";
-// const char *mqtt_password = "public";
+const char *buttonTopic = "ECE180/Team1/button/p1";
 const int mqtt_port = 1883;
 
 WiFiClient espClient;
@@ -72,7 +70,7 @@ void setup() {
      }
  }
  // publish and subscribe
- client.publish(topic, "Hi I'm ESP32 ^^");
+ client.publish(topic, "Player 1 connected");
  client.subscribe(topic);
 
 
@@ -139,8 +137,9 @@ int play_num = 1;
 long int last_time = millis();
 long int thresh_send = 600;
 
-int buttonState;            // the current reading from the input pin
-int lastButtonState = LOW;  // the previous reading from the input pin
+// Button Variables:
+int buttonState = 0;  // variable for reading the pushbutton status
+int prevButton = 1;   // Stores the previous status to prevent repeat triggers
 
 // the following variables are unsigned longs because the time, measured in
 // milliseconds, will quickly become a bigger number than can be stored in an int.
@@ -149,34 +148,23 @@ unsigned long debounceDelay = 50;    // the debounce time; increase if the outpu
 
 void loop()
 {
-  int reading = digitalRead(BUTTON);
-  if (reading != lastButtonState) {
-    // reset the debouncing timer
-    lastDebounceTime = millis();
-  }
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer than the debounce
-    // delay, so take it as the actual current state:
-
-    // if the button state has changed:
-    if (reading != buttonState) {
-      buttonState = reading;
-
-      // only toggle the LED if the new button state is HIGH
-      if (buttonState == HIGH) {
-        client.publish(topic, "BUTTON PUSHED");
-        Serial.println("BUTTON PUSHED");
-      }
+  // read the state of the pushbutton value:
+  buttonState = digitalRead(BUTTON);
+  // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
+  if (buttonState == HIGH) {
+    if (buttonState != prevButton) {
+      Serial.println("Button High");
+      client.publish(buttonTopic, "H");
     }
+    prevButton = 1;
+  } else {
+    if (buttonState != prevButton) {
+      Serial.println("Button Low");
+      client.publish(buttonTopic, "L");
+    }
+    prevButton = 0;
   }
-  lastButtonState = reading;
-  // if (buttonState == HIGH) {
-  //   char pause = 'P';
-  //   char buf[32];
-  //   snprintf(buf, 32, "%c", pause); 
-  //   client.publish(topic, buf);
-  //   Serial.println("BUTTON PUSHED");
-  // }
+
   // Check if both gyroscope and accelerometer data is available.
 	if( myISM.checkStatus() ){
     if (!calibrated) {
@@ -233,17 +221,22 @@ void loop()
     && ay < max_y + 100 && ay > min_y - 100) {
       trans_m = 'q';
     }
-    else if (gx > 400000 && gy < 350000 && gz < 350000) {
-     Serial.println("r");
-      move = 'r';
-      trans_m = pubMove(move, trans_m, play_num, last_time);
-    }
+    // else if (gx > 400000 && gy < 350000 && gz < 350000) {
+    //  Serial.println("r");
+    //   move = 'r';
+    //   trans_m = pubMove(move, trans_m, play_num, last_time);
+    // }
     else if (ax > 400 && az < 0) {
       Serial.println("f");
       move = 'f';
       trans_m = pubMove(move, trans_m, play_num, last_time);
     }
     else if (ay > 1500 && ax < 500 && az < 500) {
+      Serial.println("r");
+      move = 'r';
+      trans_m = pubMove(move, trans_m, play_num, last_time);
+    }
+    else if (ay < -500 && ax < 500 && az < 500) {
       Serial.println("l");
       move = 'l';
       trans_m = pubMove(move, trans_m, play_num, last_time);
@@ -270,11 +263,13 @@ void loop()
 
 char pubMove(char move, char trans_m, int player, long int &last_time) { //returns transmitted motions
   if (move != trans_m) {
-    char buf[32];
-    snprintf(buf, 32, "p%d,%c", player, move); 
-    client.publish(topic, buf);
-    last_time = millis();  
-    return move; // set equal to trans_m
+    if (!((move=='r' && trans_m=='l') || (move=='l'&& trans_m=='r'))) {
+      char buf[32];
+      snprintf(buf, 32, "p%d,%c", player, move); 
+      client.publish(topic, buf);
+      last_time = millis();  
+      return move; // set equal to trans_m
+    }
   }
   return trans_m;
 }
