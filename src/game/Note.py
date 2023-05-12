@@ -108,8 +108,8 @@ class Note(pygame.sprite.Sprite):
             forward_image = pygame.image.load("sprites/cross_40.png")
             self.surf.blit(forward_image, (0, 0))
         elif (self.char == 'r'):
-            rotate_image = pygame.image.load("sprites/rotate_40.png")
-            self.surf.blit(rotate_image, (0, 0))
+            right_image = pygame.image.load("sprites/right_40.png")
+            self.surf.blit(right_image, (0, 0))
         
 
     # Move the note downwards based on fall speed

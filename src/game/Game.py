@@ -87,9 +87,9 @@ class Game():
             'u':" lift remote upward rapidly when note enters hit-zone.",
             'f':" push remote forward rapidly when note enters hit-zone.",
             'l':" swipe remote leftward rapidly when note enters hit-zone.",
-            'r':" rotate remote counterclockwise rapidly when note enters hit-zone.",
-            1 : "Align box into column of note & ",
-            2 : "Align box into column of note & ",
+            'r':" swipe remote rightward rapidly when note enters hit-zone.",
+            1 : "Align box into column of note &",
+            2 : "Align box into column of note &",
         }
         hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
         paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
@@ -298,7 +298,7 @@ class Game():
 
         logging.info("MQTT: Setting up IMU MQTT Listener")
         # initialize mqtt for imu
-        # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and rotate
+        # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and right
         # check imu_mqtt for which channel its listening to
         imu_mqtt_client = mqtt.Client()
         imu_mqtt_client.on_connect = mqtt_lib.imu_mqtt_on_connect
