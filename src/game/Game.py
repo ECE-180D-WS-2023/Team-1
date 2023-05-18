@@ -5,7 +5,7 @@ import random
 
 from game import mqtt_lib
 
-from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
+from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
 from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
@@ -346,6 +346,7 @@ class Game():
 
         # instantiate sprite groups
         notes = pygame.sprite.Group()
+        fading_notes = pygame.sprite.Group()
         players = pygame.sprite.Group()
         players.add(Player(1))
         if(num_players == 2):
@@ -362,7 +363,6 @@ class Game():
 
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
-
 
         # note spawning timer
         SPAWNNOTE = pygame.USEREVENT + 1
@@ -526,6 +526,15 @@ class Game():
             # update player location
             players.update()
 
+            # check if there are any notes that need fading
+            for note in notes:
+                if note.fade:
+                    fading_note = FadingNote(note)
+                    fading_notes.add(fading_note)
+                    note.fade = False
+            # update fading notes animation
+            fading_notes.update()
+
             # Fill the screen with black
             screen.fill((255, 255, 255))
 
@@ -540,6 +549,8 @@ class Game():
             # draw all sprites
             for note in notes:
                 screen.blit(note.surf, note.rect)
+            for fading_note in fading_notes:
+                screen.blit(fading_note.surf, fading_note.rect)
             for player in players:
                 screen.blit(player.surf, player.rect)
 
