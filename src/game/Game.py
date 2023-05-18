@@ -1,6 +1,7 @@
 import pygame
 import paho.mqtt.client as mqtt
 import logging
+import random
 
 from game import mqtt_lib
 
@@ -286,6 +287,9 @@ class Game():
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
+
+        # Seed random number generator with seed
+        random.seed(song_title)
         
         # Initialize pygame
         logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
@@ -431,9 +435,27 @@ class Game():
                     self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
-                    new_note = Note(seed=(song_title+str(pygame.mixer.music.get_pos())))
-                    notes.add(new_note)
-                    all_sprites.add(new_note)
+                    # if 30% maybe probability, spawn both notes
+                    if (num_players == 1):
+                        double_note_spawn = 0
+                    else:
+                        double_note_spawn = random.randint(1, 10) < 3
+                    
+                    # if double note spawn, spawn one of each color
+                    if (double_note_spawn):
+                        new_note = Note(color=1)
+                        notes.add(new_note)
+                        all_sprites.add(new_note)
+                    
+                        new_note = Note(color=2)
+                        notes.add(new_note)
+                        all_sprites.add(new_note)
+                    # else spawn normally (this spawns red only in 1 player and randomly between the 2 in 2 player)
+                    else:
+                        new_note = Note()
+                        notes.add(new_note)
+                        all_sprites.add(new_note)
+                    
                 # if we receive some action from imu
                 elif event.type == ACTION_1:
                     if (notes):
