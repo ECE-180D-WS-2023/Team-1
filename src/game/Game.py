@@ -435,11 +435,9 @@ class Game():
                     self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
-                    # if 30% maybe probability, spawn both notes
-                    if (num_players == 1):
-                        double_note_spawn = 0
-                    else:
-                        double_note_spawn = random.randint(1, 10) < 3
+                    # if 2 players and with 40% maybe probability, spawn both notes, 
+                    # maybe this value can increase with game for difficulty
+                    double_note_spawn = (num_players == 2) and (random.randint(1, 10) < 4)
                     
                     # if double note spawn, spawn one of each color
                     if (double_note_spawn):
