@@ -28,14 +28,17 @@ INCORRECT_SHAKE_TIME = 30*math.pi
 
 # Note class for falling buttons
 class Note(pygame.sprite.Sprite):
-    def __init__(self, color=None, lane=None, char=None, seed=None):
+    def __init__(self, color=None, lane=None, char=None):
         super(Note, self).__init__()
         self.alive = True
         self.shake_time = 0
-        self.seed = seed
 
-        # Seed random number generator with seed
-        random.seed(self.seed)
+        # after cleared, it will have some fade_time which then
+        # is access in main loop and if self.fade = True, then 
+        # create the faded note and then reset this to false
+        self.fade = False
+        # used so that the faded note can see what the original was
+        self.orig_surf = None
         
         self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
@@ -43,7 +46,12 @@ class Note(pygame.sprite.Sprite):
         
         # set note lane
         if lane == None:
-            self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+            if (color == 1):
+                self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3])
+            elif (color == 2):
+                self.lane = random.choice([COLUMN_2, COLUMN_3, COLUMN_4])
+            else:
+                self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
         # for tutorial manually setting the columns
         elif lane == 1:
             self.lane = COLUMN_1
@@ -111,7 +119,8 @@ class Note(pygame.sprite.Sprite):
             right_image = pygame.image.load("sprites/right_40.png")
             self.surf.blit(right_image, (0, 0))
         
-
+        self.orig_surf = self.surf
+    
     # Move the note downwards based on fall speed
     # Remove the note when it passes the bottom edge of the screen
     def update(self):
@@ -132,6 +141,10 @@ class Note(pygame.sprite.Sprite):
                 globals.action_input_result_text.update(text="Missed!")
             self.kill()
     
+        # if dead, reset to center and stop shaking
+        if not self.alive:
+            self.shake_time = 0
+            self.rect.x = self.init_x
 
     # for keyboard clicking processing
     # use on key that is lowest
@@ -142,6 +155,7 @@ class Note(pygame.sprite.Sprite):
         if self.alive:
             if pressed_keys == self.char and self.rect.bottom > HIT_ZONE_LOWER:
                 self.alive = False
+                self.fade = True
                 self.__note_cleared()
                 return SUCCESS
             # if incorrect
@@ -158,6 +172,7 @@ class Note(pygame.sprite.Sprite):
         # if the key press is correct and is also in the hit zone AND also in the correct column
         if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location) and self.correct_color(player_num):
             self.alive = False
+            self.fade = True
             self.__note_cleared()
             return SUCCESS
         # if incorrect
@@ -199,6 +214,33 @@ class Note(pygame.sprite.Sprite):
         self.surf.fill(pygame.Color('white'))
         check_mark_image = pygame.image.load("sprites/check_mark2_40.png")
         self.surf.blit(check_mark_image, (0, 0))
+
+class FadingNote(Note):
+    def __init__(self, parent_note):
+        super().__init__()
+        self.surf = parent_note.orig_surf.copy()
+        self.rect = self.surf.get_rect(topleft=parent_note.rect.topleft)
+        self.alpha = 255
+        self.char = parent_note.char
+    
+    def update(self):
+        fade_pos_adjust_per_tick = 1 # can't be below 1 or it stops working
+        alpha_decrement_per_tick = 3
+        
+        if self.char == 'r': 
+            self.rect.x += fade_pos_adjust_per_tick
+        elif self.char == 'l':
+            self.rect.x -= fade_pos_adjust_per_tick
+        elif self.char == 'u':
+            self.rect.y -= fade_pos_adjust_per_tick
+        elif self.char == 'f': 
+            self.rect.x += fade_pos_adjust_per_tick
+            self.rect.y -= (2*fade_pos_adjust_per_tick)
+        self.alpha -= alpha_decrement_per_tick
+        self.surf.set_alpha(max(self.alpha, 0))
+
+        if self.alpha <= 3:
+            self.kill()
 
 # calculates lowest living note and returns that note
 def get_lowest_note(notes):

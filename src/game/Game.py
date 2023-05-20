@@ -1,10 +1,11 @@
 import pygame
 import paho.mqtt.client as mqtt
 import logging
+import random
 
 from game import mqtt_lib
 
-from .Note import Note, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
+from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
 from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
@@ -286,6 +287,9 @@ class Game():
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
+
+        # Seed random number generator with seed
+        random.seed(song_title)
         
         # Initialize pygame
         logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
@@ -342,6 +346,7 @@ class Game():
 
         # instantiate sprite groups
         notes = pygame.sprite.Group()
+        fading_notes = pygame.sprite.Group()
         players = pygame.sprite.Group()
         players.add(Player(1))
         if(num_players == 2):
@@ -358,7 +363,6 @@ class Game():
 
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
-
 
         # note spawning timer
         SPAWNNOTE = pygame.USEREVENT + 1
@@ -431,9 +435,25 @@ class Game():
                     self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
-                    new_note = Note(seed=(song_title+str(pygame.mixer.music.get_pos())))
-                    notes.add(new_note)
-                    all_sprites.add(new_note)
+                    # if 2 players and with 40% maybe probability, spawn both notes, 
+                    # maybe this value can increase with game for difficulty
+                    double_note_spawn = (num_players == 2) and (random.randint(1, 10) < 4)
+                    
+                    # if double note spawn, spawn one of each color
+                    if (double_note_spawn):
+                        new_note = Note(color=1)
+                        notes.add(new_note)
+                        all_sprites.add(new_note)
+                    
+                        new_note = Note(color=2)
+                        notes.add(new_note)
+                        all_sprites.add(new_note)
+                    # else spawn normally (this spawns red only in 1 player and randomly between the 2 in 2 player)
+                    else:
+                        new_note = Note()
+                        notes.add(new_note)
+                        all_sprites.add(new_note)
+                    
                 # if we receive some action from imu
                 elif event.type == ACTION_1:
                     if (notes):
@@ -506,6 +526,15 @@ class Game():
             # update player location
             players.update()
 
+            # check if there are any notes that need fading
+            for note in notes:
+                if note.fade:
+                    fading_note = FadingNote(note)
+                    fading_notes.add(fading_note)
+                    note.fade = False
+            # update fading notes animation
+            fading_notes.update()
+
             # Fill the screen with black
             screen.fill((255, 255, 255))
 
@@ -520,6 +549,8 @@ class Game():
             # draw all sprites
             for note in notes:
                 screen.blit(note.surf, note.rect)
+            for fading_note in fading_notes:
+                screen.blit(fading_note.surf, fading_note.rect)
             for player in players:
                 screen.blit(player.surf, player.rect)
 
