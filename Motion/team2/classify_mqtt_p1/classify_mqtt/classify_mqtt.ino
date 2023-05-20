@@ -1,4 +1,4 @@
-//This script is for Player 2, Team 1
+//This script is for Player 1, Team 2
 
 // SparkFun ESP32 Thing
 #include <WiFi.h>
@@ -18,7 +18,7 @@ const char *password = SECRET_PASS;  // Enter WiFi password
 // MQTT Broker motion
 const char *mqtt_broker = "mqtt.eclipseprojects.io";
 const char *topic = "ktanna/motion";
-const char *buttonTopic = "ECE180/Team1/button/p2";
+const char *buttonTopic = "ECE180/Team2/button/p1";
 const int mqtt_port = 1883;
 
 WiFiClient espClient;
@@ -70,7 +70,7 @@ void setup() {
      }
  }
  // publish and subscribe
- client.publish(topic, "Player 2 connected");
+ client.publish(topic, "Player 1 connected");
  client.subscribe(topic);
 
 
@@ -133,7 +133,7 @@ float max_z = 0;
 unsigned long threshold = 20;
 char move = 'x';
 char trans_m = 'q';
-int play_num = 2;
+int play_num = 1;
 long int last_time = millis();
 long int thresh_send = 600;
 

@@ -236,7 +236,7 @@ void loop()
       move = 'r';
       trans_m = pubMove(move, trans_m, play_num, last_time);
     }
-    else if (ay < -500 && ax < 500 && az < 500) {
+    else if (ay < -1500 && ax < 500 && az < 500) {
       Serial.println("l");
       move = 'l';
       trans_m = pubMove(move, trans_m, play_num, last_time);
