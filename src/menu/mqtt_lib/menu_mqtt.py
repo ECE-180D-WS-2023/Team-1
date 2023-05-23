@@ -91,7 +91,7 @@ def menu_mqtt_on_message(client, userdata, message):
         
 
 def menu_mqtt_on_connect(client, userdata, flags, rc):
-    print("Speech connection returned result: " + str(rc))
+    print("MQTT speech connection returned result: " + str(rc))
     client.subscribe(SUBSCRIPTION, qos=1)
 
 # The callback of the client when it disconnects.
