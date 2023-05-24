@@ -293,6 +293,7 @@ class Game():
 
         # clock to limit fps
         clock = pygame.time.Clock()
+        fps = 240
 
         # Initialize pygame
         logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
@@ -374,7 +375,7 @@ class Game():
         note_spawn_speed_ms = ((1/self.bpm)*60)*1000*3
         
         # note spawning offset to have clear time match beat
-        note_spawn_delay = NOTE_FALL_SPEED*HIT_ZONE_LOWER
+        note_spawn_delay = int((NOTE_FALL_SPEED*(HIT_ZONE_LOWER + (SCREEN_HEIGHT-HIT_ZONE_LOWER)*(1/3)) / fps))*1000
         # start delay bool
             # once this bool is true, we will check when to actually start the timer
             # when starting timer, reset to false
@@ -626,7 +627,7 @@ class Game():
             elif mqtt_lib.button_mqtt.button_high == True:
                 self.button_pause = True
             
-            clock.tick(240)
+            clock.tick(fps)
 
     def __calc_points(self, action_input_result):
         if action_input_result == SUCCESS:
