@@ -160,7 +160,9 @@ class Note(pygame.sprite.Sprite):
                 return SUCCESS
             # if incorrect
             else: 
-                self.shake_time = INCORRECT_SHAKE_TIME
+                # dont allow notes to keep shaking too much, only shake notes if they are basically still
+                if (self.shake_time <= 0):
+                    self.shake_time = INCORRECT_SHAKE_TIME
                 if pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
                     return TOO_EARLY
                 else:
@@ -177,7 +179,9 @@ class Note(pygame.sprite.Sprite):
             return SUCCESS
         # if incorrect
         else:
-            self.shake_time = INCORRECT_SHAKE_TIME
+            # dont allow notes to keep shaking too much, only shake notes if they are basically still
+            if (self.shake_time <= 0):
+                self.shake_time = INCORRECT_SHAKE_TIME
             if not self.correct_color(player_num):
                 return WRONG_COLOR
             elif not self.correct_column(location):
