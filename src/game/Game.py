@@ -453,13 +453,17 @@ class Game():
                     
                     # if double note spawn, spawn one of each color
                     if (double_note_spawn):
-                        new_note = Note(color=1)
-                        notes.add(new_note)
-                        all_sprites.add(new_note)
+                        new_note_1 = Note(color=1)
+                        notes.add(new_note_1)
+                        all_sprites.add(new_note_1)
                     
-                        new_note = Note(color=2)
-                        notes.add(new_note)
-                        all_sprites.add(new_note)
+                        # make sure the two notes are not in the same lane
+                        # while in the same lane, keep making new
+                        new_note_2 = Note(color=2)
+                        while (new_note_2.lane == new_note_1.lane):
+                            new_note_2 = Note(color=2)
+                        notes.add(new_note_2)
+                        all_sprites.add(new_note_2)
                     # else spawn normally (this spawns red only in 1 player and randomly between the 2 in 2 player)
                     else:
                         new_note = Note()
