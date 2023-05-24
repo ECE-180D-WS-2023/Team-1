@@ -1,4 +1,4 @@
 #!/bin/bash
 # this script calls localization
-cd ./localization
+cd ./Localization
 python local_top.py
