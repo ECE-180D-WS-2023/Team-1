@@ -60,3 +60,8 @@ PLAYER_HEIGHT = NOTE_HEIGHT*(8/10)
 PLAYER_Y_COORD = SCREEN_HEIGHT - (SCREEN_HEIGHT/7)
 PLAYER_1_COLOR = (255, 0, 0)
 PLAYER_2_COLOR = (0, 0, 255)
+
+# note COLORS
+# we want only r and b column colors now
+COLOR_1 = (255, 204, 203) #r
+COLOR_2 = (173, 216, 230) #b

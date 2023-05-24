@@ -9,6 +9,7 @@ from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_K
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
 from .Settings import NOTE_FALL_SPEED, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
+from .Settings import COLOR_1, COLOR_2
 from .Player import Player
 from .Text import Text
 from . import globals
@@ -46,6 +47,8 @@ class Game():
 
         # notes list
         self.notes = pygame.sprite.Group()
+        self.red_notes = pygame.sprite.Group()
+        self.blue_notes = pygame.sprite.Group()
         self.fading_notes = pygame.sprite.Group()
 
         
@@ -299,7 +302,7 @@ class Game():
         random.seed(song_title)
 
         # note double spawn probability
-        probability_double_note = 0
+        probability_double_note = 0.4
 
         # clock to limit fps
         clock = pygame.time.Clock()
@@ -441,8 +444,8 @@ class Game():
                     else:
                         # calculate which note is the lowest and then process key press accordingly based
                         # on that note's letter
-                        if (self.notes):
-                            lowest_note = get_lowest_note(self.notes)
+                        if (self.red_notes.sprites()):
+                            lowest_note = get_lowest_note(self.red_notes)
                             #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
                             #print(localization_mqtt.player_location)
                             action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), mqtt_lib.localization_mqtt.player1_location, 1)
@@ -464,6 +467,7 @@ class Game():
                         new_note_1 = Note(color=1)
                         self.notes.add(new_note_1)
                         all_sprites.add(new_note_1)
+                        self.red_notes.add(new_note_1)
                     
                         # make sure the two notes are not in the same lane
                         # while in the same lane, keep making new
@@ -472,16 +476,21 @@ class Game():
                             new_note_2 = Note(color=2)
                         self.notes.add(new_note_2)
                         all_sprites.add(new_note_2)
+                        self.blue_notes.add(new_note_2)
                     # else spawn normally (this spawns red only in 1 player and randomly between the 2 in 2 player)
                     else:
                         new_note = Note()
                         self.notes.add(new_note)
                         all_sprites.add(new_note)
+                        if (new_note.color == COLOR_1):
+                            self.red_notes.add(new_note)
+                        elif (new_note.color == COLOR_2):
+                            self.blue_notes.add(new_note)
                     
                 # if we receive some action from imu
                 elif event.type == ACTION_1:
-                    if (self.notes):
-                        lowest_note = get_lowest_note(self.notes)
+                    if (self.red_notes.sprites()):
+                        lowest_note = get_lowest_note(self.red_notes)
                         # process key works for now since it is just diff letters
                         action_input_result = lowest_note.process_action_location(imu_action_1, mqtt_lib.localization_mqtt.player1_location, 1)
                         self.__calc_points(action_input_result)
@@ -490,8 +499,8 @@ class Game():
                     globals.action_input_result_text.update(text=action_input_result)
                 # this should never be true in 1p bcus action_2 should never be raised
                 elif event.type == ACTION_2:
-                    if (self.notes):
-                        lowest_note = get_lowest_note(self.notes)
+                    if (self.blue_notes.sprites()):
+                        lowest_note = get_lowest_note(self.blue_notes)
                         # process key works for now since it is just diff letters
                         action_input_result = lowest_note.process_action_location(imu_action_2, mqtt_lib.localization_mqtt.player2_location, 2)
                         self.__calc_points(action_input_result)
