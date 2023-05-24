@@ -3,6 +3,7 @@ import random
 import math
 from .Settings import NOTE_FALL_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, NOTE_WIDTH, NOTE_HEIGHT, KEYS, HIT_ZONE_LOWER
 from .Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
+from .Settings import COLOR_1, COLOR_2
 from . import globals
 
 SUCCESS = "Nice!"
@@ -12,10 +13,6 @@ WRONG_LANE = "Wrong Lane!"
 WRONG_COLOR = "Wrong Color!"
 
 TOO_LATE = "Too Late!"
-
-# we want only r and b column colors now
-COLOR_1 = (255, 204, 203) #r
-COLOR_2 = (173, 216, 230) #b
 
 # when gesture incorrect, shake the note
 SHAKE_AMPLITUDE = 6
@@ -248,5 +245,6 @@ class FadingNote(Note):
 
 # calculates lowest living note and returns that note
 def get_lowest_note(notes):
+    # check if theres any notes
     lowest_note = max(notes, key=lambda x: x.rect.top if x.alive else -1)
     return lowest_note
