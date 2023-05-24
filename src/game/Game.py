@@ -7,7 +7,7 @@ from game import mqtt_lib
 
 from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
-from .Settings import LETTER_FONT_SIZE, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
+from .Settings import NOTE_FALL_SPEED, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
 from .Player import Player
 from .Text import Text
@@ -290,7 +290,10 @@ class Game():
 
         # Seed random number generator with seed
         random.seed(song_title)
-        
+
+        # clock to limit fps
+        clock = pygame.time.Clock()
+
         # Initialize pygame
         logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
         pygame.init()
@@ -369,6 +372,14 @@ class Game():
         pygame.time.set_timer(SPAWNNOTE, int(0))
         # calculate note spawn speed according to bpm
         note_spawn_speed_ms = ((1/self.bpm)*60)*1000*3
+        
+        # note spawning offset to have clear time match beat
+        note_spawn_delay = NOTE_FALL_SPEED*HIT_ZONE_LOWER
+        # start delay bool
+            # once this bool is true, we will check when to actually start the timer
+            # when starting timer, reset to false
+        start_note_spawn_delay = False
+        start_note_spawn_timestamp = 0
 
         # received action from imu event for player 1
         ACTION_1 = pygame.USEREVENT + 2
@@ -490,13 +501,17 @@ class Game():
                 prev_pause = True
             else:
                 if prev_pause == True:
-                    pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                    start_note_spawn_delay = True
+                    start_note_spawn_timestamp = pygame.time.get_ticks()
+                    #pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
                     pygame.mixer.music.unpause()
                 prev_pause = False
             # same with start_game to start the note timer and start music
             if self.start_game:
                 if prev_start_game == False:
-                    pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+                    start_note_spawn_delay = True
+                    start_note_spawn_timestamp = pygame.time.get_ticks()
+                    #pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
                     pygame.mixer.music.play()
                 prev_start_game = True
 
@@ -586,20 +601,32 @@ class Game():
             # Update the display
             pygame.display.flip()
 
-            # stop music if game done
-            if (self.running == False):
-                pygame.mixer.music.stop()
+            # if need delay before starting note spawn
+            if (start_note_spawn_delay):
+                # if current time - when we started delay > note_spawn_delay, tjem we start s[awmomg mptes amd set delay false
+                if (pygame.time.get_ticks() - start_note_spawn_timestamp >= note_spawn_delay):
+                    start_note_spawn_delay = False
+                    pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+
             # stop game if music done
             if self.start_game:
                 if not (self.pause or self.button_pause):
                     if not pygame.mixer.music.get_busy():
                         self.running = False
+            # stop music if game done
+            if (self.running == False):
+                pygame.mixer.music.stop()
+                # remove all notes when game stopped
+                for note in notes:
+                    note.kill()
             
             # set self.button_pause when button high/low
             if mqtt_lib.button_mqtt.button_high == False:
                 self.button_pause = False
             elif mqtt_lib.button_mqtt.button_high == True:
                 self.button_pause = True
+            
+            clock.tick(240)
 
     def __calc_points(self, action_input_result):
         if action_input_result == SUCCESS:
