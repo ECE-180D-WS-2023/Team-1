@@ -238,7 +238,11 @@ class Game():
                 score += 1
 
             # update player location
-            players.update()
+            for player in players:
+                if (player.player_num == 1):
+                    player.update_player_pos(player_num = 1, coords = mqtt_lib.localization_mqtt.player1_coords)
+                elif (player.player_num == 2):
+                    player.update_player_pos(player_num = 2, coords = mqtt_lib.localization_mqtt.player2_coords)
 
             # Fill the screen with black
             screen.fill((255, 255, 255))
@@ -548,7 +552,11 @@ class Game():
                     last_note_update = pygame.time.get_ticks()
 
             # update player location
-            players.update()
+            for player in players:
+                if (player.player_num == 1):
+                    player.update_player_pos(player_num = 1, coords = mqtt_lib.localization_mqtt.player1_coords)
+                elif (player.player_num == 2):
+                    player.update_player_pos(player_num = 2, coords = mqtt_lib.localization_mqtt.player2_coords)
 
             # check if there are any notes that need fading
             for note in self.notes:
