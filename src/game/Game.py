@@ -44,6 +44,10 @@ class Game():
         # bpm of game
         self.bpm = 30
 
+        # notes list
+        self.notes = pygame.sprite.Group()
+        self.fading_notes = pygame.sprite.Group()
+
         
 
     def tutorial(self, num_players=2): #tutorial mode of the game (Slow bpm to spawn notes)
@@ -74,7 +78,6 @@ class Game():
         pygame.time.wait(LOCALIZATION_CALIBRATION_TIME)
 
         # Instantiate sprite groups
-        notes = pygame.sprite.Group()
         players = pygame.sprite.Group()
         players.add(Player(1))
         if(num_players == 2):
@@ -159,8 +162,8 @@ class Game():
                     else:
                         # calculate which note is the lowest and then process key press accordingly based
                         # on that note's letter
-                        if (notes):
-                            lowest_note = get_lowest_note(notes)
+                        if (self.notes):
+                            lowest_note = get_lowest_note(self.notes)
                             #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
                             #print(localization_mqtt.player_location)
                             action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), mqtt_lib.localization_mqtt.player1_location, 1)
@@ -180,12 +183,12 @@ class Game():
                         player_color=(0,0,255)
                     instruction_text = Text(text=instructions[color_idx]+instructions[char_idx], rect=(10, SCREEN_HEIGHT/3))
                     new_note = Note(color=color_idx, lane=lane_idx, char=char_idx)
-                    notes.add(new_note)
+                    self.notes.add(new_note)
                     all_sprites.add(new_note)
                 # if we receive some action from imu
                 elif event.type == ACTION_1:
-                    if (notes):
-                        lowest_note = get_lowest_note(notes)
+                    if (self.notes):
+                        lowest_note = get_lowest_note(self.notes)
                         # process key works for now since it is just diff letters
                         action_input_result = lowest_note.process_action_location(imu_action_1, mqtt_lib.localization_mqtt.player1_location, 1)
                         self.__calc_points(action_input_result)
@@ -194,8 +197,8 @@ class Game():
                     globals.action_input_result_text.update(text=action_input_result)
                 # this should never be true in 1p bcus action_2 should never be raised
                 elif event.type == ACTION_2:
-                    if (notes):
-                        lowest_note = get_lowest_note(notes)
+                    if (self.notes):
+                        lowest_note = get_lowest_note(self.notes)
                         # process key works for now since it is just diff letters
                         action_input_result = lowest_note.process_action_location(imu_action_2, mqtt_lib.localization_mqtt.player2_location, 2)
                         self.__calc_points(action_input_result)
@@ -227,7 +230,7 @@ class Game():
                         mqtt_lib.imu_mqtt.imu_action_2_received_flag = False
                 # update note positions
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
-                    notes.update()
+                    self.notes.update()
                     last_note_update = pygame.time.get_ticks()
             last_score = points
             points = globals.points
@@ -252,7 +255,7 @@ class Game():
             pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
 
             # draw all sprites
-            for note in notes:
+            for note in self.notes:
                 screen.blit(note.surf, note.rect)
             for player in players:
                 screen.blit(player.surf, player.rect)
@@ -349,8 +352,6 @@ class Game():
         pygame.time.wait(BUTTON_CALIBRATION_TIME)
 
         # instantiate sprite groups
-        notes = pygame.sprite.Group()
-        fading_notes = pygame.sprite.Group()
         players = pygame.sprite.Group()
         players.add(Player(1))
         if(num_players == 2):
@@ -433,8 +434,8 @@ class Game():
                     else:
                         # calculate which note is the lowest and then process key press accordingly based
                         # on that note's letter
-                        if (notes):
-                            lowest_note = get_lowest_note(notes)
+                        if (self.notes):
+                            lowest_note = get_lowest_note(self.notes)
                             #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
                             #print(localization_mqtt.player_location)
                             action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), mqtt_lib.localization_mqtt.player1_location, 1)
@@ -454,7 +455,7 @@ class Game():
                     # if double note spawn, spawn one of each color
                     if (double_note_spawn):
                         new_note_1 = Note(color=1)
-                        notes.add(new_note_1)
+                        self.notes.add(new_note_1)
                         all_sprites.add(new_note_1)
                     
                         # make sure the two notes are not in the same lane
@@ -462,18 +463,18 @@ class Game():
                         new_note_2 = Note(color=2)
                         while (new_note_2.lane == new_note_1.lane):
                             new_note_2 = Note(color=2)
-                        notes.add(new_note_2)
+                        self.notes.add(new_note_2)
                         all_sprites.add(new_note_2)
                     # else spawn normally (this spawns red only in 1 player and randomly between the 2 in 2 player)
                     else:
                         new_note = Note()
-                        notes.add(new_note)
+                        self.notes.add(new_note)
                         all_sprites.add(new_note)
                     
                 # if we receive some action from imu
                 elif event.type == ACTION_1:
-                    if (notes):
-                        lowest_note = get_lowest_note(notes)
+                    if (self.notes):
+                        lowest_note = get_lowest_note(self.notes)
                         # process key works for now since it is just diff letters
                         action_input_result = lowest_note.process_action_location(imu_action_1, mqtt_lib.localization_mqtt.player1_location, 1)
                         self.__calc_points(action_input_result)
@@ -482,8 +483,8 @@ class Game():
                     globals.action_input_result_text.update(text=action_input_result)
                 # this should never be true in 1p bcus action_2 should never be raised
                 elif event.type == ACTION_2:
-                    if (notes):
-                        lowest_note = get_lowest_note(notes)
+                    if (self.notes):
+                        lowest_note = get_lowest_note(self.notes)
                         # process key works for now since it is just diff letters
                         action_input_result = lowest_note.process_action_location(imu_action_2, mqtt_lib.localization_mqtt.player2_location, 2)
                         self.__calc_points(action_input_result)
@@ -540,20 +541,20 @@ class Game():
                         mqtt_lib.imu_mqtt.imu_action_2_received_flag = False
                 # update note positions
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
-                    notes.update()
+                    self.notes.update()
                     last_note_update = pygame.time.get_ticks()
 
             # update player location
             players.update()
 
             # check if there are any notes that need fading
-            for note in notes:
+            for note in self.notes:
                 if note.fade:
                     fading_note = FadingNote(note)
-                    fading_notes.add(fading_note)
+                    self.fading_notes.add(fading_note)
                     note.fade = False
             # update fading notes animation
-            fading_notes.update()
+            self.fading_notes.update()
 
             # Fill the screen with black
             screen.fill((255, 255, 255))
@@ -567,9 +568,9 @@ class Game():
             pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_4, 0), (LINE_COLUMN_4, SCREEN_HEIGHT))
 
             # draw all sprites
-            for note in notes:
+            for note in self.notes:
                 screen.blit(note.surf, note.rect)
-            for fading_note in fading_notes:
+            for fading_note in self.fading_notes:
                 screen.blit(fading_note.surf, fading_note.rect)
             for player in players:
                 screen.blit(player.surf, player.rect)
@@ -621,9 +622,8 @@ class Game():
             # stop music if game done
             if (self.running == False):
                 pygame.mixer.music.stop()
-                # remove all notes when game stopped
-                for note in notes:
-                    note.kill()
+                pygame.time.set_timer(SPAWNNOTE, int(0))
+                self.__game_over_cleanup()
             
             # set self.button_pause when button high/low
             if mqtt_lib.button_mqtt.button_high == False:
@@ -665,6 +665,11 @@ class Game():
             self.pause = False
         elif (voice_message == "start"):
             self.start_game = True
+
+    def __game_over_cleanup(self):
+        globals.points = 0
+        globals.action_input_result_text = Text(text= "Good Luck!", rect=(SCREEN_WIDTH - (SCREEN_WIDTH/5) + 15, 20))
+        globals.points_text = Text(text= "Points: 0", rect= (SCREEN_WIDTH - (SCREEN_WIDTH/8), 70))
 
     # loads music and bpm from song_title passed-in param
     def __load_music(self, song_title):

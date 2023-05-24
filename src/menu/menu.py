@@ -1,5 +1,5 @@
 import time
-import keyboard
+#import keyboard
 import pygame
 import paho.mqtt.client as mqtt
 from menu import mqtt_lib
