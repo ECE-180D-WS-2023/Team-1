@@ -104,16 +104,16 @@ class Note(pygame.sprite.Sprite):
 
         # give the correct image accordingly
         if (self.char == 'u'):
-            up_image = pygame.image.load("sprites/up_40.png")
+            up_image = pygame.image.load("sprites/up_40.png").convert_alpha()
             self.surf.blit(up_image, (0, 0))
         elif (self.char == 'l'):
-            left_image = pygame.image.load("sprites/left_40.png")
+            left_image = pygame.image.load("sprites/left_40.png").convert_alpha()
             self.surf.blit(left_image, (0, 0))
         elif (self.char == 'f'):
-            forward_image = pygame.image.load("sprites/cross_40.png")
+            forward_image = pygame.image.load("sprites/cross_40.png").convert_alpha()
             self.surf.blit(forward_image, (0, 0))
         elif (self.char == 'r'):
-            right_image = pygame.image.load("sprites/right_40.png")
+            right_image = pygame.image.load("sprites/right_40.png").convert_alpha()
             self.surf.blit(right_image, (0, 0))
         
         self.orig_surf = self.surf
@@ -212,9 +212,9 @@ class Note(pygame.sprite.Sprite):
         return False
     
     def __note_cleared(self):
-        self.surf.fill(pygame.Color('white'))
-        check_mark_image = pygame.image.load("sprites/check_mark2_40.png")
-        self.surf.blit(check_mark_image, (0, 0))
+        #self.surf.fill(pygame.Color('white'))
+        check_mark_image = pygame.image.load("sprites/check_mark4_40.png").convert_alpha()
+        self.surf = check_mark_image
 
 class FadingNote(Note):
     def __init__(self, parent_note):
