@@ -9,7 +9,8 @@ from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_K
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
 from .Settings import NOTE_FALL_SPEED, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
-from .Settings import COLOR_1, COLOR_2
+from .Settings import COLOR_1, COLOR_2, PROGRESS_BAR_HEIGHT
+from .Progress_Bar import Progress_Bar
 from .Player import Player
 from .Text import Text
 from . import globals
@@ -44,6 +45,8 @@ class Game():
 
         # bpm of game
         self.bpm = 30
+        # song length for calculating progress in progress bar
+        self.song_length_seconds = 500
 
         # notes list
         self.notes = pygame.sprite.Group()
@@ -307,6 +310,10 @@ class Game():
         # clock to limit fps
         clock = pygame.time.Clock()
         fps = 240
+
+        # instantiate progress bar
+        progress_bar_width = (3*SCREEN_WIDTH)/4
+        progress_bar = Progress_Bar(x= (SCREEN_WIDTH-progress_bar_width)/2, y= PROGRESS_BAR_HEIGHT, width=progress_bar_width, height=15, progress = 0)
 
         # Initialize pygame
         logging.info(f"GAME: Starting {num_players}P game with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
@@ -579,6 +586,9 @@ class Game():
             # Fill the screen with black
             screen.fill((255, 255, 255))
 
+            # draw progress bar
+            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=(0, 255, 0))
+
             # include text to indicate hit zone
             # include text to indicate point record
             # include vertical lines to divide into 4 columns/lanes
@@ -611,8 +621,10 @@ class Game():
             # horizontal line to indicate hit zone
             pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
 
-            # if game hasnt started yet, display the startgame text
+            # if game hasnt started yet, set progress to 0 and display the startgame text
             if (not self.start_game):
+                self.progress = 0
+                
                 print_start_game, print_start_game_rect = self.__clean_print(font=paused_font, Text=start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_start_game, print_start_game_rect)
                 # do not allow the game to be paused while game has not started
@@ -650,7 +662,11 @@ class Game():
                 self.button_pause = False
             elif mqtt_lib.button_mqtt.button_high == True:
                 self.button_pause = True
-            
+
+            # set progress
+            music_progress = (((pygame.mixer.music.get_pos() / 1000.0) / self.song_length_seconds) * 100 )
+            progress_bar.set_progress(music_progress)
+
             clock.tick(fps)
 
     def __calc_points(self, action_input_result):
@@ -696,22 +712,29 @@ class Game():
         if song_title[0] == 'A':
             pygame.mixer.music.load("music/songs/Black_Eyed_Peas--I_Gotta_Feeling--128bpm.wav")
             self.bpm = 128
+            self.song_length_seconds = 290
         elif song_title[0] == 'B':
             pygame.mixer.music.load("music/songs/Ethel_Cain--American_Teenager--120bpm.wav")
             self.bpm = 120
+            self.song_length_seconds = 260
         elif song_title[0] == 'C':
             pygame.mixer.music.load("music/songs/Gotye--Somebody_That_I_Used_to_Know--129bpm.wav")
             self.bpm = 129
+            self.song_length_seconds = 246
         elif song_title[0] == 'D':
             pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
             self.bpm = 130
+            self.song_length_seconds = 233
         elif song_title[0] == 'E':
             pygame.mixer.music.load("music/songs/The_Beatles--All_You_Need_Is_Love--103bpm.wav")
             self.bpm = 103
+            self.song_length_seconds = 232
         elif song_title[0] == 'F':
             pygame.mixer.music.load("music/songs/The_Beatles--While_My_Guitar_Gently_Weeps--115bpm.wav")
             self.bpm = 115
+            self.song_length_seconds = 285
         else:
             pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
             self.bpm = 130
+            self.song_length_seconds = 233
         pygame.mixer.music.set_volume(0.5)
