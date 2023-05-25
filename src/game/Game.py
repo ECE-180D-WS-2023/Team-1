@@ -587,7 +587,7 @@ class Game():
             screen.fill((255, 255, 255))
 
             # draw progress bar
-            progress_bar.draw(screen, (255, 255, 255), (0, 255, 0))
+            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=(0, 255, 0))
 
             # include text to indicate hit zone
             # include text to indicate point record

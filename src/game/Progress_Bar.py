@@ -9,7 +9,7 @@ class Progress_Bar():
         self.progress = progress
 
     def draw(self, window, outline_color, inner_color):
-        # create outline rectangle with rounded ends
+        # Create outline rectangle with rounded ends
         pygame.draw.rect(window, outline_color, (self.x + self.height // 2, self.y, self.width - self.height, self.height))
         pygame.draw.circle(window, outline_color, (self.x + self.height // 2, self.y + self.height // 2), self.height // 2)
         pygame.draw.circle(window, outline_color, (self.x + self.width - self.height // 2, self.y + self.height // 2), self.height // 2)
