@@ -302,7 +302,7 @@ class Game():
         random.seed(song_title)
 
         # note double spawn probability
-        probability_double_note = 0.4
+        probability_double_note = 0.3
 
         # clock to limit fps
         clock = pygame.time.Clock()
@@ -460,7 +460,7 @@ class Game():
                 elif event.type == SPAWNNOTE:
                     # if 2 players and with 40% maybe probability, spawn both notes, 
                     # maybe this value can increase with game for difficulty
-                    double_note_spawn = (num_players == 2) and (random.randint(1, 100)/100 < probability_double_note)
+                    double_note_spawn = (num_players == 2) and (random.randint(1, 100)/100.0 < probability_double_note)
                     
                     # if double note spawn, spawn one of each color
                     if (double_note_spawn):
