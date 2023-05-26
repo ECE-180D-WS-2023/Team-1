@@ -59,10 +59,6 @@ class Action(StrEnum):
     FORWARD = "f"
     NONE = ""
 
-class Number(Enum):
-    PLAYER1 = 1
-    PLAYER2 = 2
-
 @dataclass
 class Player:
     number: int
@@ -129,5 +125,7 @@ if __name__ == "__main__":
     print(imu.p1.received_action)
     imu.debug_set_received(1, True)
     print(imu.p1.received_action)
+
     while True:
         pass
+
