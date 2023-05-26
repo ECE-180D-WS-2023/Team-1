@@ -1,5 +1,4 @@
 import paho.mqtt.client as mqtt
-from enum import StrEnum, Enum
 from dataclasses import dataclass
 
 # on_message modifies this and stores the motion in this variable
@@ -60,14 +59,14 @@ class Action(StrEnum):
     NONE = ""
 
 @dataclass
-class Player:
+class IMU_Player:
     number: int
     action: Action = Action.NONE
     received_action: bool = False
 
 class IMUListener():
 
-    def __init__(self, topic: str='ktanna/motion', imu_num: int=1):
+    def __init__(self, topic: str='ktanna/motion'):
         self.topic = topic
 
         # initialize MQTT values
@@ -81,12 +80,8 @@ class IMUListener():
         # Send the connection success message
         self.client.publish(self.topic, 1, qos=1)
 
-        self.p1 = Player(1)
-        self.p2 = Player(2)
-        
-        self.imu_num = imu_num
-        self.action = Action.NONE
-        self.received = False
+        self.p1 = IMU_Player(1)
+        self.p2 = IMU_Player(2)
 
     def debug_set_received(self, player_num: int, val: bool):
         if player_num == self.p1.number:
