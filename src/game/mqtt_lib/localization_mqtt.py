@@ -111,10 +111,13 @@ class LocalizationListener():
         print(msg_str)
 
         msg_split = msg_str.split(',')
-        self.p1.location = int(msg_split[0])
-        self.p1.coords = int(msg_split[1])
-        self.p2.location = int(msg_split[2])
-        self.p2.coords = int(msg_split[3])
+        if (len(msg_split) >= 4):
+            self.p1.location = int(msg_split[0])
+            self.p1.coords = int(msg_split[1])
+            self.p2.location = int(msg_split[2])
+            self.p2.coords = int(msg_split[3])
+        else:
+            print("invalid localization message: ", msg_split)
     
 
 if __name__ == "__main__":

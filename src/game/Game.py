@@ -376,7 +376,7 @@ class Game():
                     elif event.key == K_s:
                         self.start_game = True
                     elif event.key == K_b:
-                        self.button_listener.debug_button_set(val= not self.button_listener.button_active)
+                        self.button_listener.debug_button_set(val= not self.button_listener.button_high)
                     elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
                         if (event.key == K_1):
                             self.localization_listener.debug_set_location(player_num=1, val=1)
@@ -597,9 +597,9 @@ class Game():
                 self.__game_over_cleanup()
             
             # set self.button_pause when button high/low
-            if self.button_listener.button_active == False:
+            if self.button_listener.button_high == False:
                 self.button_pause = False
-            elif self.button_listener.button_active == True:
+            elif self.button_listener.button_high == True:
                 self.button_pause = True
 
             # set progress
