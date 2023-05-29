@@ -3,7 +3,7 @@ import paho.mqtt.client as mqtt
 import logging
 import random
 
-from game import mqtt_lib
+from game.mqtt_lib import ButtonListener, LocalizationListener, IMUListener, SpeechListener
 
 from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
@@ -54,6 +54,12 @@ class Game():
         self.blue_notes = pygame.sprite.Group()
         self.fading_notes = pygame.sprite.Group()
 
+        # mqtt listeners
+        self.button_listener = ButtonListener()
+        self.speech_listener = SpeechListener()
+        self.localization_listener = LocalizationListener()
+        self.imu_listener = IMUListener()
+
         
 
     def tutorial(self, num_players=2): #tutorial mode of the game (Slow bpm to spawn notes)
@@ -64,24 +70,6 @@ class Game():
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
         logging.info(f"Tutorial: Starting {num_players}P tutorial with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
-      
-        logging.info("MQTT: Setting up IMU MQTT Listener")
-        imu_mqtt_client = mqtt.Client()
-        imu_mqtt_client.on_connect = mqtt_lib.imu_mqtt_on_connect
-        imu_mqtt_client.on_disconnect = mqtt_lib.imu_mqtt_on_disconnect
-        imu_mqtt_client.on_message = mqtt_lib.imu_mqtt_on_message
-        imu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
-        imu_mqtt_client.loop_start()
-        pygame.time.wait(IMU_CALIBRATION_TIME)
-
-        logging.info("MQTT: Setting up Localization MQTT Listener")
-        localization_mqtt_client = mqtt.Client()
-        localization_mqtt_client.on_connect = mqtt_lib.localization_mqtt_on_connect
-        localization_mqtt_client.on_disconnect = mqtt_lib.localization_mqtt_on_disconnect
-        localization_mqtt_client.on_message = mqtt_lib.localization_mqtt_on_message
-        localization_mqtt_client.connect_async('mqtt.eclipseprojects.io')
-        localization_mqtt_client.loop_start()
-        pygame.time.wait(LOCALIZATION_CALIBRATION_TIME)
 
         # Instantiate sprite groups
         players = pygame.sprite.Group()
@@ -154,25 +142,23 @@ class Game():
                             pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
                     elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
                         if (event.key == K_1):
-                            mqtt_lib.localization_mqtt.player1_location = 1
-                            mqtt_lib.localization_mqtt.player1_coords = 560
+                            self.localization_listener.debug_set_location(player_num=1, val=1)
+                            self.localization_listener.debug_set_coords(player_num=1, val=560)
                         elif (event.key == K_2):
-                            mqtt_lib.localization_mqtt.player1_location = 2
-                            mqtt_lib.localization_mqtt.player1_coords = 400
+                            self.localization_listener.debug_set_location(player_num=1, val=2)
+                            self.localization_listener.debug_set_coords(player_num=1, val=400)
                         elif (event.key == K_3):
-                            mqtt_lib.localization_mqtt.player1_location = 3
-                            mqtt_lib.localization_mqtt.player1_coords = 240
+                            self.localization_listener.debug_set_location(player_num=1, val=3)
+                            self.localization_listener.debug_set_coords(player_num=1, val=240)
                         elif (event.key == K_4):
-                            mqtt_lib.localization_mqtt.player1_location = 4 
-                            mqtt_lib.localization_mqtt.player1_coords = 80
+                            self.localization_listener.debug_set_location(player_num=1, val=4)
+                            self.localization_listener.debug_set_coords(player_num=1, val=80)
                     else:
                         # calculate which note is the lowest and then process key press accordingly based
                         # on that note's letter
                         if (self.notes):
                             lowest_note = get_lowest_note(self.notes)
-                            #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
-                            #print(localization_mqtt.player_location)
-                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), mqtt_lib.localization_mqtt.player1_location, 1)
+                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), self.localization_listener.p1.location, 1)
                             self.__calc_points(action_input_result)
                         else:
                             action_input_result = "No Notes Yet!"
@@ -196,7 +182,7 @@ class Game():
                     if (self.notes):
                         lowest_note = get_lowest_note(self.notes)
                         # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action_1, mqtt_lib.localization_mqtt.player1_location, 1)
+                        action_input_result = lowest_note.process_action_location(imu_action_1, self.localization_listener.p1.location, 1)
                         self.__calc_points(action_input_result)
                     else:
                         action_input_result = "No Notes Yet!"
@@ -206,7 +192,7 @@ class Game():
                     if (self.notes):
                         lowest_note = get_lowest_note(self.notes)
                         # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action_2, mqtt_lib.localization_mqtt.player2_location, 2)
+                        action_input_result = lowest_note.process_action_location(imu_action_2, self.localization_listener.p2.location, 2)
                         self.__calc_points(action_input_result)
                     else:
                         action_input_result = "No Notes Yet!"
@@ -223,17 +209,17 @@ class Game():
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
-                if (mqtt_lib.imu_mqtt.imu_action_1_received_flag):
+                if (self.imu_listener.p1.received_action):
                     pygame.event.post(pygame.event.Event(ACTION_1))
-                    imu_action_1 = mqtt_lib.imu_mqtt.IMU_ACTION_1
+                    imu_action_1 = self.imu_listener.p1.action
                     print("action received: ", imu_action_1)
-                    mqtt_lib.imu_mqtt.imu_action_1_received_flag = False
+                    self.imu_listener.debug_set_received(player_num=1, val=False)
                 if (num_players == 2):
-                    if (mqtt_lib.imu_mqtt.imu_action_2_received_flag):
+                    if (self.imu_listener.p2.received_action):
                         pygame.event.post(pygame.event.Event(ACTION_2))
-                        imu_action_2 = mqtt_lib.imu_mqtt.IMU_ACTION_2
+                        imu_action_2 = self.imu_listener.p2.action
                         print("action received: ", imu_action_2)
-                        mqtt_lib.imu_mqtt.imu_action_2_received_flag = False
+                        self.imu_listener.debug_set_received(player_num=2, val=False)
                 # update note positions
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     self.notes.update()
@@ -246,9 +232,9 @@ class Game():
             # update player location
             for player in players:
                 if (player.player_num == 1):
-                    player.update_player_pos(player_num = 1, coords = mqtt_lib.localization_mqtt.player1_coords)
+                    player.update_player_pos(player_num = 1, coords = self.localization_listener.p1.coords)
                 elif (player.player_num == 2):
-                    player.update_player_pos(player_num = 2, coords = mqtt_lib.localization_mqtt.player2_coords)
+                    player.update_player_pos(player_num = 2, coords = self.localization_listener.p2.coords)
 
             # Fill the screen with black
             screen.fill((255, 255, 255))
@@ -324,50 +310,6 @@ class Game():
         pygame.mixer.init()
         self.__load_music(song_title)
 
-        logging.info("MQTT: Setting up IMU MQTT Listener")
-        # initialize mqtt for imu
-        # this mqtt outputs something like "(player#)(action)" e.g., '1r' for player 1 and right
-        # check imu_mqtt for which channel its listening to
-        imu_mqtt_client = mqtt.Client()
-        imu_mqtt_client.on_connect = mqtt_lib.imu_mqtt_on_connect
-        imu_mqtt_client.on_disconnect = mqtt_lib.imu_mqtt_on_disconnect
-        imu_mqtt_client.on_message = mqtt_lib.imu_mqtt_on_message
-        imu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
-        imu_mqtt_client.loop_start()
-        # for initialize mqtt
-        pygame.time.wait(IMU_CALIBRATION_TIME)
-
-        logging.info("MQTT: Setting up Localization MQTT Listener")
-        # initialize and calibrate video feed
-        # this should output something like "1" for zone 1
-        # local = localize(camera=0)
-        # local.detect()
-        localization_mqtt_client = mqtt.Client()
-        localization_mqtt_client.on_connect = mqtt_lib.localization_mqtt_on_connect
-        localization_mqtt_client.on_disconnect = mqtt_lib.localization_mqtt_on_disconnect
-        localization_mqtt_client.on_message = mqtt_lib.localization_mqtt_on_message
-        localization_mqtt_client.connect_async('mqtt.eclipseprojects.io')
-        localization_mqtt_client.loop_start()
-        pygame.time.wait(LOCALIZATION_CALIBRATION_TIME)
-        
-        logging.info("MQTT: Setting up Voice Recog MQTT Listener")
-        voice_mqtt_client = mqtt.Client()
-        voice_mqtt_client.on_connect = mqtt_lib.voice_mqtt_on_connect
-        voice_mqtt_client.on_disconnect = mqtt_lib.voice_mqtt_on_disconnect
-        voice_mqtt_client.on_message = mqtt_lib.voice_mqtt_on_message
-        voice_mqtt_client.connect_async('mqtt.eclipseprojects.io')
-        voice_mqtt_client.loop_start()
-        pygame.time.wait(VOICE_CALIBRATION_TIME)
-
-        logging.info("MQTT: Setting up Button MQTT Listener")
-        button_mqtt_client = mqtt.Client()
-        button_mqtt_client.on_connect = mqtt_lib.button_mqtt_on_connect
-        button_mqtt_client.on_disconnect = mqtt_lib.button_mqtt_on_disconnect
-        button_mqtt_client.on_message = mqtt_lib.button_mqtt_on_message
-        button_mqtt_client.connect_async('mqtt.eclipseprojects.io')
-        button_mqtt_client.loop_start()
-        pygame.time.wait(BUTTON_CALIBRATION_TIME)
-
         # instantiate sprite groups
         players = pygame.sprite.Group()
         players.add(Player(1))
@@ -434,28 +376,26 @@ class Game():
                     elif event.key == K_s:
                         self.start_game = True
                     elif event.key == K_b:
-                        mqtt_lib.button_mqtt.button_high = not mqtt_lib.button_mqtt.button_high
+                        self.button_listener.debug_button_set(val= not self.button_listener.button_active)
                     elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
                         if (event.key == K_1):
-                            mqtt_lib.localization_mqtt.player1_location = 1
-                            mqtt_lib.localization_mqtt.player1_coords = 560
+                            self.localization_listener.debug_set_location(player_num=1, val=1)
+                            self.localization_listener.debug_set_coords(player_num=1, val=560)
                         elif (event.key == K_2):
-                            mqtt_lib.localization_mqtt.player1_location = 2
-                            mqtt_lib.localization_mqtt.player1_coords = 400
+                            self.localization_listener.debug_set_location(player_num=1, val=2)
+                            self.localization_listener.debug_set_coords(player_num=1, val=400)
                         elif (event.key == K_3):
-                            mqtt_lib.localization_mqtt.player1_location = 3
-                            mqtt_lib.localization_mqtt.player1_coords = 240
+                            self.localization_listener.debug_set_location(player_num=1, val=3)
+                            self.localization_listener.debug_set_coords(player_num=1, val=240)
                         elif (event.key == K_4):
-                            mqtt_lib.localization_mqtt.player1_location = 4 
-                            mqtt_lib.localization_mqtt.player1_coords = 80
+                            self.localization_listener.debug_set_location(player_num=1, val=4)
+                            self.localization_listener.debug_set_coords(player_num=1, val=80)
                     else:
                         # calculate which note is the lowest and then process key press accordingly based
                         # on that note's letter
                         if (self.red_notes.sprites()):
                             lowest_note = get_lowest_note(self.red_notes)
-                            #action_input_result = lowest_note.process_key(pygame.key.name(event.key))
-                            #print(localization_mqtt.player_location)
-                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), mqtt_lib.localization_mqtt.player1_location, 1)
+                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), self.localization_listener.p1.location, 1)
                             self.__calc_points(action_input_result)
                         else:
                             action_input_result = "No Notes Yet!"
@@ -499,7 +439,7 @@ class Game():
                     if (self.red_notes.sprites()):
                         lowest_note = get_lowest_note(self.red_notes)
                         # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action_1, mqtt_lib.localization_mqtt.player1_location, 1)
+                        action_input_result = lowest_note.process_action_location(imu_action_1, self.localization_listener.p1.location, 1)
                         self.__calc_points(action_input_result)
                     else:
                         action_input_result = "No Notes Yet!"
@@ -509,17 +449,16 @@ class Game():
                     if (self.blue_notes.sprites()):
                         lowest_note = get_lowest_note(self.blue_notes)
                         # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action_2, mqtt_lib.localization_mqtt.player2_location, 2)
+                        action_input_result = lowest_note.process_action_location(imu_action_2, self.localization_listener.p2.location, 2)
                         self.__calc_points(action_input_result)
                     else:
                         action_input_result = "No Notes Yet!"
                     globals.action_input_result_text.update(text=action_input_result)
 
-
             # handle voice recognition stuff
-            if mqtt_lib.voice_mqtt.voice_received_flag:
-                self.__interpret_voice_recog(mqtt_lib.voice_mqtt.voice_message)
-                mqtt_lib.voice_mqtt.voice_received_flag = False
+            if self.speech_listener.received:
+                self.__interpret_voice_recog(self.speech_listener.keyword)
+                self.speech_listener.debug_set_received(val=False)
             # handling pause -> unpause transition to resume note spawning timer
                 # if we just started to pause, set note spawning timer to 0
                 # if we just resumed the game, set note spawning timer back to normal
@@ -551,17 +490,17 @@ class Game():
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
-                if (mqtt_lib.imu_mqtt.imu_action_1_received_flag):
+                if (self.imu_listener.p1.received_action):
                     pygame.event.post(pygame.event.Event(ACTION_1))
-                    imu_action_1 = mqtt_lib.imu_mqtt.IMU_ACTION_1
+                    imu_action_1 = self.imu_listener.p1.action
                     print("action received: ", imu_action_1)
-                    mqtt_lib.imu_mqtt.imu_action_1_received_flag = False
+                    self.imu_listener.debug_set_received(player_num=1, val=False)
                 if (num_players == 2):
-                    if (mqtt_lib.imu_mqtt.imu_action_2_received_flag):
+                    if (self.imu_listener.p2.received_action):
                         pygame.event.post(pygame.event.Event(ACTION_2))
-                        imu_action_2 = mqtt_lib.imu_mqtt.IMU_ACTION_2
+                        imu_action_2 = self.imu_listener.p2.action
                         print("action received: ", imu_action_2)
-                        mqtt_lib.imu_mqtt.imu_action_2_received_flag = False
+                        self.imu_listener.debug_set_received(player_num=2, val=False)
                 # update note positions
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     self.notes.update()
@@ -570,9 +509,9 @@ class Game():
             # update player location
             for player in players:
                 if (player.player_num == 1):
-                    player.update_player_pos(player_num = 1, coords = mqtt_lib.localization_mqtt.player1_coords)
+                    player.update_player_pos(player_num = 1, coords = self.localization_listener.p1.coords)
                 elif (player.player_num == 2):
-                    player.update_player_pos(player_num = 2, coords = mqtt_lib.localization_mqtt.player2_coords)
+                    player.update_player_pos(player_num = 2, coords = self.localization_listener.p2.coords)
 
             # check if there are any notes that need fading
             for note in self.notes:
@@ -658,9 +597,9 @@ class Game():
                 self.__game_over_cleanup()
             
             # set self.button_pause when button high/low
-            if mqtt_lib.button_mqtt.button_high == False:
+            if self.button_listener.button_active == False:
                 self.button_pause = False
-            elif mqtt_lib.button_mqtt.button_high == True:
+            elif self.button_listener.button_active == True:
                 self.button_pause = True
 
             # set progress

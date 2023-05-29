@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 from dataclasses import dataclass
+from enum import StrEnum
 
 # on_message modifies this and stores the motion in this variable
 IMU_ACTION_1 = ""
