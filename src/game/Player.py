@@ -14,14 +14,16 @@ class Player(pygame.sprite.Sprite):
 
         # if player 1 then red square, if player 2 then blue square
         if (player_num == 1):
-            self.surf.fill((255, 0, 0))
+            red_player =  pygame.image.load("sprites/red_note_32.png").convert_alpha()
+            self.surf = red_player
             self.rect = self.surf.get_rect(
                 center=(
                     0, 0
                 )
             )
         elif (player_num == 2):
-            self.surf.fill((0, 0, 255))
+            blue_player =  pygame.image.load("sprites/blue_note_32.png").convert_alpha()
+            self.surf = blue_player
             self.rect = self.surf.get_rect(
                 center=(
                     0, 0
