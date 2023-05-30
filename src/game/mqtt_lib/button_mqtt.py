@@ -95,6 +95,8 @@ class ButtonListener():
         elif msg_str == "L":
             self.button_high = False
             self.end_timer = time.time()
+        elif msg_str == "RESET":
+            self.button_high = False
 
 
 if __name__ == "__main__":
@@ -102,6 +104,6 @@ if __name__ == "__main__":
 
     while True:
         # print(but.button_high)
-        # print(but.button_active(1))
+        print(but.button_active(1))
         pass
 

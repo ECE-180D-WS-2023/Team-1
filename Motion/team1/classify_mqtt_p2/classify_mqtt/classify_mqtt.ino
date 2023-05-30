@@ -119,6 +119,8 @@ void callback(char *topic, byte *payload, unsigned int length) {
   }
   Serial.println();
   Serial.println("-----------------------");
+
+  client.publish(buttonTopic, "RESET");
 }
 
 bool calibrated = 0;
