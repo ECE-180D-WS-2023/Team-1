@@ -60,7 +60,23 @@ class Game():
         self.localization_listener = LocalizationListener()
         self.imu_listener = IMUListener()
 
-        
+        # store imu actions
+        self.imu_action_1 = None
+        self.imu_action_2 = None
+
+        # list of texts and fonts
+        self.hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
+        self.paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
+        self.start_game_text = Text(text="Press S To Start", rect=(10, SCREEN_HEIGHT/3))
+        self.instruction_text = Text(text="", rect=(10, SCREEN_HEIGHT/3))
+        self.result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
+        self.hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
+        self.paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
+        self.points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
+
+        # custom events for receiving imu action
+        self.ACTION_1 = pygame.USEREVENT + 2 # for p1
+        self.ACTION_2 = pygame.USEREVENT + 3 # for p2
 
     def tutorial(self, num_players=2): #tutorial mode of the game (Slow bpm to spawn notes)
         globals.NUM_PLAYERS = num_players
@@ -89,24 +105,13 @@ class Game():
             1 : "Align box into column of note &",
             2 : "Align box into column of note &",
         }
-        hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
-        paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
-        start_game_text = Text(text="Press S To Start", rect=(10, SCREEN_HEIGHT/3))
-        instruction_text = Text(text="", rect=(10, SCREEN_HEIGHT/3))
-        result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
-        hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
-        paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
 
         SPAWNNOTE = pygame.USEREVENT + 1
         pygame.time.set_timer(SPAWNNOTE, int(0))
         note_spawn_speed_ms = ((1/self.bpm)*60)*1000
-        ACTION_1 = pygame.USEREVENT + 2
-        imu_action_1 = None
-        ACTION_2 = pygame.USEREVENT + 3
-        imu_action_2 = None
 
         last_note_update = pygame.time.get_ticks()
-        action_input_result = ""
+
         if num_players == 1:
             notes_list = [[1,1,'u'], [1,2,'l'], [1,3,'f'], [1,4,'r']] # TO_DO: create lists for player note patterns for tutorial
         else:
@@ -124,45 +129,12 @@ class Game():
         prev_start_game = False
         player_color=(255,0,0)
 
-        while (score < completed_score):
+        self.running = True
+        while (score < completed_score and self.running):
             for event in pygame.event.get():
                 # check if q is pressed then leave
                 if event.type == KEYDOWN:
-                    if event.key == K_q:
-                        score = completed_score
-                        break
-                    elif event.key == K_s:
-                        self.start_game = True
-                    elif event.key == K_p:
-                        self.pause = not self.pause
-                        paused_text.update(text="Paused")
-                        if (self.pause == True):
-                            pygame.time.set_timer(SPAWNNOTE, 0)
-                        elif (self.pause == False):
-                            pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
-                    elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
-                        if (event.key == K_1):
-                            self.localization_listener.debug_set_location(player_num=1, val=1)
-                            self.localization_listener.debug_set_coords(player_num=1, val=560)
-                        elif (event.key == K_2):
-                            self.localization_listener.debug_set_location(player_num=1, val=2)
-                            self.localization_listener.debug_set_coords(player_num=1, val=400)
-                        elif (event.key == K_3):
-                            self.localization_listener.debug_set_location(player_num=1, val=3)
-                            self.localization_listener.debug_set_coords(player_num=1, val=240)
-                        elif (event.key == K_4):
-                            self.localization_listener.debug_set_location(player_num=1, val=4)
-                            self.localization_listener.debug_set_coords(player_num=1, val=80)
-                    else:
-                        # calculate which note is the lowest and then process key press accordingly based
-                        # on that note's letter
-                        if (self.notes):
-                            lowest_note = get_lowest_note(self.notes)
-                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), self.localization_listener.p1.location, 1)
-                            self.__calc_points(action_input_result)
-                        else:
-                            action_input_result = "No Notes Yet!"
-                        globals.action_input_result_text.update(text=action_input_result)
+                    self.__process_keydown(event.key)
                 # Check for QUIT event. If QUIT, then set running to false.
                 elif event.type == QUIT:
                     break
@@ -173,30 +145,17 @@ class Game():
                     char_idx = notes_list[score][2]
                     if color_idx == 2:
                         player_color=(0,0,255)
-                    instruction_text = Text(text=instructions[color_idx]+instructions[char_idx], rect=(10, SCREEN_HEIGHT/3))
+                    self.instruction_text = Text(text=instructions[color_idx]+instructions[char_idx], rect=(10, SCREEN_HEIGHT/3))
                     new_note = Note(color=color_idx, lane=lane_idx, char=char_idx)
                     self.notes.add(new_note)
+                    self.red_notes.add(new_note)
                     all_sprites.add(new_note)
                 # if we receive some action from imu
-                elif event.type == ACTION_1:
-                    if (self.notes):
-                        lowest_note = get_lowest_note(self.notes)
-                        # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action_1, self.localization_listener.p1.location, 1)
-                        self.__calc_points(action_input_result)
-                    else:
-                        action_input_result = "No Notes Yet!"
-                    globals.action_input_result_text.update(text=action_input_result)
+                elif event.type == self.ACTION_1:
+                    self.__process_action_event(1)
                 # this should never be true in 1p bcus action_2 should never be raised
-                elif event.type == ACTION_2:
-                    if (self.notes):
-                        lowest_note = get_lowest_note(self.notes)
-                        # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action_2, self.localization_listener.p2.location, 2)
-                        self.__calc_points(action_input_result)
-                    else:
-                        action_input_result = "No Notes Yet!"
-                    globals.action_input_result_text.update(text=action_input_result)
+                elif event.type == self.ACTION_2:
+                    self.__process_action_event(2)
             
             # same with start_game to start the note timer
             if self.start_game:
@@ -209,17 +168,7 @@ class Game():
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
-                if (self.imu_listener.p1.received_action):
-                    pygame.event.post(pygame.event.Event(ACTION_1))
-                    imu_action_1 = self.imu_listener.p1.action
-                    print("action received: ", imu_action_1)
-                    self.imu_listener.debug_set_received(player_num=1, val=False)
-                if (num_players == 2):
-                    if (self.imu_listener.p2.received_action):
-                        pygame.event.post(pygame.event.Event(ACTION_2))
-                        imu_action_2 = self.imu_listener.p2.action
-                        print("action received: ", imu_action_2)
-                        self.imu_listener.debug_set_received(player_num=2, val=False)
+                self.__check_and_process_imu_mqtt_received(num_players=num_players)
                 # update note positions
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     self.notes.update()
@@ -257,22 +206,22 @@ class Game():
                 screen.blit(player.surf, player.rect)
 
             # text for gesture results
-            screen.blit(result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
+            screen.blit(self.result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
             
             # text for hitzone indicator
-            screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
+            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, (255,0,0)), self.hitzone_text.rect)
             
             # text for pause
             if (self.pause or self.button_pause):
-                print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+                print_paused, print_paused_rect = self.__clean_print(font=self.paused_font, Text=self.paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
             elif (not self.start_game):
-                print_start_game, print_start_game_rect = self.__clean_print(font=paused_font, Text=start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+                print_start_game, print_start_game_rect = self.__clean_print(font=self.paused_font, Text=self.start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_start_game, print_start_game_rect)
                 # do not allow the game to be paused while game has not started
                 self.pause = False
             else:
-                print_inst, print_inst_rect = self.__clean_print(font=result_font, Text=instruction_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color=player_color)
+                print_inst, print_inst_rect = self.__clean_print(font=self.result_font, Text=self.instruction_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color=player_color)
                 screen.blit(print_inst, print_inst_rect)
 
             # Update the display
@@ -281,7 +230,7 @@ class Game():
         self.start_game = False
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
-    # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING ACTION_2
+    # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING self.ACTION_2
     def start(self, num_players=2, song_title="A: "):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
@@ -316,15 +265,6 @@ class Game():
         if(num_players == 2):
             players.add(Player(2))
 
-        # text for hitzone, for results, and points
-        hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
-        paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
-        start_game_text = Text(text="Press S To Start", rect=(10, SCREEN_HEIGHT/3))
-        result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
-        points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
-        hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
-        paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
-
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
 
@@ -342,22 +282,8 @@ class Game():
         start_note_spawn_delay = False
         start_note_spawn_timestamp = 0
 
-        # received action from imu event for player 1
-        ACTION_1 = pygame.USEREVENT + 2
-        # where the action is stored
-        imu_action_1 = None
-        
-        # this is here defined as an event even if unused when only 1p
-        # received action from imu event for player 2
-        ACTION_2 = pygame.USEREVENT + 3
-        # where the action is stored
-        imu_action_2 = None
-
         # custom note update per speed along with note fall speed
         last_note_update = pygame.time.get_ticks()
-
-        # variable to store result of key_press attempts
-        action_input_result = ""
 
         # stores previous pause state to know whether we resumed or not to continue note generation
         prev_pause = False
@@ -369,37 +295,7 @@ class Game():
             for event in pygame.event.get():
                 # check if q is pressed then leave
                 if event.type == KEYDOWN:
-                    if event.key == K_q:
-                        self.running = False
-                    elif event.key == K_p:
-                        self.pause = not self.pause
-                    elif event.key == K_s:
-                        self.start_game = True
-                    elif event.key == K_b:
-                        self.button_listener.debug_button_set(val= not self.button_listener.button_high)
-                    elif event.key == K_1 or event.key == K_2 or event.key == K_3 or event.key == K_4:
-                        if (event.key == K_1):
-                            self.localization_listener.debug_set_location(player_num=1, val=1)
-                            self.localization_listener.debug_set_coords(player_num=1, val=560)
-                        elif (event.key == K_2):
-                            self.localization_listener.debug_set_location(player_num=1, val=2)
-                            self.localization_listener.debug_set_coords(player_num=1, val=400)
-                        elif (event.key == K_3):
-                            self.localization_listener.debug_set_location(player_num=1, val=3)
-                            self.localization_listener.debug_set_coords(player_num=1, val=240)
-                        elif (event.key == K_4):
-                            self.localization_listener.debug_set_location(player_num=1, val=4)
-                            self.localization_listener.debug_set_coords(player_num=1, val=80)
-                    else:
-                        # calculate which note is the lowest and then process key press accordingly based
-                        # on that note's letter
-                        if (self.red_notes.sprites()):
-                            lowest_note = get_lowest_note(self.red_notes)
-                            action_input_result = lowest_note.process_action_location(pygame.key.name(event.key), self.localization_listener.p1.location, 1)
-                            self.__calc_points(action_input_result)
-                        else:
-                            action_input_result = "No Notes Yet!"
-                        globals.action_input_result_text.update(text=action_input_result)
+                    self.__process_keydown(event.key)
                 # Check for QUIT event. If QUIT, then set running to false.
                 elif event.type == QUIT:
                     self.running = False
@@ -435,25 +331,11 @@ class Game():
                             self.blue_notes.add(new_note)
                     
                 # if we receive some action from imu
-                elif event.type == ACTION_1:
-                    if (self.red_notes.sprites()):
-                        lowest_note = get_lowest_note(self.red_notes)
-                        # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action_1, self.localization_listener.p1.location, 1)
-                        self.__calc_points(action_input_result)
-                    else:
-                        action_input_result = "No Notes Yet!"
-                    globals.action_input_result_text.update(text=action_input_result)
+                elif event.type == self.ACTION_1:
+                    self.__process_action_event(1)
                 # this should never be true in 1p bcus action_2 should never be raised
-                elif event.type == ACTION_2:
-                    if (self.blue_notes.sprites()):
-                        lowest_note = get_lowest_note(self.blue_notes)
-                        # process key works for now since it is just diff letters
-                        action_input_result = lowest_note.process_action_location(imu_action_2, self.localization_listener.p2.location, 2)
-                        self.__calc_points(action_input_result)
-                    else:
-                        action_input_result = "No Notes Yet!"
-                    globals.action_input_result_text.update(text=action_input_result)
+                elif event.type == self.ACTION_2:
+                    self.__process_action_event(2)
 
             # handle voice recognition stuff
             if self.speech_listener.received:
@@ -471,7 +353,6 @@ class Game():
                 if prev_pause == True:
                     start_note_spawn_delay = True
                     start_note_spawn_timestamp = pygame.time.get_ticks()
-                    #pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
                     pygame.mixer.music.unpause()
                 prev_pause = False
             # same with start_game to start the note timer and start music
@@ -479,7 +360,6 @@ class Game():
                 if prev_start_game == False:
                     start_note_spawn_delay = True
                     start_note_spawn_timestamp = pygame.time.get_ticks()
-                    #pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
                     pygame.mixer.music.play()
                 prev_start_game = True
 
@@ -490,17 +370,7 @@ class Game():
             # if action registered by imu, do the event notification and put the action into imu_action
             # when on_message is called, set some global variable imu_action_received_flag to True and set the action to imu_action
             # because the imu_mqtt runs in parallel, we want to do this flag true and false 
-                if (self.imu_listener.p1.received_action):
-                    pygame.event.post(pygame.event.Event(ACTION_1))
-                    imu_action_1 = self.imu_listener.p1.action
-                    print("action received: ", imu_action_1)
-                    self.imu_listener.debug_set_received(player_num=1, val=False)
-                if (num_players == 2):
-                    if (self.imu_listener.p2.received_action):
-                        pygame.event.post(pygame.event.Event(ACTION_2))
-                        imu_action_2 = self.imu_listener.p2.action
-                        print("action received: ", imu_action_2)
-                        self.imu_listener.debug_set_received(player_num=2, val=False)
+                self.__check_and_process_imu_mqtt_received(num_players=num_players)
                 # update note positions
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
                     self.notes.update()
@@ -545,17 +415,17 @@ class Game():
                 screen.blit(player.surf, player.rect)
 
             # text for gesture results
-            screen.blit(result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
+            screen.blit(self.result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
             
             # update text for points
             globals.points_text.update(text="Points: " + str(globals.points))
             # print points
-            # screen.blit(points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
-            print_points, print_points_rect = self.__clean_print(font=points_font, Text=globals.points_text, center=globals.points_text.rect, color=(0,0,0))
+            # screen.blit(self.points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
+            print_points, print_points_rect = self.__clean_print(font=self.points_font, Text=globals.points_text, center=globals.points_text.rect, color=(0,0,0))
             screen.blit(print_points, print_points_rect)
 
             # text for hitzone indicator
-            screen.blit(hitzone_font.render(hitzone_text.text, True, (255,0,0)), hitzone_text.rect)
+            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, (255,0,0)), self.hitzone_text.rect)
             # display hit zone
             # horizontal line to indicate hit zone
             pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
@@ -564,7 +434,7 @@ class Game():
             if (not self.start_game):
                 self.progress = 0
                 
-                print_start_game, print_start_game_rect = self.__clean_print(font=paused_font, Text=start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+                print_start_game, print_start_game_rect = self.__clean_print(font=self.paused_font, Text=self.start_game_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_start_game, print_start_game_rect)
                 # do not allow the game to be paused while game has not started
                 self.pause = False
@@ -572,7 +442,7 @@ class Game():
             
             # text for pause
             if (self.pause or self.button_pause):
-                print_paused, print_paused_rect = self.__clean_print(font=paused_font, Text=paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+                print_paused, print_paused_rect = self.__clean_print(font=self.paused_font, Text=self.paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
 
             # Update the display
@@ -677,3 +547,66 @@ class Game():
             self.bpm = 130
             self.song_length_seconds = 233
         pygame.mixer.music.set_volume(0.5)
+
+    # helper methods between tutorial and game
+    # process when keystroke happens
+    def __process_keydown(self, key_stroke):
+        if key_stroke == K_q:
+            self.running = False
+        elif key_stroke == K_p:
+            self.pause = not self.pause
+        elif key_stroke == K_s:
+            self.start_game = True
+        elif key_stroke == K_b:
+            self.button_listener.debug_button_set(val= not self.button_listener.button_high)
+        elif key_stroke == K_1 or key_stroke == K_2 or key_stroke == K_3 or key_stroke == K_4:
+            if (key_stroke == K_1):
+                self.localization_listener.debug_set_location(player_num=1, val=1)
+                self.localization_listener.debug_set_coords(player_num=1, val=560)
+            elif (key_stroke == K_2):
+                self.localization_listener.debug_set_location(player_num=1, val=2)
+                self.localization_listener.debug_set_coords(player_num=1, val=400)
+            elif (key_stroke == K_3):
+                self.localization_listener.debug_set_location(player_num=1, val=3)
+                self.localization_listener.debug_set_coords(player_num=1, val=240)
+            elif (key_stroke == K_4):
+                self.localization_listener.debug_set_location(player_num=1, val=4)
+                self.localization_listener.debug_set_coords(player_num=1, val=80)
+        else:
+            # calculate which note is the lowest and then process key press accordingly based
+            # on that note's letter
+            if (self.red_notes.sprites()):
+                lowest_note = get_lowest_note(self.red_notes)
+                action_input_result = lowest_note.process_action_location(pygame.key.name(key_stroke), self.localization_listener.p1.location, 1)
+                self.__calc_points(action_input_result)
+            else:
+                action_input_result = "No Notes Yet!"
+            globals.action_input_result_text.update(text=action_input_result)
+        
+    # process action events
+        # player_action_num == which player did the action
+    def __process_action_event(self, player_action_num):
+        if (self.notes):
+            lowest_note = get_lowest_note(self.notes)
+            # process key works for now since it is just diff letters
+            if player_action_num == 1:
+                action_input_result = lowest_note.process_action_location(self.imu_action_1, self.localization_listener.p1.location, 1)
+            else:
+                action_input_result = lowest_note.process_action_location(self.imu_action_2, self.localization_listener.p2.location, 2)
+            self.__calc_points(action_input_result)
+        else:
+            action_input_result = "No Notes Yet!"
+        globals.action_input_result_text.update(text=action_input_result)
+
+    def __check_and_process_imu_mqtt_received(self, num_players):
+        if (self.imu_listener.p1.received_action):
+            pygame.event.post(pygame.event.Event(self.ACTION_1))
+            self.imu_action_1 = self.imu_listener.p1.action
+            print("action received: ", self.imu_action_1)
+            self.imu_listener.debug_set_received(player_num=1, val=False)
+        if (num_players == 2):
+            if (self.imu_listener.p2.received_action):
+                pygame.event.post(pygame.event.Event(self.ACTION_2))
+                self.imu_action_2 = self.imu_listener.p2.action
+                print("action received: ", self.imu_action_2)
+                self.imu_listener.debug_set_received(player_num=2, val=False)
