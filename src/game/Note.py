@@ -84,7 +84,8 @@ class Note(pygame.sprite.Sprite):
             self.color = COLOR_2
 
         # color in the square according to its lane
-        self.surf.fill(self.color)
+        self.surf.set_colorkey((0, 0, 0))
+        pygame.draw.circle(self.surf, self.color, (20,20), NOTE_HEIGHT/2) 
 
         # self.surf.fill((0, 100, 100)) # default color
         self.rect = self.surf.get_rect(
@@ -212,7 +213,6 @@ class Note(pygame.sprite.Sprite):
         return False
     
     def __note_cleared(self):
-        #self.surf.fill(pygame.Color('white'))
         check_mark_image = pygame.image.load("sprites/check_mark4_40.png").convert_alpha()
         self.surf = check_mark_image
 

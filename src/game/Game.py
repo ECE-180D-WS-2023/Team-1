@@ -6,7 +6,7 @@ import random
 from game.mqtt_lib import ButtonListener, LocalizationListener, IMUListener, SpeechListener
 
 from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
-from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, HIT_ZONE_TEXT, HIGHLIGHT_COLOR, note_update_time
+from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, HIT_ZONE_TEXT, HIGHLIGHT_COLOR, BACKGROUND_COLOR, PROG_COLOR, note_update_time
 from .Settings import NOTE_FALL_SPEED, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
 from .Settings import COLOR_1, COLOR_2, PROGRESS_BAR_HEIGHT
@@ -185,8 +185,8 @@ class Game():
                 elif (player.player_num == 2):
                     player.update_player_pos(player_num = 2, coords = self.localization_listener.p2.coords)
 
-            # Fill the screen with black
-            screen.fill((255, 255, 255))
+            # Fill the screen with background color
+            screen.fill(BACKGROUND_COLOR)
 
             # include text to indicate hit zone
             # include text to indicate point record
@@ -392,11 +392,11 @@ class Game():
             # update fading notes animation
             self.fading_notes.update()
 
-            # Fill the screen with black
-            screen.fill((255, 255, 255))
+            # Fill the screen background
+            screen.fill(BACKGROUND_COLOR)
 
             # draw progress bar
-            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=(0, 255, 0))
+            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=PROG_COLOR)
 
             # include text to indicate hit zone
             # include text to indicate point record

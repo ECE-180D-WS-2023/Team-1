@@ -37,8 +37,14 @@ HITZONE_FONT_SIZE = int(NOTE_WIDTH/3)
 # paused screen font size
 PAUSED_FONT_SIZE = int(NOTE_WIDTH*2)
 
+#highlight color of the text
 HIGHLIGHT_COLOR = (255,255,102)
 
+# background color of the game
+BACKGROUND_COLOR = (250,250,250)
+
+# progress bar color
+PROG_COLOR = (80,200,120)
 # list of available keyboard clicks
 KEYS = 'ulfr'
 
@@ -68,5 +74,5 @@ PLAYER_2_COLOR = (0, 0, 255)
 
 # note COLORS
 # we want only r and b column colors now
-COLOR_1 = (255, 204, 203) #r
-COLOR_2 = (173, 216, 230) #b
+COLOR_1 = (247, 64, 94) #r
+COLOR_2 = (26, 153, 217) #b
