@@ -6,7 +6,7 @@ import random
 from game.mqtt_lib import ButtonListener, LocalizationListener, IMUListener, SpeechListener
 
 from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
-from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, note_update_time
+from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, HIT_ZONE_TEXT, HIGHLIGHT_COLOR, note_update_time
 from .Settings import NOTE_FALL_SPEED, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
 from .Settings import COLOR_1, COLOR_2, PROGRESS_BAR_HEIGHT
@@ -65,14 +65,14 @@ class Game():
         self.imu_action_2 = None
 
         # list of texts and fonts
-        self.hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_LOWER))
+        self.hitzone_text = Text(text= "Hit-Zone", rect= (20, HIT_ZONE_TEXT))
         self.paused_text = Text(text="Paused", rect=(10, SCREEN_HEIGHT/3))
         self.start_game_text = Text(text="Press S To Start", rect=(10, SCREEN_HEIGHT/3))
         self.instruction_text = Text(text="", rect=(10, SCREEN_HEIGHT/3))
-        self.result_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
-        self.hitzone_font = pygame.font.Font('fonts/arial.ttf', HITZONE_FONT_SIZE)
-        self.paused_font = pygame.font.Font('fonts/arial.ttf', PAUSED_FONT_SIZE)
-        self.points_font = pygame.font.Font('fonts/arial.ttf', RESULT_FONT_SIZE)
+        self.result_font = pygame.font.Font('fonts/JMHTypewriter.ttf', RESULT_FONT_SIZE)
+        self.hitzone_font = pygame.font.Font('fonts/JMHTypewriter.ttf', HITZONE_FONT_SIZE)
+        self.paused_font = pygame.font.Font('fonts/JMHTypewriter.ttf', PAUSED_FONT_SIZE)
+        self.points_font = pygame.font.Font('fonts/JMHTypewriter.ttf', RESULT_FONT_SIZE)
 
         # custom events for receiving imu action
         self.ACTION_1 = pygame.USEREVENT + 2 # for p1
@@ -98,12 +98,12 @@ class Game():
 
         # text for hitzone, for results, and points
         instructions = {
-            'u':" lift remote upward rapidly when note enters hit-zone.",
-            'f':" push remote forward rapidly when note enters hit-zone.",
-            'l':" swipe remote leftward rapidly when note enters hit-zone.",
-            'r':" swipe remote rightward rapidly when note enters hit-zone.",
-            1 : "Align box into column of note &",
-            2 : "Align box into column of note &",
+            'u':" lift UP when in hit-zone.",
+            'f':" push FORWARD when in hit-zone.",
+            'l':" swipe LEFT when in hit-zone.",
+            'r':" swipe RIGHT when in hit-zone.",
+            1 : "Move icon to falling note's lane &",
+            2 : "Move icon to falling note's lane &",
         }
 
         SPAWNNOTE = pygame.USEREVENT + 1
@@ -209,7 +209,7 @@ class Game():
             screen.blit(self.result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
             
             # text for hitzone indicator
-            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, (255,0,0)), self.hitzone_text.rect)
+            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, (255,0,0), (255,255,102)), self.hitzone_text.rect)
             
             # text for pause
             if (self.pause or self.button_pause):
@@ -221,7 +221,7 @@ class Game():
                 # do not allow the game to be paused while game has not started
                 self.pause = False
             else:
-                print_inst, print_inst_rect = self.__clean_print(font=self.result_font, Text=self.instruction_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color=player_color)
+                print_inst, print_inst_rect = self.__clean_print(font=self.result_font, Text=self.instruction_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color=player_color, background=HIGHLIGHT_COLOR)
                 screen.blit(print_inst, print_inst_rect)
 
             # Update the display
@@ -421,11 +421,11 @@ class Game():
             globals.points_text.update(text="Points: " + str(globals.points))
             # print points
             # screen.blit(self.points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
-            print_points, print_points_rect = self.__clean_print(font=self.points_font, Text=globals.points_text, center=globals.points_text.rect, color=(0,0,0))
+            print_points, print_points_rect = self.__clean_print(font=self.points_font, Text=globals.points_text, center=globals.points_text.rect, color=(0,0,0), background=HIGHLIGHT_COLOR)
             screen.blit(print_points, print_points_rect)
 
             # text for hitzone indicator
-            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, (255,0,0)), self.hitzone_text.rect)
+            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, (255,0,0), (255,255,102)), self.hitzone_text.rect)
             # display hit zone
             # horizontal line to indicate hit zone
             pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
@@ -494,8 +494,11 @@ class Game():
     #   color is color of text
     # returns you the thing you can use to print and its corresponding centered rect around center
     # e.g., you can just screen.blit(ret1, ret2)
-    def __clean_print(self, font, Text, center, color=(0,0,0)):
-        print_text = font.render(Text.text, True, color)
+    def __clean_print(self, font, Text, center, color=(0,0,0), background=None):
+        if (background == None):
+            print_text = font.render(Text.text, True, color)
+        else:
+            print_text = font.render(Text.text, True, color, background)
         print_text_rect = print_text.get_rect()
         print_text_rect.center = center
         return(print_text, print_text_rect)

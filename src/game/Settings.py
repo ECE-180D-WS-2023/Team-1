@@ -33,15 +33,18 @@ LETTER_FONT_SIZE = NOTE_WIDTH
 # Result print font size
 RESULT_FONT_SIZE = int(NOTE_WIDTH/2)
 # hitzone text font size
-HITZONE_FONT_SIZE = int(NOTE_WIDTH/4)
+HITZONE_FONT_SIZE = int(NOTE_WIDTH/3)
 # paused screen font size
 PAUSED_FONT_SIZE = int(NOTE_WIDTH*2)
+
+HIGHLIGHT_COLOR = (255,255,102)
 
 # list of available keyboard clicks
 KEYS = 'ulfr'
 
 # HIT ZONE (lower bound) HEIGHT -- height grows downward
 HIT_ZONE_LOWER = SCREEN_HEIGHT-(SCREEN_HEIGHT/5)
+HIT_ZONE_TEXT = HIT_ZONE_LOWER + 5
 
 PROGRESS_BAR_HEIGHT = SCREEN_HEIGHT-(SCREEN_HEIGHT/15)
 
