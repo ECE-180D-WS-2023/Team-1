@@ -47,13 +47,10 @@ class ButtonListener():
         self.client.publish(self.topic, 1, qos=1)
 
         self.button_high = False
-        self.end_timer = 0
+        self.end_timer = 0.0
         # print(f"INITIALIZED BUTTON at {self.end_timer}")
 
-    """ 
-    TODO: Fix timer causing always True Bug
-    """
-    def button_active(self, delay: int=0):
+    def button_active(self, delay: float=0):
         """
         Does the same thing as getting button_high, but 
         includes a delay between end of button press and 
@@ -65,8 +62,8 @@ class ButtonListener():
             return True
 
         # print(cur_time-self.end_timer)
-        if self.end_timer != 0 and \
-            cur_time-self.end_timer >= delay:
+        if self.end_timer != 0.0 and \
+            cur_time-self.end_timer <= delay:
             # print("DELAY")
             return True
 
@@ -97,13 +94,15 @@ class ButtonListener():
             self.end_timer = time.time()
         elif msg_str == "RESET":
             self.button_high = False
+            print("GOT RESET"*900)
 
 
 if __name__ == "__main__":
     but = ButtonListener("ECE180/Team1/button/p2")
 
     while True:
+        # time.sleep(1)
         # print(but.button_high)
-        print(but.button_active(1))
+        print(but.button_active(1.0))
         pass
 
