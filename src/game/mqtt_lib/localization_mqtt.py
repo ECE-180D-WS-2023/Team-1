@@ -108,7 +108,7 @@ class LocalizationListener():
     # on message, just update the player_location that the game is using for localization
     def _on_message(self, client, userdata, message):
         msg_str = message.payload.decode() 
-        print(msg_str)
+        # print(msg_str)
 
         msg_split = msg_str.split(',')
         if (len(msg_split) >= 4):
