@@ -261,6 +261,14 @@ class Menu():
                             settings_button.enabled = False
                             tutorial_button.enabled = False
                             quit_button.enabled = False
+                            
+                            song_a = False
+                            song_b = False
+                            song_c = False
+                            song_d = False
+                            song_e = False
+                            song_f = False
+                            
                             song1_button.enabled = True
                             song2_button.enabled = True
                             song3_button.enabled = True
