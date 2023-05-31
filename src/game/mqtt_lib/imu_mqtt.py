@@ -103,7 +103,8 @@ class IMUListener():
     # on message, just update the player_location that the game is using for localization
     def _on_message(self, client, userdata, message):
         msg_str = message.payload.decode() 
-
+        if "connected" in msg_str: # for checking connection
+            print(msg_str)
         if "p1" in msg_str or "p2" in msg_str:
             player, action = msg_str.split(',')
             player = (int)(player[1:])
