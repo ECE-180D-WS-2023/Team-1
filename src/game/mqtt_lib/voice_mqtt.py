@@ -53,6 +53,8 @@ class SpeechListener():
 
     def debug_set_received(self, val: bool):
         self.received = val
+    def debug_set_msg(self, msg: str):
+        self.keyword = msg
 
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
