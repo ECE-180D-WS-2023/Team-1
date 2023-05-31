@@ -10,7 +10,7 @@
 SPECIAL_WORDS = {
     "start" : ["stuart", "stark", "don't"],
     "stop" : ["slob"],
-    "pause" : ["pies", "applause", "cause", "because"],
+    "pause" : ["pies", "applause", "cause", "because", "pass", "paws", "pas"],
     "continue" : [],
     "player" : ["later", "claire"],
     "enter": ["under", "after"],

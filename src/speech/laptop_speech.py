@@ -211,7 +211,7 @@ class ButtonListener():
             return True
 
         # print(cur_time-self.end_timer)
-        if cur_time-self.end_timer >= delay:
+        if cur_time-self.end_timer <= delay:
             # print("DELAY")
             return True
 
@@ -259,7 +259,7 @@ if __name__ == "__main__":
             # Get the top of the queue and pass through our recognizer
             d = myrec.get_data()
             new, word = myrec.test_data(d, True)
-            if (blis.button_active(2) or DEBUG_MIC) and new:
+            if (blis.button_active(1.0) or DEBUG_MIC) and new:
                 print(f"NEW: {new} \t WORD: {word} BUTTON: {blis.button_high}")
                 spub.publish(word)
     

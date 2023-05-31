@@ -119,6 +119,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
   }
   Serial.println();
   Serial.println("-----------------------");
+
 }
 
 bool calibrated = 0;
