@@ -518,8 +518,8 @@ class Game():
 
     def __game_over_cleanup(self):
         globals.points = 0
-        globals.action_input_result_text = Text(text= "Good Luck!", rect=(SCREEN_WIDTH - (SCREEN_WIDTH/5) + 15, 20))
-        globals.points_text = Text(text= "Points: 0", rect= (SCREEN_WIDTH - (SCREEN_WIDTH/8), 70))
+        globals.points_text = Text(text= "Points: 0", rect= (SCREEN_WIDTH - (SCREEN_WIDTH/8), 20))
+        globals.action_input_result_text = Text(text= "Good Luck!", rect=(SCREEN_WIDTH-14*(SCREEN_WIDTH/15), 5))
 
     # loads music and bpm from song_title passed-in param
     def __load_music(self, song_title):
