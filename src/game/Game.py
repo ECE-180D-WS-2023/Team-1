@@ -77,6 +77,8 @@ class Game():
         # custom events for receiving imu action
         self.ACTION_1 = pygame.USEREVENT + 2 # for p1
         self.ACTION_2 = pygame.USEREVENT + 3 # for p2
+        self.pause_button = pygame.image.load("sprites/pause_g38.png").convert_alpha()
+        self.play_button = pygame.image.load("sprites/play_g38.png").convert_alpha()
 
     def tutorial(self, num_players=2): #tutorial mode of the game (Slow bpm to spawn notes)
         globals.NUM_PLAYERS = num_players
@@ -443,8 +445,11 @@ class Game():
             
             # text for pause
             if (self.pause or self.button_pause):
+                screen.blit(self.play_button, (SCREEN_WIDTH-14*SCREEN_WIDTH/15, SCREEN_HEIGHT-14*SCREEN_HEIGHT/15 - 10))
                 print_paused, print_paused_rect = self.__clean_print(font=self.paused_font, Text=self.paused_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
                 screen.blit(print_paused, print_paused_rect)
+            else:
+                screen.blit(self.pause_button, (SCREEN_WIDTH-14*SCREEN_WIDTH/15, SCREEN_HEIGHT-14*SCREEN_HEIGHT/15 - 10))
 
             # Update the display
             pygame.display.flip()
