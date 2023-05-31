@@ -349,6 +349,7 @@ class Game():
                     pygame.time.set_timer(SPAWNNOTE, 0)
                     pygame.mixer.music.pause()
                 prev_pause = True
+            # if BOTH pause and button_pause false
             else:
                 if prev_pause == True:
                     start_note_spawn_delay = True
@@ -449,11 +450,12 @@ class Game():
             pygame.display.flip()
 
             # if need delay before starting note spawn
-            if (start_note_spawn_delay):
-                # if current time - when we started delay > note_spawn_delay, tjem we start s[awmomg mptes amd set delay false
-                if (pygame.time.get_ticks() - start_note_spawn_timestamp >= note_spawn_delay):
-                    start_note_spawn_delay = False
-                    pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
+            if (not self.pause and not self.button_pause):
+                if (start_note_spawn_delay):
+                    # if current time - when we started delay > note_spawn_delay, tjem we start s[awmomg mptes amd set delay false
+                    if (pygame.time.get_ticks() - start_note_spawn_timestamp >= note_spawn_delay):
+                        start_note_spawn_delay = False
+                        pygame.time.set_timer(SPAWNNOTE, int(note_spawn_speed_ms))
 
             # stop game if music done
             if self.start_game:
@@ -557,7 +559,9 @@ class Game():
         if key_stroke == K_q:
             self.running = False
         elif key_stroke == K_p:
-            self.pause = not self.pause
+            #self.pause = not self.pause
+            self.speech_listener.debug_set_received(True)
+            self.speech_listener.debug_set_msg("pause")
         elif key_stroke == K_s:
             self.start_game = True
         elif key_stroke == K_b:
