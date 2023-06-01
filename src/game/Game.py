@@ -48,6 +48,8 @@ class Game():
         self.bpm = 30
         # song length for calculating progress in progress bar
         self.song_length_seconds = 500
+        # song length per team for remote play
+        self.song_length_per_team = int(self.song_length_seconds/8)
 
         # notes list
         self.notes = pygame.sprite.Group()
@@ -56,10 +58,24 @@ class Game():
         self.fading_notes = pygame.sprite.Group()
 
         # mqtt listeners
-        self.button_listener = ButtonListener()
-        self.speech_listener = SpeechListener()
-        self.localization_listener = LocalizationListener()
-        self.imu_listener = IMUListener()
+        self.listeners = {
+            'team1': {
+                'button_listener': ButtonListener(),
+                'speech_listener': SpeechListener(),
+                'localization_listener': LocalizationListener(),
+                'imu_listener': IMUListener()
+            },
+            'team2': {
+                'button_listener': ButtonListener(),
+                'speech_listener': SpeechListener(),
+                'localization_listener': LocalizationListener(),
+                'imu_listener': IMUListener()
+            }
+        }
+        self.active_listeners = self.listeners['team1']
+        self.active_team = 'team1'
+        self.last_switch_time = 0
+        self.my_team = 'team1'
 
         # store imu actions
         self.imu_action_1 = None
@@ -184,9 +200,9 @@ class Game():
             # update player location
             for player in players:
                 if (player.player_num == 1):
-                    player.update_player_pos(player_num = 1, coords = self.localization_listener.p1.coords)
+                    player.update_player_pos(player_num = 1, coords = self.active_listeners['localization_listener'].p1.coords)
                 elif (player.player_num == 2):
-                    player.update_player_pos(player_num = 2, coords = self.localization_listener.p2.coords)
+                    player.update_player_pos(player_num = 2, coords = self.active_listeners['localization_listener'].p2.coords)
 
             # Fill the screen with background color
             screen.fill(BACKGROUND_COLOR)
@@ -240,10 +256,18 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING self.ACTION_2
-    def start(self, num_players=2, song_title="A: "):
+    def start(self, num_players=2, song_title="A: ", remote_play=True, team_1=False):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
+
+        # set active listeners based on team
+        if (team_1 == True or remote_play == False):
+            self.my_team = 'team1'
+        else:
+            self.my_team = 'team2'
+        self.active_team = 'team1'
+        self.active_listeners = self.listeners[self.active_team]
 
         # Seed random number generator with seed
         random.seed(song_title)
@@ -347,9 +371,9 @@ class Game():
                     self.__process_action_event(2)
 
             # handle voice recognition stuff
-            if self.speech_listener.received:
-                self.__interpret_voice_recog(self.speech_listener.keyword)
-                self.speech_listener.debug_set_received(val=False)
+            if self.active_listeners['speech_listener'].received:
+                self.__interpret_voice_recog(self.active_listeners['speech_listener'].keyword)
+                self.active_listeners['speech_listener'].debug_set_received(val=False)
             # handling pause -> unpause transition to resume note spawning timer
                 # if we just started to pause, set note spawning timer to 0
                 # if we just resumed the game, set note spawning timer back to normal
@@ -371,6 +395,9 @@ class Game():
                     start_note_spawn_delay = True
                     start_note_spawn_timestamp = pygame.time.get_ticks()
                     pygame.mixer.music.play()
+
+                    # used for remote play switching between teams
+                    self.last_switch_time = 0
                 prev_start_game = True
 
 
@@ -383,15 +410,21 @@ class Game():
                 self.__check_and_process_imu_mqtt_received(num_players=num_players)
                 # update note positions
                 if (pygame.time.get_ticks() - last_note_update > note_update_time):
-                    self.notes.update()
+                    #self.notes.update()
+                    for note in self.notes:
+                        result = note.update()
+                        # need to subtract 1 from score
+                        if result == -1 and self.active_team == self.my_team:
+                            globals.points -= 1
+                            globals.action_input_result_text.update(text="Missed!")
                     last_note_update = pygame.time.get_ticks()
 
             # update player location
             for player in players:
                 if (player.player_num == 1):
-                    player.update_player_pos(player_num = 1, coords = self.localization_listener.p1.coords)
+                    player.update_player_pos(player_num = 1, coords = self.active_listeners['localization_listener'].p1.coords)
                 elif (player.player_num == 2):
-                    player.update_player_pos(player_num = 2, coords = self.localization_listener.p2.coords)
+                    player.update_player_pos(player_num = 2, coords = self.active_listeners['localization_listener'].p2.coords)
 
             # check if there are any notes that need fading
             for note in self.notes:
@@ -409,7 +442,7 @@ class Game():
             if num_players == 2:
                 draw_player_highlights(screen, self.localization_listener.p1.location, self.localization_listener.p2.location)
             else:
-                draw_player_highlights(screen, self.localization_listener.p1.location)
+                draw_player_highlights(screen, self.localization_listener.p1.location, remote_play=remote_play)
 
             # include text to indicate hit zone
             # include text to indicate point record
@@ -486,22 +519,35 @@ class Game():
                 self.__game_over_cleanup()
             
             # set self.button_pause when button high/low
-            if self.button_listener.button_high == False:
+            if self.active_listeners['button_listener'].button_high == False:
                 self.button_pause = False
-            elif self.button_listener.button_high == True:
+            elif self.active_listeners['button_listener'].button_high == True:
                 self.button_pause = True
             # set progress
             music_progress = (((pygame.mixer.music.get_pos() / 1000.0) / self.song_length_seconds) * 100 )
             progress_bar.set_progress(music_progress)
+            # calculate when to switch teams
+            if (remote_play == True):
+                if ((pygame.mixer.music.get_pos() / 1000.0) - self.last_switch_time) >= self.song_length_per_team:
+                    # switch !!
+                    if self.active_team == 'team1':
+                        self.active_team = 'team2'
+                    elif self.active_team == 'team2':
+                        self.active_team = 'team1'
+                    self.active_listeners = self.listeners[self.active_team]
+                    self.last_switch_time = pygame.mixer.music.get_pos() / 1000.0
+
+                    print("switched! active_team now: ", self.active_team)
             clock.tick(fps)
 
     def __calc_points(self, action_input_result):
-        if action_input_result == SUCCESS:
-            globals.points += 1
-        elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY or action_input_result == WRONG_LANE:
-            # allow players to try again as long as the thing is not gone yet
-            # no point deduction for too early or wrong motion
-            globals.points -= 0
+        if (self.my_team == self.active_team):
+            if action_input_result == SUCCESS:
+                globals.points += 1
+            elif action_input_result == TOO_EARLY or action_input_result == WRONG_KEY or action_input_result == WRONG_LANE:
+                # allow players to try again as long as the thing is not gone yet
+                # no point deduction for too early or wrong motion
+                globals.points -= 0
 
     # function that helps print aligned to center
     # params:
@@ -542,30 +588,37 @@ class Game():
             pygame.mixer.music.load("music/songs/Black_Eyed_Peas--I_Gotta_Feeling--128bpm.wav")
             self.bpm = 128
             self.song_length_seconds = 290
+            self.song_length_per_team = int(self.song_length_seconds/8)
         elif song_title[0] == 'B':
             pygame.mixer.music.load("music/songs/Ethel_Cain--American_Teenager--120bpm.wav")
             self.bpm = 120
             self.song_length_seconds = 260
+            self.song_length_per_team = int(self.song_length_seconds/8)
         elif song_title[0] == 'C':
             pygame.mixer.music.load("music/songs/Gotye--Somebody_That_I_Used_to_Know--129bpm.wav")
             self.bpm = 129
             self.song_length_seconds = 246
+            self.song_length_per_team = int(self.song_length_seconds/8)
         elif song_title[0] == 'D':
             pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
             self.bpm = 130
             self.song_length_seconds = 233
+            self.song_length_per_team = int(self.song_length_seconds/8)
         elif song_title[0] == 'E':
             pygame.mixer.music.load("music/songs/The_Beatles--All_You_Need_Is_Love--103bpm.wav")
             self.bpm = 103
             self.song_length_seconds = 232
+            self.song_length_per_team = int(self.song_length_seconds/8)
         elif song_title[0] == 'F':
             pygame.mixer.music.load("music/songs/The_Beatles--While_My_Guitar_Gently_Weeps--115bpm.wav")
             self.bpm = 115
             self.song_length_seconds = 285
+            self.song_length_per_team = int(self.song_length_seconds/8)
         else:
             pygame.mixer.music.load("music/songs/Taylor_Swift--You_Belong_With_Me--130bpm.wav")
             self.bpm = 130
             self.song_length_seconds = 233
+            self.song_length_per_team = int(self.song_length_seconds/8)
         pygame.mixer.music.set_volume(0.5)
 
     # helper methods between tutorial and game
@@ -575,32 +628,35 @@ class Game():
             self.running = False
         elif key_stroke == K_p:
             #self.pause = not self.pause
-            self.speech_listener.debug_set_received(True)
-            self.speech_listener.debug_set_msg("pause")
+            self.active_listeners['speech_listener'].debug_set_received(True)
+            self.active_listeners['speech_listener'].debug_set_msg("pause")
         elif key_stroke == K_s:
             self.start_game = True
         elif key_stroke == K_b:
-            self.button_listener.debug_button_set(val= not self.button_listener.button_high)
+            self.active_listeners['button_listener'].debug_button_set(val= not self.active_listeners['button_listener'].button_high)
         elif key_stroke == K_1 or key_stroke == K_2 or key_stroke == K_3 or key_stroke == K_4:
             if (key_stroke == K_1):
-                self.localization_listener.debug_set_location(player_num=1, val=1)
-                self.localization_listener.debug_set_coords(player_num=1, val=560)
+                self.active_listeners['localization_listener'].debug_set_location(player_num=1, val=1)
+                self.active_listeners['localization_listener'].debug_set_coords(player_num=1, val=560)
             elif (key_stroke == K_2):
-                self.localization_listener.debug_set_location(player_num=1, val=2)
-                self.localization_listener.debug_set_coords(player_num=1, val=400)
+                self.active_listeners['localization_listener'].debug_set_location(player_num=1, val=2)
+                self.active_listeners['localization_listener'].debug_set_coords(player_num=1, val=400)
             elif (key_stroke == K_3):
-                self.localization_listener.debug_set_location(player_num=1, val=3)
-                self.localization_listener.debug_set_coords(player_num=1, val=240)
+                self.active_listeners['localization_listener'].debug_set_location(player_num=1, val=3)
+                self.active_listeners['localization_listener'].debug_set_coords(player_num=1, val=240)
             elif (key_stroke == K_4):
-                self.localization_listener.debug_set_location(player_num=1, val=4)
-                self.localization_listener.debug_set_coords(player_num=1, val=80)
+                self.active_listeners['localization_listener'].debug_set_location(player_num=1, val=4)
+                self.active_listeners['localization_listener'].debug_set_coords(player_num=1, val=80)
         else:
             # calculate which note is the lowest and then process key press accordingly based
             # on that note's letter
             if (self.red_notes.sprites()):
                 lowest_note = get_lowest_note(self.red_notes)
-                action_input_result = lowest_note.process_action_location(pygame.key.name(key_stroke), self.localization_listener.p1.location, 1)
-                self.__calc_points(action_input_result)
+                if (lowest_note):
+                    action_input_result = lowest_note.process_action_location(pygame.key.name(key_stroke), self.active_listeners['localization_listener'].p1.location, 1)
+                    self.__calc_points(action_input_result)
+                else:
+                    action_input_result = "No Notes Yet!"
             else:
                 action_input_result = "No Notes Yet!"
             globals.action_input_result_text.update(text=action_input_result)
@@ -610,25 +666,28 @@ class Game():
     def __process_action_event(self, player_action_num):
         if (self.notes):
             lowest_note = get_lowest_note(self.notes)
+            if (lowest_note):
             # process key works for now since it is just diff letters
-            if player_action_num == 1:
-                action_input_result = lowest_note.process_action_location(self.imu_action_1, self.localization_listener.p1.location, 1)
+                if player_action_num == 1:
+                    action_input_result = lowest_note.process_action_location(self.imu_action_1, self.active_listeners['localization_listener'].p1.location, 1)
+                else:
+                    action_input_result = lowest_note.process_action_location(self.imu_action_2, self.active_listeners['localization_listener'].p2.location, 2)
+                self.__calc_points(action_input_result)
             else:
-                action_input_result = lowest_note.process_action_location(self.imu_action_2, self.localization_listener.p2.location, 2)
-            self.__calc_points(action_input_result)
+                action_input_result = "No Notes Yet!"
         else:
             action_input_result = "No Notes Yet!"
         globals.action_input_result_text.update(text=action_input_result)
 
     def __check_and_process_imu_mqtt_received(self, num_players):
-        if (self.imu_listener.p1.received_action):
+        if (self.active_listeners['imu_listener'].p1.received_action):
             pygame.event.post(pygame.event.Event(self.ACTION_1))
-            self.imu_action_1 = self.imu_listener.p1.action
+            self.imu_action_1 = self.active_listeners['imu_listener'].p1.action
             print("action received: ", self.imu_action_1)
-            self.imu_listener.debug_set_received(player_num=1, val=False)
+            self.active_listeners['imu_listener'].debug_set_received(player_num=1, val=False)
         if (num_players == 2):
-            if (self.imu_listener.p2.received_action):
+            if (self.active_listeners['imu_listener'].p2.received_action):
                 pygame.event.post(pygame.event.Event(self.ACTION_2))
-                self.imu_action_2 = self.imu_listener.p2.action
+                self.imu_action_2 = self.active_listeners['imu_listener'].p2.action
                 print("action received: ", self.imu_action_2)
-                self.imu_listener.debug_set_received(player_num=2, val=False)
+                self.active_listeners['imu_listener'].debug_set_received(player_num=2, val=False)
