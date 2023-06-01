@@ -1,17 +1,34 @@
+import re
 REMOTE_SUBSCRIPTION = "ECE180/remote"
+MQTT_MESSAGE = "" # TODO make global string
+MQTT_RECEIVED = False # TODO make global bool
+MQTT_LOBBIES = "Z"
+MQTT_TEAM1_READY = False
+MQTT_TEAM2_READY = False
 
 def server_on_message(client, userdata, message):
     # may need global variables
     # parse message and set flags
     msg_str = message.payload.decode()
-    print(msg_str)
+    # if msg_str == "LLR":
+    #     print("REQUEST RECEIVED!!!!!!! ")
+    print("Server received message: " + msg_str)
     #set MQTT_RECEIVED = True
     #set MQTT_MESSAGE to the received message (with parsed off b')
-
-    # if we receive a request for list of lobbies publish the list of lobbies
-    # client.publish('server', lobbies)
-    # if we receive a new lobby add it to the list of lobbies
-
+    global MQTT_RECEIVED
+    global MQTT_MESSAGE
+    global MQTT_LOBBIES
+    global MQTT_TEAM1_READY
+    global MQTT_TEAM2_READY
+    MQTT_MESSAGE = msg_str
+    if re.search(r'^Z', msg_str):
+        MQTT_LOBBIES = msg_str
+    if re.search(r'T1_READY', msg_str):
+        MQTT_TEAM1_READY = True
+    if re.search(r'T2_READY', msg_str):
+        MQTT_TEAM2_READY = True
+    MQTT_RECEIVED = True
+    
 def server_on_connect(client, userdata, flags, rc):
     print("Remote play connection returned result: " + str(rc))
     client.subscribe(REMOTE_SUBSCRIPTION, qos=1)

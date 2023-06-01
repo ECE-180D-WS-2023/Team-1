@@ -1,6 +1,7 @@
 import re
 import paho.mqtt.client as mqtt
 import sys
+import time
 sys.path.insert(1, './mqtt_lib/')
 import server_mqtt as mqtt_lib
 
@@ -20,22 +21,16 @@ client.loop_start()
 #lobbies = "ZA1,B2"
 lobbies = ""
 while (True):
-    if (mqtt_lib.MQTT_RECEIVED):
-        message = mqtt_lib.MQTT_MESSAGE
-        mqtt_lib.MQTT_RECEIVED = False
-        mqtt_lib.MQTT_MESSAGE = "" # clear the message
-        print("Message: " + message)
-        # parse the message
-        # if we receive a request for list of lobbies publish the list of lobbies
-        if message == 'LLR':
-            client.publish("ECE180/remote", lobbies, qos=1)
-        if re.search(r'^Z', message):
-            mqtt_lib.MQTT_LOBBIES = lobbies
-            # print("lobby list published")
-            # print("MQTT_LOBBIES = " + mqtt_lib.MQTT_LOBBIES)
-            # print("My list: " + lobbies)
-        # if we receive a new lobby add it to the list of lobbies
-        # if re.search(new_lobby_pattern, message):
-            #lobbies.concatenate("," + message)
-        mqtt_lib.MQTT_LOBBIES = lobbies
-        
+    # try publishing to server
+    # client.publish("ECE180/remote", "it's me!!", qos=1)
+    # client.publish("ECE180/remote", "T2_READY", qos=1)
+    # publish new lobby
+    client.publish("ECE180/remote", "A1", qos=1)
+    # request lobby list
+    client.publish("ECE180/remote", "LLR", qos=1)
+    # publish new lobby
+    client.publish("ECE180/remote", "B2", qos=1)
+    # request lobby list
+    client.publish("ECE180/remote", "LLR", qos=1)
+    # delay
+    time.sleep(100)
