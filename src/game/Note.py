@@ -122,6 +122,7 @@ class Note(pygame.sprite.Sprite):
     # Move the note downwards based on fall speed
     # Remove the note when it passes the bottom edge of the screen
     def update(self):
+        ret_val = None
         self.rect.move_ip(0, NOTE_FALL_SPEED)
 
         # for shaking when incorrect
@@ -133,10 +134,8 @@ class Note(pygame.sprite.Sprite):
 
         # if the note goes off the edge, return too_late to indicate that the note ran out
         if self.rect.top > SCREEN_HEIGHT:
-            #print(points)
             if self.alive:
-                globals.points -= 1
-                globals.action_input_result_text.update(text="Missed!")
+                ret_val = -1
             self.kill()
     
         # if dead, reset to center and stop shaking
@@ -144,6 +143,7 @@ class Note(pygame.sprite.Sprite):
             self.shake_time = 0
             self.rect.x = self.init_x
 
+        return ret_val
     # for keyboard clicking processing
     # use on key that is lowest
     # returns the result of the key press back to main
@@ -246,5 +246,7 @@ class FadingNote(Note):
 # calculates lowest living note and returns that note
 def get_lowest_note(notes):
     # check if theres any notes
-    lowest_note = max(notes, key=lambda x: x.rect.top if x.alive else -1)
-    return lowest_note
+    alive_notes = [note for note in notes if note.alive]
+    if not alive_notes:
+        return None
+    return max(alive_notes, key=lambda note: note.rect.top)
