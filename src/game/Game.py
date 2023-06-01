@@ -249,18 +249,17 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING self.ACTION_2
-    def start(self, num_players=2, song_title="A: ", remote_play=False, team_1=True):
+    def start(self, num_players=2, song_title="A: ", remote_play=True, team_1=False):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
 
         # set active listeners based on team
         if (team_1 == True or remote_play == False):
-            self.active_team = 'team1'
             self.my_team = 'team1'
         else:
-            self.active_team = 'team2'
             self.my_team = 'team2'
+        self.active_team = 'team1'
         self.active_listeners = self.listeners[self.active_team]
 
         # Seed random number generator with seed
