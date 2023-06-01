@@ -14,6 +14,7 @@ from .Progress_Bar import Progress_Bar
 from .Player import Player
 from .Text import Text
 from . import globals
+from .Graphic_Utils import *
 
 from pygame.locals import (
     K_q,
@@ -189,6 +190,12 @@ class Game():
 
             # Fill the screen with background color
             screen.fill(BACKGROUND_COLOR)
+            
+            # draw the highlights for the lanes
+            if num_players == 2:
+                draw_player_highlights(screen, self.localization_listener.p1.location, self.localization_listener.p2.location)
+            else:
+                draw_player_highlights(screen, self.localization_listener.p1.location)
 
             # include text to indicate hit zone
             # include text to indicate point record
@@ -397,9 +404,12 @@ class Game():
 
             # Fill the screen background
             screen.fill(BACKGROUND_COLOR)
-
-            # draw progress bar
-            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=PROG_COLOR)
+            
+            # draw the highlights for the lanes
+            if num_players == 2:
+                draw_player_highlights(screen, self.localization_listener.p1.location, self.localization_listener.p2.location)
+            else:
+                draw_player_highlights(screen, self.localization_listener.p1.location)
 
             # include text to indicate hit zone
             # include text to indicate point record
@@ -451,6 +461,8 @@ class Game():
             else:
                 screen.blit(self.pause_button, (SCREEN_WIDTH-14*SCREEN_WIDTH/15, SCREEN_HEIGHT-14*SCREEN_HEIGHT/15 - 10))
 
+            # draw progress bar
+            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=PROG_COLOR)
             # Update the display
             pygame.display.flip()
 
@@ -478,11 +490,9 @@ class Game():
                 self.button_pause = False
             elif self.button_listener.button_high == True:
                 self.button_pause = True
-
             # set progress
             music_progress = (((pygame.mixer.music.get_pos() / 1000.0) / self.song_length_seconds) * 100 )
             progress_bar.set_progress(music_progress)
-
             clock.tick(fps)
 
     def __calc_points(self, action_input_result):
