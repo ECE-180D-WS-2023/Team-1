@@ -209,9 +209,9 @@ class Game():
             
             # draw the highlights for the lanes
             if num_players == 2:
-                draw_player_highlights(screen, self.localization_listener.p1.location, self.localization_listener.p2.location)
+                draw_player_highlights(screen, self.active_listeners['localization_listener'].p1.location, self.active_listeners['localization_listener'].p2.location)
             else:
-                draw_player_highlights(screen, self.localization_listener.p1.location)
+                draw_player_highlights(screen, self.active_listeners['localization_listener'].p1.location)
 
             # include text to indicate hit zone
             # include text to indicate point record
@@ -440,9 +440,9 @@ class Game():
             
             # draw the highlights for the lanes
             if num_players == 2:
-                draw_player_highlights(screen, self.localization_listener.p1.location, self.localization_listener.p2.location)
+                draw_player_highlights(screen, self.active_listeners['localization_listener'].p1.location, self.active_listeners['localization_listener'].p2.location)
             else:
-                draw_player_highlights(screen, self.localization_listener.p1.location, remote_play=remote_play)
+                draw_player_highlights(screen, self.active_listeners['localization_listener'].p1.location)
 
             # include text to indicate hit zone
             # include text to indicate point record
