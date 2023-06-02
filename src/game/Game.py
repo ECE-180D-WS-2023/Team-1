@@ -256,7 +256,7 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING self.ACTION_2
-    def start(self, num_players=2, song_title="A: ", remote_play=True, team_1=False):
+    def start(self, num_players=2, song_title="A: ", remote_play=False, team_1=True):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
@@ -495,7 +495,7 @@ class Game():
                 screen.blit(self.pause_button, (SCREEN_WIDTH-14*SCREEN_WIDTH/15, SCREEN_HEIGHT-14*SCREEN_HEIGHT/15 - 10))
 
             # draw progress bar
-            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=PROG_COLOR)
+            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=PROG_COLOR, remote_play=remote_play)
             # Update the display
             pygame.display.flip()
 
