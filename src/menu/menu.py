@@ -172,14 +172,14 @@ class Menu():
         team1 = False
 
         #initializing mqtt client for voice recognition
-        menu_mqtt_client = mqtt.Client(client_id="client1")
+        menu_mqtt_client = mqtt.Client()
         menu_mqtt_client.on_connect = mqtt_lib.menu_mqtt_on_connect
         menu_mqtt_client.on_disconnect = mqtt_lib.menu_mqtt_on_disconnect
         menu_mqtt_client.on_message = mqtt_lib.menu_mqtt_on_message
         menu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
         menu_mqtt_client.loop_start()
 
-        remote_client = mqtt.Client(client_id="client2") 
+        remote_client = mqtt.Client() 
         remote_client.on_connect = mqtt_lib.server_on_connect
         remote_client.on_disconnect = mqtt_lib.server_on_disconnect
         remote_client.on_message = mqtt_lib.server_on_message
@@ -520,6 +520,7 @@ class Menu():
                                 team2_status.enabled = True
                                 lobby_button.enabled = False
                                 create_lobby_button.enabled = False
+                                remote_client.publish("ECE180/remote", "T2_READY", qos=1)
                                 lobbies_buttons[0].text = lobby_button.text
                                 lobbies_buttons[0].enabled = True
                                 team1 = False
@@ -613,6 +614,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "A" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
+                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song1_button.text, tutorial]
                         elif song2_button.check_click() or song_b:
@@ -635,6 +637,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "B" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
+                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song2_button.text, tutorial]
                         elif song3_button.check_click() or song_c:
@@ -657,6 +660,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "C" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
+                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song3_button.text, tutorial]
                         elif song4_button.check_click() or song_d:
@@ -679,6 +683,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "D" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
+                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song4_button.text, tutorial]
                         elif song5_button.check_click() or song_e:
@@ -701,6 +706,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "E" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
+                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song5_button.text, tutorial]
                         elif song6_button.check_click() or song_f:
@@ -723,6 +729,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "F" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
+                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song6_button.text, tutorial]
                     if waiting_room_screen:
