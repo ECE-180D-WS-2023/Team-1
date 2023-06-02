@@ -516,7 +516,8 @@ class Menu():
                         for lobby_button in lobbies_buttons:
                             if lobby_button.enabled and lobby_button.check_click():
                                 waiting_room_screen = True
-                                print("lobby button opened!")
+                                lobby_screen = False
+                                #print("lobby button opened!")
                                 back_button.text = "Return to main menu"
                                 team2_status.text = "T2 Ready"
                                 team1_status.enabled = True
@@ -549,7 +550,7 @@ class Menu():
                         if create_lobby_button.check_click():
                             open_lobby_screen = True
                             #song_screen = True
-                            print("clicked create lobby screen")
+                            #print("clicked create lobby screen")
                             lobby_screen = False
                             back_button.enabled = False
                             quit_button.enabled = False
@@ -749,8 +750,8 @@ class Menu():
                             break
                         # draw "waiting for team 2 to join" on play button
                             # when team 2 joins change to play button
-                        print("mqtt team 1 status: " + str(mqtt_team1_ready))
-                        print("mqtt team 2 status: " + str(mqtt_team2_ready))
+                        #print("mqtt team 1 status: " + str(mqtt_team1_ready))
+                        #print("mqtt team 2 status: " + str(mqtt_team2_ready))
                         # if team 2: 
                         if not team1 and mqtt_team1_ready:
                         # draw "waiting for both teams to press start"
