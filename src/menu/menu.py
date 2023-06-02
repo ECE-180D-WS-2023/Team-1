@@ -159,7 +159,7 @@ class Menu():
             return lobbies
         msg = msg[2:]
         lobby_list = msg.split(',')
-        print("lobby list: " + str(lobby_list))
+        #print("lobby list: " + str(lobby_list))
         for item in lobby_list:
             lobbies.append((item[0], item[1]))
         return lobbies
@@ -640,7 +640,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "B" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
-                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
+                            # remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song2_button.text, tutorial]
                         elif song3_button.check_click() or song_c:
@@ -663,7 +663,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "C" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
-                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
+                            # remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song3_button.text, tutorial]
                         elif song4_button.check_click() or song_d:
@@ -686,7 +686,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "D" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
-                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
+                            # remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song4_button.text, tutorial]
                         elif song5_button.check_click() or song_e:
@@ -709,7 +709,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "E" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
-                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
+                            # remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song5_button.text, tutorial]
                         elif song6_button.check_click() or song_f:
@@ -732,7 +732,7 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "F" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
-                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
+                            # remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song6_button.text, tutorial]
                     if waiting_room_screen:
@@ -749,6 +749,8 @@ class Menu():
                             break
                         # draw "waiting for team 2 to join" on play button
                             # when team 2 joins change to play button
+                        print("mqtt team 1 status: " + str(mqtt_team1_ready))
+                        print("mqtt team 2 status: " + str(mqtt_team2_ready))
                         # if team 2: 
                         if not team1 and mqtt_team1_ready:
                         # draw "waiting for both teams to press start"
