@@ -259,6 +259,7 @@ class Menu():
         player_num = 1
 
         MESSAGE = pygame.USEREVENT + 1
+        MESSAGE_REMOTE = pygame.USEREVENT + 2
         while True: 
             # fills the screen with a color 
             #print("loooop")
@@ -774,6 +775,9 @@ class Menu():
             if message_received:
                 pygame.event.post(pygame.event.Event(MESSAGE))
                 message_received = False
+            if mqtt_remote_received:
+                pygame.event.post(pygame.event.Event(MESSAGE))
+                mqtt_remote_received = False
             # updates the frames of the game 
             pygame.display.update() 
 
