@@ -516,6 +516,7 @@ class Menu():
                             if lobby_button.enabled and lobby_button.check_click():
                                 waiting_room_screen = True
                                 print("lobby button opened!")
+                                back_button.text = "Return to main menu"
                                 team2_status.text = "T2 Ready"
                                 team1_status.enabled = True
                                 team2_status.enabled = True
@@ -538,6 +539,8 @@ class Menu():
                             remote_button.enabled = True
                             back_button.enabled = False
                             remote_button.enabled = True
+                            team1_status.enabled = True
+                            team2_status.enabled = True
                             create_lobby_button.enabled = False
                             for lobby in lobbies_buttons:
                                 lobby.enabled = False
