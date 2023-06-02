@@ -556,7 +556,6 @@ class Menu():
                                 song.enabled = True
                             break
                         if mqtt_remote_received:
-                            print("MQTT REMOTE RECEIVED YUHHH")
                             lobbies = self.parse_lobbies(mqtt_lobbies_list)
                             i = 0
                             for lobby in lobbies:
@@ -740,14 +739,16 @@ class Menu():
                             #print("yuh yuh yuh")
                             team2_status.text = "T2 Ready"
                             play_button.enabled = True
-                            if play_button.check_click():
-                                return [multi, player_num, song_text, tutorial, team1]
                             break
+                        if play_button.check_click():
+                            print("team 1 launching")
+                            return [multi, player_num, song_text, tutorial, team1]
                         # draw "waiting for team 2 to join" on play button
                             # when team 2 joins change to play button
                         # if team 2:
                         if not team1 and mqtt_team1_ready:
                         # draw "waiting for both teams to press start"
+                            print("team 2 launching")
                             return [multi, player_num, song_text, tutorial, team1]
                             # draw play button
                         if back_button.check_click():
