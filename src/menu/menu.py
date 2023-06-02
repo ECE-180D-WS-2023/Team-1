@@ -269,6 +269,7 @@ class Menu():
             message_received = mqtt_lib.menu_mqtt.MESSAGE_RECEIVED
             mqtt_lobbies_list = mqtt_lib.server_mqtt.MQTT_LOBBIES
             mqtt_team2_ready = mqtt_lib.server_mqtt.MQTT_TEAM2_READY
+            mqtt_team1_ready = mqtt_lib.server_mqtt.MQTT_TEAM1_READY
             mqtt_remote_received = mqtt_lib.server_mqtt.MQTT_RECEIVED
             #print("mqtt_lobbies_list: " + mqtt_lobbies_list)
 
@@ -745,7 +746,7 @@ class Menu():
                         # draw "waiting for team 2 to join" on play button
                             # when team 2 joins change to play button
                         # if team 2:
-                        if not team1 and mqtt_team2_ready:
+                        if not team1 and mqtt_team1_ready:
                         # draw "waiting for both teams to press start"
                             return [multi, player_num, song_text, tutorial, team1]
                             # draw play button
