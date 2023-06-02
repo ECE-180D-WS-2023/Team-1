@@ -617,7 +617,6 @@ class Menu():
                             # publish to MQTT TODO
                             msg = "A" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
-                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             break
                             #return [multi, player_num, song1_button.text, tutorial]
                         elif song2_button.check_click() or song_b:
@@ -743,8 +742,9 @@ class Menu():
                             team2_status.text = "T2 Ready"
                             play_button.enabled = True
                             break
-                        if play_button.check_click():
+                        if team1 and play_button.check_click():
                             print("team 1 launching")
+                            remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             return [multi, player_num, song_text, tutorial, team1]
                         # draw "waiting for team 2 to join" on play button
                             # when team 2 joins change to play button
