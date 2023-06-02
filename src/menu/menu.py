@@ -514,16 +514,18 @@ class Menu():
                         for lobby_button in lobbies_buttons:
                             if lobby_button.enabled and lobby_button.check_click():
                                 waiting_room_screen = True
+                                print("lobby button opened!")
                                 team2_status.text = "T2 Ready"
                                 team1_status.enabled = True
                                 team2_status.enabled = True
-                                for lobby_button in lobbies_buttons:
-                                    lobby_button.enabled = False
+                                lobby_button.enabled = False
                                 create_lobby_button.enabled = False
+                                lobbies_buttons[0].text = lobby_button.text
+                                lobbies_buttons[0].enabled = True
                                 team1 = False
                                 break
                         if back_button.check_click():
-                            print("back to da menu")
+                            # print("back to da menu")
                             menu_screen = True
                             lobby_screen = False
                             # toggle buttons
@@ -756,9 +758,7 @@ class Menu():
                             quit_button.enabled = True
                             lobbies_buttons[0].enabled = False
                             break
-                        
-                        #break
-                            
+                                                    
             if message_received:
                 pygame.event.post(pygame.event.Event(MESSAGE))
                 message_received = False

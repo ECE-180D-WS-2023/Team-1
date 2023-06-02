@@ -33,4 +33,4 @@ while (True):
     # request lobby list
     client.publish("ECE180/remote", "LLR", qos=1)
     # delay
-    time.sleep(100)
+    time.sleep(3000)
