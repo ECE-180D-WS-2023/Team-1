@@ -154,7 +154,7 @@ class Menu():
         # server receives this, then publishes lobby list
         # when LLR global = True, then 
         lobbies = []
-        print("parse lobbies: " + msg)
+        #print("parse lobbies: " + msg)
         if msg == "" or msg == "Z":
             return lobbies
         msg = msg[2:]
@@ -738,15 +738,15 @@ class Menu():
                     if waiting_room_screen:
                         # if team 1:
                         #if team1:
-                        if team1 and mqtt_team2_ready:
-                            #print("yuh yuh yuh")
-                            team2_status.text = "T2 Ready"
-                            play_button.enabled = True
-                            break
                         if team1 and play_button.check_click():
                             print("team 1 launching")
                             remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             return [multi, player_num, song_text, tutorial, team1]
+                        elif team1 and mqtt_team2_ready:
+                            #print("yuh yuh yuh")
+                            team2_status.text = "T2 Ready"
+                            play_button.enabled = True
+                            break
                         # draw "waiting for team 2 to join" on play button
                             # when team 2 joins change to play button
                         # if team 2: 
