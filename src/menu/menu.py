@@ -593,7 +593,7 @@ class Menu():
                                 song.enabled = False
                             song_back_button.enabled = False
                             break
-                        #KATIE TODO add if multiplayer mode, can't go back to menu?
+                        #KATIE TODO 
                         elif song1_button.check_click() or song_a:
                             mqtt_lib.menu_mqtt.SONG_A = False
                             # launch lobby into waiting room
@@ -745,7 +745,7 @@ class Menu():
                             return [multi, player_num, song_text, tutorial, team1]
                         # draw "waiting for team 2 to join" on play button
                             # when team 2 joins change to play button
-                        # if team 2:
+                        # if team 2: 
                         if not team1 and mqtt_team1_ready:
                         # draw "waiting for both teams to press start"
                             print("team 2 launching")
