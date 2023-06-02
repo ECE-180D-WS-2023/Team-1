@@ -430,19 +430,6 @@ class Menu():
                             quit_button.enabled = True
                             remote_button.enabled = True
                             break
-                        # elif remote_button.check_toggle_click():
-                        #     mqtt_lib.menu_mqtt.RETURN_CLICK = False
-                        #     remote_button.toggle = not remote_button.toggle
-                        #     multi = not multi
-                        # elif multi_team_click and not multi:
-                        #     multi = True
-                        #     remote_button.toggle = not remote_button.toggle
-                        #     mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK= False
-                        # elif single_team_click and multi:
-                        #     multi = False
-                        #     remote_button.toggle = not remote_button.toggle
-                        #     single_team_click = False
-                        #     mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK= False
                         if player_button.check_toggle_click():
                             player_button.toggle = not player_button.toggle
                             if player_num == 1:
