@@ -263,12 +263,15 @@ class Menu():
 
         MESSAGE = pygame.USEREVENT + 1
         MESSAGE_REMOTE = pygame.USEREVENT + 2
-        while True: 
-            # fills the screen with a color 
-            #print("loooop")
 
+        title_font = pygame.font.Font('fonts/JMHTypewriter.ttf', 48)
+        title_text = title_font.render("Just Guitar Ninja Dance", True, (0,0,0))
+        title_rect = title_text.get_rect()
+        title_rect.center = (400, 600-7*600/8)
+
+        while True: 
             # global flags
-            quit_click = mqtt_lib.menu_mqtt.QUIT_CLICK # qc
+            quit_click = mqtt_lib.menu_mqtt.QUIT_CLICK 
             return_click = mqtt_lib.menu_mqtt.RETURN_CLICK
             message_received = mqtt_lib.menu_mqtt.MESSAGE_RECEIVED
             mqtt_lobbies_list = mqtt_lib.server_mqtt.MQTT_LOBBIES
@@ -280,10 +283,11 @@ class Menu():
 
             tutorial = False
 
-            #print("Settings click status: ", settings_click)
-
             #screen.fill((242,152,152)) 
+
+            # display the background
             screen.blit(bg, (0,0,800,600))
+            screen.blit(title_text, title_rect)
 
             tbd_text = smallfont.render("TBA...", True, 'black')
 
