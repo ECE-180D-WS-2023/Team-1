@@ -60,16 +60,16 @@ class Game():
         # mqtt listeners
         self.listeners = {
             'team1': {
-                'button_listener': ButtonListener(),
-                'speech_listener': SpeechListener(),
-                'localization_listener': LocalizationListener(),
-                'imu_listener': IMUListener()
+                'button_listener': ButtonListener("ECE180/Team1/button"),
+                'speech_listener': SpeechListener("ECE180/Team1/speech"),
+                'localization_listener': LocalizationListener("ktanna/local"),
+                'imu_listener': IMUListener("ktanna/motion")
             },
             'team2': {
-                'button_listener': ButtonListener(),
-                'speech_listener': SpeechListener(),
-                'localization_listener': LocalizationListener(),
-                'imu_listener': IMUListener()
+                'button_listener': ButtonListener("ECE180/Team2/button"),
+                'speech_listener': SpeechListener("ECE180/Team2/speech"),
+                'localization_listener': LocalizationListener("ktanna/local2"),
+                'imu_listener': IMUListener("ktanna/motion2")
             }
         }
         self.active_listeners = self.listeners['team1']
