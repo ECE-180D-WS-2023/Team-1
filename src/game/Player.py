@@ -1,6 +1,14 @@
 import pygame
 from .Settings import PLAYER_WIDTH, PLAYER_HEIGHT, PLAYER_Y_COORD, SCREEN_HEIGHT, SCREEN_WIDTH
 
+# define player highlight colors
+RED = (255, 182, 193, 127)
+BLUE = (137, 207, 240, 127)
+
+# define dimensions for highlight rectangle
+WIDTH = SCREEN_WIDTH/4
+HEIGHT= SCREEN_HEIGHT - SCREEN_HEIGHT/5
+
 class Player(pygame.sprite.Sprite):
     player_num = 0
 
@@ -10,10 +18,14 @@ class Player(pygame.sprite.Sprite):
 
         self.player_localization_pos = 0
 
+        # highlight rectangle
+        self.highlight_rec = pygame.Rect(0,0,0,0)
+        
         self.surf = pygame.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
 
         # if player 1 then red square, if player 2 then blue square
         if (player_num == 1):
+            self.highlight_color = RED
             red_player =  pygame.image.load("sprites/red_note_32.png").convert_alpha()
             self.surf = red_player
             self.rect = self.surf.get_rect(
@@ -22,6 +34,7 @@ class Player(pygame.sprite.Sprite):
                 )
             )
         elif (player_num == 2):
+            self.highlight_color = BLUE
             blue_player =  pygame.image.load("sprites/blue_note_32.png").convert_alpha()
             self.surf = blue_player
             self.rect = self.surf.get_rect(
@@ -58,6 +71,14 @@ class Player(pygame.sprite.Sprite):
                     PLAYER_Y_COORD
                 )
             )
+            # define player 1 highlight rectangle
+            x, _, _, _ = self.rect
+            new_x = x - 84
+            if new_x < 0:
+                new_x = 0
+            if new_x > SCREEN_WIDTH:
+                new_x = SCREEN_WIDTH
+            self.highlight_rec = pygame.Rect(new_x, 0, WIDTH, HEIGHT)
         elif (self.player_num == 2 and self.player_num == 2):
             self.rect = self.surf.get_rect(
                 center = (
@@ -65,3 +86,11 @@ class Player(pygame.sprite.Sprite):
                     PLAYER_Y_COORD
                 )
             )
+            # define player 2 highlight rectangle
+            x, _, _, _ = self.rect
+            new_x = x - 82
+            if new_x < 0:
+                new_x = 0
+            if new_x > SCREEN_WIDTH:
+                new_x = SCREEN_WIDTH
+            self.highlight_rec = pygame.Rect(new_x, 0, WIDTH, HEIGHT)

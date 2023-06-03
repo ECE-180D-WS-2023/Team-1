@@ -207,12 +207,6 @@ class Game():
 
             # Fill the screen with background color
             screen.fill(BACKGROUND_COLOR)
-            
-            # draw the highlights for the lanes
-            if num_players == 2:
-                draw_player_highlights(screen, self.active_listeners['localization_listener'].p1.location, self.active_listeners['localization_listener'].p2.location)
-            else:
-                draw_player_highlights(screen, self.active_listeners['localization_listener'].p1.location)
 
             # include text to indicate hit zone
             # include text to indicate point record
@@ -226,10 +220,11 @@ class Game():
             pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
 
             # draw all sprites
-            for note in self.notes:
-                screen.blit(note.surf, note.rect)
             for player in players:
                 screen.blit(player.surf, player.rect)
+                draw_rect_alpha(screen, player.highlight_color, player.highlight_rec)
+            for note in self.notes:
+                screen.blit(note.surf, note.rect)
 
             # text for gesture results
             screen.blit(self.result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
@@ -438,12 +433,6 @@ class Game():
 
             # Fill the screen background
             screen.fill(BACKGROUND_COLOR)
-            
-            # draw the highlights for the lanes
-            if num_players == 2:
-                draw_player_highlights(screen, self.active_listeners['localization_listener'].p1.location, self.active_listeners['localization_listener'].p2.location)
-            else:
-                draw_player_highlights(screen, self.active_listeners['localization_listener'].p1.location)
 
             # include text to indicate hit zone
             # include text to indicate point record
@@ -454,13 +443,14 @@ class Game():
             pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_4, 0), (LINE_COLUMN_4, SCREEN_HEIGHT))
 
             # draw all sprites
+            for player in players:
+                screen.blit(player.surf, player.rect)
+                draw_rect_alpha(screen, player.highlight_color, player.highlight_rec)
             for note in self.notes:
                 screen.blit(note.surf, note.rect)
             for fading_note in self.fading_notes:
                 screen.blit(fading_note.surf, fading_note.rect)
-            for player in players:
-                screen.blit(player.surf, player.rect)
-
+            
             # text for gesture results
             screen.blit(self.result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
             
