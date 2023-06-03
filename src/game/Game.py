@@ -636,17 +636,17 @@ class Game():
             self.active_listeners['button_listener'].debug_button_set(val= not self.active_listeners['button_listener'].button_high)
         elif key_stroke == K_1 or key_stroke == K_2 or key_stroke == K_3 or key_stroke == K_4:
             if (key_stroke == K_1):
-                self.active_listeners['localization_listener'].debug_set_location(player_num=1, val=1)
-                self.active_listeners['localization_listener'].debug_set_coords(player_num=1, val=560)
+                self.listeners['team1']['localization_listener'].debug_set_location(player_num=1, val=1)
+                self.listeners['team1']['localization_listener'].debug_set_coords(player_num=1, val=560)
             elif (key_stroke == K_2):
-                self.active_listeners['localization_listener'].debug_set_location(player_num=1, val=2)
-                self.active_listeners['localization_listener'].debug_set_coords(player_num=1, val=400)
+                self.listeners['team1']['localization_listener'].debug_set_location(player_num=1, val=2)
+                self.listeners['team1']['localization_listener'].debug_set_coords(player_num=1, val=400)
             elif (key_stroke == K_3):
-                self.active_listeners['localization_listener'].debug_set_location(player_num=1, val=3)
-                self.active_listeners['localization_listener'].debug_set_coords(player_num=1, val=240)
+                self.listeners['team1']['localization_listener'].debug_set_location(player_num=1, val=3)
+                self.listeners['team1']['localization_listener'].debug_set_coords(player_num=1, val=240)
             elif (key_stroke == K_4):
-                self.active_listeners['localization_listener'].debug_set_location(player_num=1, val=4)
-                self.active_listeners['localization_listener'].debug_set_coords(player_num=1, val=80)
+                self.listeners['team1']['localization_listener'].debug_set_location(player_num=1, val=4)
+                self.listeners['team1']['localization_listener'].debug_set_coords(player_num=1, val=80)
         else:
             # calculate which note is the lowest and then process key press accordingly based
             # on that note's letter
