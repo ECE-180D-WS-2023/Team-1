@@ -17,7 +17,7 @@ SONG_D = False
 SONG_E = False
 SONG_F = False
 
-SUBSCRIPTION = "ECE180/Team1/speech/p1"
+SUBSCRIPTION = "ECE180/Team1/speech"
 
 def menu_mqtt_on_message(client, userdata, message):
     # may need global variables
