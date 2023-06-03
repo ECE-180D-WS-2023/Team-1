@@ -748,6 +748,7 @@ class Menu():
                         #if team1:
                         if team1 and play_button.check_click():
                             print("team 1 launching")
+                            song_text = lobbies_buttons[0].text
                             remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             return [multi, player_num, song_text, tutorial, team1]
                         elif team1 and mqtt_team2_ready:
@@ -763,6 +764,7 @@ class Menu():
                         if not team1 and mqtt_team1_ready:
                         # draw "waiting for both teams to press start"
                             print("team 2 launching")
+                            song_text = lobbies_buttons[0].text
                             return [multi, player_num, song_text, tutorial, team1]
                             # draw play button
                         if back_button.check_click() or return_click:
