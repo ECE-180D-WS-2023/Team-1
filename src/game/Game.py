@@ -6,10 +6,10 @@ import random
 from game.mqtt_lib import ButtonListener, LocalizationListener, IMUListener, SpeechListener
 
 from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
-from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, HIT_ZONE_TEXT, HIGHLIGHT_COLOR, BACKGROUND_COLOR, PROG_COLOR, note_update_time
+from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, HIT_ZONE_TEXT, note_update_time
 from .Settings import NOTE_FALL_SPEED, RESULT_FONT_SIZE, HITZONE_FONT_SIZE, PAUSED_FONT_SIZE
 from .Settings import LINE_COLUMN_1, LINE_COLUMN_2, LINE_COLUMN_3, LINE_COLUMN_4, IMU_CALIBRATION_TIME, LOCALIZATION_CALIBRATION_TIME, VOICE_CALIBRATION_TIME, BUTTON_CALIBRATION_TIME
-from .Settings import COLOR_1, COLOR_2, PROGRESS_BAR_HEIGHT
+from .Settings import PROGRESS_BAR_HEIGHT, Color 
 from .Progress_Bar import Progress_Bar
 from .Player import Player
 from .Text import Text
@@ -147,7 +147,7 @@ class Game():
         self.start_game = False
         self.pause = False
         prev_start_game = False
-        player_color=(255,0,0)
+        player_color = Color.RED
 
         self.running = True
         while (score < completed_score and self.running):
@@ -164,7 +164,7 @@ class Game():
                     lane_idx = notes_list[score][1]
                     char_idx = notes_list[score][2]
                     if color_idx == 2:
-                        player_color=(0,0,255)
+                        player_color = Color.BLUE
                     self.instruction_text = Text(text=instructions[color_idx]+instructions[char_idx], rect=(10, SCREEN_HEIGHT/3))
                     new_note = Note(color=color_idx, lane=lane_idx, char=char_idx)
                     self.notes.add(new_note)
@@ -206,18 +206,18 @@ class Game():
                     player.update_player_pos(player_num = 2, coords = self.active_listeners['localization_listener'].p2.coords)
 
             # Fill the screen with background color
-            screen.fill(BACKGROUND_COLOR)
+            screen.fill(Color.BACKGROUND)
 
             # include text to indicate hit zone
             # include text to indicate point record
             # include vertical lines to divide into 4 columns/lanes
-            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_1, 0), (LINE_COLUMN_1, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_2, 0), (LINE_COLUMN_2, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_3, 0), (LINE_COLUMN_3, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_4, 0), (LINE_COLUMN_4, SCREEN_HEIGHT))
+            pygame.draw.line(screen, Color.BLACK, (LINE_COLUMN_1, 0), (LINE_COLUMN_1, SCREEN_HEIGHT))
+            pygame.draw.line(screen, Color.BLACK, (LINE_COLUMN_2, 0), (LINE_COLUMN_2, SCREEN_HEIGHT))
+            pygame.draw.line(screen, Color.BLACK, (LINE_COLUMN_3, 0), (LINE_COLUMN_3, SCREEN_HEIGHT))
+            pygame.draw.line(screen, Color.BLACK, (LINE_COLUMN_4, 0), (LINE_COLUMN_4, SCREEN_HEIGHT))
             # display hit zone
             # horizontal line to indicate hit zone
-            pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
+            pygame.draw.line(screen, Color.RED, (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
 
             # draw all sprites
             for player in players:
@@ -227,10 +227,10 @@ class Game():
                 screen.blit(note.surf, note.rect)
 
             # text for gesture results
-            screen.blit(self.result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
+            screen.blit(self.result_font.render(globals.action_input_result_text.text, True, Color.BLACK), globals.action_input_result_text.rect)
             
             # text for hitzone indicator
-            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, (255,0,0), (255,255,102)), self.hitzone_text.rect)
+            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, Color.RED, (255,255,102)), self.hitzone_text.rect)
             
             # text for pause
             if (self.pause or self.button_pause):
@@ -242,7 +242,7 @@ class Game():
                 # do not allow the game to be paused while game has not started
                 self.pause = False
             else:
-                print_inst, print_inst_rect = self.__clean_print(font=self.result_font, Text=self.instruction_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color=player_color, background=HIGHLIGHT_COLOR)
+                print_inst, print_inst_rect = self.__clean_print(font=self.result_font, Text=self.instruction_text, center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2), color=player_color, background=Color.HIGHLIGHT)
                 screen.blit(print_inst, print_inst_rect)
 
             # Update the display
@@ -354,9 +354,9 @@ class Game():
                         new_note = Note()
                         self.notes.add(new_note)
                         all_sprites.add(new_note)
-                        if (new_note.color == COLOR_1):
+                        if (new_note.color == Color.NOTE_RED):
                             self.red_notes.add(new_note)
-                        elif (new_note.color == COLOR_2):
+                        elif (new_note.color == Color.NOTE_BLUE):
                             self.blue_notes.add(new_note)
                     
                 # if we receive some action from imu
@@ -432,15 +432,15 @@ class Game():
             self.fading_notes.update()
 
             # Fill the screen background
-            screen.fill(BACKGROUND_COLOR)
+            screen.fill(Color.BACKGROUND)
 
             # include text to indicate hit zone
             # include text to indicate point record
             # include vertical lines to divide into 4 columns/lanes
-            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_1, 0), (LINE_COLUMN_1, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_2, 0), (LINE_COLUMN_2, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_3, 0), (LINE_COLUMN_3, SCREEN_HEIGHT))
-            pygame.draw.line(screen, (0, 0, 0), (LINE_COLUMN_4, 0), (LINE_COLUMN_4, SCREEN_HEIGHT))
+            pygame.draw.line(screen, Color.BLACK, (LINE_COLUMN_1, 0), (LINE_COLUMN_1, SCREEN_HEIGHT))
+            pygame.draw.line(screen, Color.BLACK, (LINE_COLUMN_2, 0), (LINE_COLUMN_2, SCREEN_HEIGHT))
+            pygame.draw.line(screen, Color.BLACK, (LINE_COLUMN_3, 0), (LINE_COLUMN_3, SCREEN_HEIGHT))
+            pygame.draw.line(screen, Color.BLACK, (LINE_COLUMN_4, 0), (LINE_COLUMN_4, SCREEN_HEIGHT))
 
             # draw all sprites
             for player in players:
@@ -452,20 +452,20 @@ class Game():
                 screen.blit(fading_note.surf, fading_note.rect)
             
             # text for gesture results
-            screen.blit(self.result_font.render(globals.action_input_result_text.text, True, (0,0,0)), globals.action_input_result_text.rect)
+            screen.blit(self.result_font.render(globals.action_input_result_text.text, True, Color.BLACK), globals.action_input_result_text.rect)
             
             # update text for points
             globals.points_text.update(text="Points: " + str(globals.points))
             # print points
             # screen.blit(self.points_font.render(globals.points_text.text, True, (0,0,0)), globals.points_text.rect)
-            print_points, print_points_rect = self.__clean_print(font=self.points_font, Text=globals.points_text, center=globals.points_text.rect, color=(0,0,0), background=HIGHLIGHT_COLOR)
+            print_points, print_points_rect = self.__clean_print(font=self.points_font, Text=globals.points_text, center=globals.points_text.rect, color=Color.BLACK, background=Color.HIGHLIGHT)
             screen.blit(print_points, print_points_rect)
 
             # text for hitzone indicator
-            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, (255,0,0), (255,255,102)), self.hitzone_text.rect)
+            screen.blit(self.hitzone_font.render(self.hitzone_text.text, True, Color.RED, (255,255,102)), self.hitzone_text.rect)
             # display hit zone
             # horizontal line to indicate hit zone
-            pygame.draw.line(screen, (255, 0, 0), (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
+            pygame.draw.line(screen, Color.RED, (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
 
             # if game hasnt started yet, set progress to 0 and display the startgame text
             if (not self.start_game):
@@ -486,7 +486,7 @@ class Game():
                 screen.blit(self.pause_button, (SCREEN_WIDTH-14*SCREEN_WIDTH/15, SCREEN_HEIGHT-14*SCREEN_HEIGHT/15 - 10))
 
             # draw progress bar
-            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=PROG_COLOR, remote_play=remote_play)
+            progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=Color.PROG_BAR, remote_play=remote_play)
             
             if (remote_play):
                 if (self.active_team != self.my_team):
@@ -553,7 +553,7 @@ class Game():
     #   color is color of text
     # returns you the thing you can use to print and its corresponding centered rect around center
     # e.g., you can just screen.blit(ret1, ret2)
-    def __clean_print(self, font, Text, center, color=(0,0,0), background=None):
+    def __clean_print(self, font, Text, center, color=Color.BLACK, background=None):
         if (background == None):
             print_text = font.render(Text.text, True, color)
         else:

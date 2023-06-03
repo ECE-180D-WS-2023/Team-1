@@ -1,3 +1,3 @@
 #!/bin/bash
 # This script calls the menu/game
-python main.py
+python3 main.py
