@@ -1,3 +1,7 @@
+import paho.mqtt.client as mqtt
+from dataclasses import dataclass
+from enum import StrEnum
+
 # on_message modifies this and stores the motion in this variable
 IMU_ACTION_1 = ""
 imu_action_1_received_flag = False
@@ -46,3 +50,79 @@ def imu_mqtt_on_disconnect(client, userdata, rc):
 
 # The default message callback.
 # (you can create separate callbacks per subscribed topic)
+
+class Action(StrEnum):
+    LEFT = "l"
+    RIGHT = "r"
+    UP = "u"
+    ROTATE = "r"
+    FORWARD = "f"
+    NONE = ""
+
+@dataclass
+class IMU_Player:
+    number: int
+    action: Action = Action.NONE
+    received_action: bool = False
+
+class IMUListener():
+
+    def __init__(self, topic: str='ktanna/motion'):
+        self.topic = topic
+
+        # initialize MQTT values
+        self.client = mqtt.Client()
+        self.client.on_connect = self._on_connect
+        self.client.on_disconnect = self._on_disconnect
+        self.client.on_message = self._on_message
+        self.client.connect_async('mqtt.eclipseprojects.io')
+        self.client.loop_start()
+        
+        # Send the connection success message
+        self.client.publish(self.topic, 1, qos=1)
+
+        self.p1 = IMU_Player(1)
+        self.p2 = IMU_Player(2)
+
+    def debug_set_received(self, player_num: int, val: bool):
+        if player_num == self.p1.number:
+            self.p1.received_action = val
+        elif player_num == self.p2.number:
+            self.p2.received_action = val
+
+    def _on_connect(self, client, userdata, flags, rc):
+        client.subscribe(self.topic, qos=1)
+        print("Connection returned result: " + str(rc))
+    
+    def _on_disconnect(self, client, userdata, rc):
+        if rc != 0:
+            print('Unexpected Disconnect')
+        else:
+            print('Expected Disconnect')
+
+    # on message, just update the player_location that the game is using for localization
+    def _on_message(self, client, userdata, message):
+        msg_str = message.payload.decode() 
+        if "connected" in msg_str: # for checking connection
+            print(msg_str)
+        if "p1" in msg_str or "p2" in msg_str:
+            player, action = msg_str.split(',')
+            player = (int)(player[1:])
+            if player == 1:
+                self.p1.action = Action(action)
+                self.p1.received_action = True
+            elif player == 2:
+                self.p2.action = Action(action)
+                self.p2.received_action = True
+            
+
+if __name__ == "__main__":
+    imu = IMUListener('ktanna/motion')
+
+    print(imu.p1.received_action)
+    imu.debug_set_received(1, True)
+    print(imu.p1.received_action)
+
+    while True:
+        pass
+

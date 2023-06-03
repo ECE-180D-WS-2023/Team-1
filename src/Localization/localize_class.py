@@ -92,14 +92,9 @@ class localize:
                                         cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                                         (0, 0, 255))
             if color == 1:
-                if self.players == 2: # if multiplayer
-                    cv2.putText(flip, "Blue Color", (300, 100),
-                                        cv2.FONT_HERSHEY_SIMPLEX,
-                                        1.0, (255, 0, 0))
-                else: # if single player, only need one more color - the border color
-                    cv2.putText(flip, "Green Border Color", (300, 100),
-                                        cv2.FONT_HERSHEY_SIMPLEX, 
-                                        1.0, (0, 255, 0))
+                cv2.putText(flip, "Blue Color", (300, 100),
+                                    cv2.FONT_HERSHEY_SIMPLEX,
+                                    1.0, (255, 0, 0))
             if color == 2:
                 cv2.putText(flip, "Green Border Color", (300, 100),
                                         cv2.FONT_HERSHEY_SIMPLEX, 
@@ -132,10 +127,7 @@ class localize:
     def detect(self):
         if not self.calibrated:
             self.calibrate()
-        if self.players == 1:
-            detect_position(self.colors, self.camera)
+        if self.verbose == True:
+            detect_position(self.colors, self.camera, True)
         else:
-            if self.verbose == True:
-                detect_position_2(self.colors, self.camera, True)
-            else:
-                detect_position_2(self.colors, self.camera)
+            detect_position(self.colors, self.camera)

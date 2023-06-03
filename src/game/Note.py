@@ -3,6 +3,7 @@ import random
 import math
 from .Settings import NOTE_FALL_SPEED, SCREEN_WIDTH, SCREEN_HEIGHT, NOTE_WIDTH, NOTE_HEIGHT, KEYS, HIT_ZONE_LOWER
 from .Settings import COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4
+from .Settings import COLOR_1, COLOR_2
 from . import globals
 
 SUCCESS = "Nice!"
@@ -13,16 +14,10 @@ WRONG_COLOR = "Wrong Color!"
 
 TOO_LATE = "Too Late!"
 
-# we want only r and b column colors now
-COLOR_1 = (255, 204, 203) #r
-COLOR_2 = (173, 216, 230) #b
-COLOR_3 = COLOR_1
-COLOR_4 = COLOR_2
-
 # when gesture incorrect, shake the note
-SHAKE_AMPLITUDE = 10
-SHAKE_PERIOD = 4
-INCORRECT_SHAKE_TIME = 20*math.pi
+SHAKE_AMPLITUDE = 6
+SHAKE_PERIOD = 15
+INCORRECT_SHAKE_TIME = 30*math.pi
 
 #COLOR_2 = (144, 238, 144) #g
 #COLOR_3 = (173, 216, 230) #b
@@ -35,8 +30,26 @@ class Note(pygame.sprite.Sprite):
         self.alive = True
         self.shake_time = 0
 
+        # after cleared, it will have some fade_time which then
+        # is access in main loop and if self.fade = True, then 
+        # create the faded note and then reset this to false
+        self.fade = False
+        # used so that the faded note can see what the original was
+        self.orig_surf = None
+        
+        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
+
+        self.color = ""
+        
+        # set note lane
         if lane == None:
-            self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+            if (color == 1):
+                self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3])
+            elif (color == 2):
+                self.lane = random.choice([COLUMN_2, COLUMN_3, COLUMN_4])
+            else:
+                self.lane = random.choice([COLUMN_1, COLUMN_2, COLUMN_3, COLUMN_4])
+        # for tutorial manually setting the columns
         elif lane == 1:
             self.lane = COLUMN_1
         elif lane == 2:
@@ -45,11 +58,9 @@ class Note(pygame.sprite.Sprite):
             self.lane = COLUMN_3
         else:
             self.lane = COLUMN_4
-        
-        self.surf = pygame.Surface((NOTE_WIDTH, NOTE_HEIGHT))
 
-        self.color = ""
-        
+
+        # set note color
         # if 1 player, the color will always be red
         if color == None:
             if (globals.NUM_PLAYERS == 1):
@@ -61,13 +72,20 @@ class Note(pygame.sprite.Sprite):
                     self.color = COLOR_1
                 else:
                     self.color = COLOR_2
+                
+                # If 2 player, then manual override the first column notes to be red and right-most column notes to be blue
+                if (self.lane == COLUMN_1):
+                    self.color = COLOR_1
+                elif self.lane == COLUMN_4:
+                    self.color = COLOR_2
         elif color == 1:
             self.color = COLOR_1
         elif color == 2:
             self.color = COLOR_2
 
         # color in the square according to its lane
-        self.surf.fill(self.color)
+        self.surf.set_colorkey((0, 0, 0))
+        pygame.draw.circle(self.surf, self.color, (20,20), NOTE_HEIGHT/2) 
 
         # self.surf.fill((0, 100, 100)) # default color
         self.rect = self.surf.get_rect(
@@ -87,22 +105,24 @@ class Note(pygame.sprite.Sprite):
 
         # give the correct image accordingly
         if (self.char == 'u'):
-            up_image = pygame.image.load("sprites/up_40.png")
+            up_image = pygame.image.load("sprites/up_40.png").convert_alpha()
             self.surf.blit(up_image, (0, 0))
         elif (self.char == 'l'):
-            left_image = pygame.image.load("sprites/left_40.png")
+            left_image = pygame.image.load("sprites/left_40.png").convert_alpha()
             self.surf.blit(left_image, (0, 0))
         elif (self.char == 'f'):
-            forward_image = pygame.image.load("sprites/cross_40.png")
+            forward_image = pygame.image.load("sprites/cross_40.png").convert_alpha()
             self.surf.blit(forward_image, (0, 0))
         elif (self.char == 'r'):
-            rotate_image = pygame.image.load("sprites/rotate_40.png")
-            self.surf.blit(rotate_image, (0, 0))
+            right_image = pygame.image.load("sprites/right_40.png").convert_alpha()
+            self.surf.blit(right_image, (0, 0))
         
-
+        self.orig_surf = self.surf
+    
     # Move the note downwards based on fall speed
     # Remove the note when it passes the bottom edge of the screen
     def update(self):
+        ret_val = None
         self.rect.move_ip(0, NOTE_FALL_SPEED)
 
         # for shaking when incorrect
@@ -114,13 +134,16 @@ class Note(pygame.sprite.Sprite):
 
         # if the note goes off the edge, return too_late to indicate that the note ran out
         if self.rect.top > SCREEN_HEIGHT:
-            #print(points)
             if self.alive:
-                globals.points -= 1
-                globals.action_input_result_text.update(text="Missed!")
+                ret_val = -1
             self.kill()
     
+        # if dead, reset to center and stop shaking
+        if not self.alive:
+            self.shake_time = 0
+            self.rect.x = self.init_x
 
+        return ret_val
     # for keyboard clicking processing
     # use on key that is lowest
     # returns the result of the key press back to main
@@ -130,11 +153,14 @@ class Note(pygame.sprite.Sprite):
         if self.alive:
             if pressed_keys == self.char and self.rect.bottom > HIT_ZONE_LOWER:
                 self.alive = False
+                self.fade = True
                 self.__note_cleared()
                 return SUCCESS
             # if incorrect
             else: 
-                self.shake_time = INCORRECT_SHAKE_TIME
+                # dont allow notes to keep shaking too much, only shake notes if they are basically still
+                if (self.shake_time <= 0):
+                    self.shake_time = INCORRECT_SHAKE_TIME
                 if pressed_keys == self.char and not self.rect.bottom > HIT_ZONE_LOWER:
                     return TOO_EARLY
                 else:
@@ -146,11 +172,14 @@ class Note(pygame.sprite.Sprite):
         # if the key press is correct and is also in the hit zone AND also in the correct column
         if action == self.char and self.rect.bottom > HIT_ZONE_LOWER and self.correct_column(location) and self.correct_color(player_num):
             self.alive = False
+            self.fade = True
             self.__note_cleared()
             return SUCCESS
         # if incorrect
         else:
-            self.shake_time = INCORRECT_SHAKE_TIME
+            # dont allow notes to keep shaking too much, only shake notes if they are basically still
+            if (self.shake_time <= 0):
+                self.shake_time = INCORRECT_SHAKE_TIME
             if not self.correct_color(player_num):
                 return WRONG_COLOR
             elif not self.correct_column(location):
@@ -176,19 +205,48 @@ class Note(pygame.sprite.Sprite):
 
     def correct_color(self, player_num):
         if player_num == 1:
-            if self.color == COLOR_1 or self.color == COLOR_3:
+            if self.color == COLOR_1:
                 return True
         elif player_num == 2:
-            if self.color == COLOR_2 or self.color == COLOR_4:
+            if self.color == COLOR_2:
                 return True
         return False
     
     def __note_cleared(self):
-        self.surf.fill(pygame.Color('white'))
-        check_mark_image = pygame.image.load("sprites/check_mark2_40.png")
-        self.surf.blit(check_mark_image, (0, 0))
+        check_mark_image = pygame.image.load("sprites/check_mark4_40.png").convert_alpha()
+        self.surf = check_mark_image
+
+class FadingNote(Note):
+    def __init__(self, parent_note):
+        super().__init__()
+        self.surf = parent_note.orig_surf.copy()
+        self.rect = self.surf.get_rect(topleft=parent_note.rect.topleft)
+        self.alpha = 255
+        self.char = parent_note.char
+    
+    def update(self):
+        fade_pos_adjust_per_tick = 1 # can't be below 1 or it stops working
+        alpha_decrement_per_tick = 3
+        
+        if self.char == 'r': 
+            self.rect.x += fade_pos_adjust_per_tick
+        elif self.char == 'l':
+            self.rect.x -= fade_pos_adjust_per_tick
+        elif self.char == 'u':
+            self.rect.y -= fade_pos_adjust_per_tick
+        elif self.char == 'f': 
+            self.rect.x += fade_pos_adjust_per_tick
+            self.rect.y -= (2*fade_pos_adjust_per_tick)
+        self.alpha -= alpha_decrement_per_tick
+        self.surf.set_alpha(max(self.alpha, 0))
+
+        if self.alpha <= 3:
+            self.kill()
 
 # calculates lowest living note and returns that note
 def get_lowest_note(notes):
-    lowest_note = max(notes, key=lambda x: x.rect.top if x.alive else -1)
-    return lowest_note
+    # check if theres any notes
+    alive_notes = [note for note in notes if note.alive]
+    if not alive_notes:
+        return None
+    return max(alive_notes, key=lambda note: note.rect.top)
