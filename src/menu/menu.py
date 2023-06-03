@@ -270,7 +270,7 @@ class Menu():
         title_rect.center = (400, 600-7*600/8)
 
         song_text = 'a' 
-        
+
         while True: 
             # global flags
             quit_click = mqtt_lib.menu_mqtt.QUIT_CLICK 
@@ -531,6 +531,7 @@ class Menu():
                                 create_lobby_button.enabled = False
                                 remote_client.publish("ECE180/remote", "T2_READY", qos=1)
                                 song_text = lobby_button.text
+                                print("song for me: " + song_text)
                                 lobbies_buttons[0] = lobby_button
                                 lobbies_buttons[0].enabled = True
                                 team1 = False
@@ -575,7 +576,7 @@ class Menu():
                             i = 0
                             for lobby in lobbies:
                                 lobbies_buttons[i].enabled = True
-                                player_num = lobby[1]
+                                player_num = int(lobby[1])
                                 lobby_text = song_dict[lobby[0]] + ", #Players = " + lobby[1]
                                 lobbies_buttons[i].text = lobby_text
                                 i += 1
