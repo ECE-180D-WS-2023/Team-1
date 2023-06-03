@@ -269,6 +269,8 @@ class Menu():
         title_rect = title_text.get_rect()
         title_rect.center = (400, 600-7*600/8)
 
+        song_text = 'a' 
+        
         while True: 
             # global flags
             quit_click = mqtt_lib.menu_mqtt.QUIT_CLICK 
@@ -312,7 +314,6 @@ class Menu():
             team2_status.draw()
             play_button.draw()
 
-            song_text = 'a'
 
             for song in songs:
                 song.draw()
