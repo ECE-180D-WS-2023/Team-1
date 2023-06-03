@@ -6,7 +6,7 @@ from menu import mqtt_lib
 import re
 
 
-
+TEAM_ID = 1
 
 #TODO (spring quarter) 5/11
 # menu should display "multiplayer" option
@@ -375,7 +375,7 @@ class Menu():
                             quit_button.enabled = False
                             back_button.enabled = True
                             tutorial = True
-                            return [multi, player_num, song1_button.text, tutorial, team1]
+                            return [multi, player_num, song1_button.text, tutorial, team1, TEAM_ID]
                             #break
                         elif settings_button.check_click() or settings_click:
                             mqtt_lib.menu_mqtt.SETTINGS_CLICK = False
@@ -501,22 +501,22 @@ class Menu():
                         #KATIE TODO add if multiplayer mode, can't go back to menu?
                         elif song1_button.check_click() or song_a:
                             mqtt_lib.menu_mqtt.SONG_A = False
-                            return [multi, player_num, song1_button.text, tutorial, team1]
+                            return [multi, player_num, song1_button.text, tutorial, team1, TEAM_ID]
                         elif song2_button.check_click() or song_b:
                             mqtt_lib.menu_mqtt.SONG_B = False
-                            return [multi, player_num, song2_button.text, tutorial, team1]
+                            return [multi, player_num, song2_button.text, tutorial, team1, TEAM_ID]
                         elif song3_button.check_click() or song_c:
                             mqtt_lib.menu_mqtt.SONG_C = False
-                            return [multi, player_num, song3_button.text, tutorial, team1]
+                            return [multi, player_num, song3_button.text, tutorial, team1, TEAM_ID]
                         elif song4_button.check_click() or song_d:
                             mqtt_lib.menu_mqtt.SONG_D = False
-                            return [multi, player_num, song4_button.text, tutorial, team1]
+                            return [multi, player_num, song4_button.text, tutorial, team1, TEAM_ID]
                         elif song5_button.check_click() or song_e:
                             mqtt_lib.menu_mqtt.SONG_E = False
-                            return [multi, player_num, song5_button.text, tutorial, team1]
+                            return [multi, player_num, song5_button.text, tutorial, team1, TEAM_ID]
                         elif song6_button.check_click() or song_f:
                             mqtt_lib.menu_mqtt.SONG_F = False
-                            return [multi, player_num, song6_button.text, tutorial, team1]
+                            return [multi, player_num, song6_button.text, tutorial, team1, TEAM_ID]
                     if lobby_screen:
                         for lobby_button in lobbies_buttons:
                             if lobby_button.enabled and lobby_button.check_click():
@@ -755,7 +755,7 @@ class Menu():
                             print("team 1 launching")
                             #song_text = lobbies_buttons[0].text
                             remote_client.publish("ECE180/remote", "T1_READY", qos=1)
-                            return [multi, player_num, song_text, tutorial, team1]
+                            return [multi, player_num, song_text, tutorial, team1, TEAM_ID]
                         elif team1 and mqtt_team2_ready:
                             #print("yuh yuh yuh")
                             team2_status.text = "T2 Ready"
@@ -770,7 +770,7 @@ class Menu():
                         # draw "waiting for both teams to press start"
                             print("team 2 launching")
                             #song_text = lobbies_buttons[0].text
-                            return [multi, player_num, song_text, tutorial, team1]
+                            return [multi, player_num, song_text, tutorial, team1, TEAM_ID]
                             # draw play button
                         if back_button.check_click() or return_click:
                             # print("back to da menu")
