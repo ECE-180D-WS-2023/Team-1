@@ -18,7 +18,7 @@ const char *password = SECRET_PASS;  // Enter WiFi password
 // MQTT Broker motion
 const char *mqtt_broker = "mqtt.eclipseprojects.io";
 const char *topic = "ktanna/motion";
-const char *buttonTopic = "ECE180/Team1/button/p1";
+const char *buttonTopic = "ECE180/Team1/button";
 const int mqtt_port = 1883;
 
 WiFiClient espClient;

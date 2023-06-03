@@ -3,7 +3,7 @@ import time
 
 button_high = False
 
-SUBSCRIPTION = "ECE180/Team1/button/p1"
+SUBSCRIPTION = "ECE180/Team1/button"
 
 """
 deprecated

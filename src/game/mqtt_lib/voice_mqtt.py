@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 from dataclasses import dataclass
 
-SUBSCRIPTION = "ECE180/Team1/speech/p1"
+SUBSCRIPTION = "ECE180/Team1/speech"
 
 voice_received_flag = False
 voice_message = ""

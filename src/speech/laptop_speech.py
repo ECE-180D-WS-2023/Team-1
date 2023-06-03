@@ -247,8 +247,8 @@ if __name__ == "__main__":
     DEBUG_MIC = False
     special_words = config.SPECIAL_WORDS
 
-    spub = SpeechPublisher("ECE180/Team1/speech/p1")
-    blis = ButtonListener("ECE180/Team1/button/p1")
+    spub = SpeechPublisher("ECE180/Team1/speech")
+    blis = ButtonListener("ECE180/Team1/button")
 
     KeywordRecognizer.print_all_sound_devices()
     KeywordRecognizer.print_sound_device(0)
