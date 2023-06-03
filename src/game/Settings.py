@@ -1,4 +1,6 @@
 import pygame
+from enum import Enum
+
 # note that height grows downward, the top left is 0, 0 and bottom right is width, height
 
 # controls how much the note falls per refresh
@@ -37,14 +39,6 @@ HITZONE_FONT_SIZE = int(NOTE_WIDTH/3)
 # paused screen font size
 PAUSED_FONT_SIZE = int(NOTE_WIDTH*2)
 
-#highlight color of the text
-HIGHLIGHT_COLOR = (255,255,102)
-
-# background color of the game
-BACKGROUND_COLOR = (250,250,250)
-
-# progress bar color
-PROG_COLOR = (80,200,120)
 # list of available keyboard clicks
 KEYS = 'ulfr'
 
@@ -64,15 +58,39 @@ LINE_COLUMN_2 = (SCREEN_WIDTH*1)/4
 LINE_COLUMN_3 = (SCREEN_WIDTH*2)/4
 LINE_COLUMN_4 = (SCREEN_WIDTH*3)/4
 
+class Color():
+    WHITE = (0, 0, 0)
+    BLACK = (255, 255, 255)
+    RED = (255, 0, 0)
+    BLUE = (0, 0, 255)
+    
+    # Background color of the game
+    BACKGROUND = (250, 250, 250)
+
+    # Highlight color of the text
+    HIGHLIGHT = (255,255,102)
+
+    # progress bar color
+    PROG_BAR = (80,200,120)
+
+    # Colors for the notes
+    NOTE_RED = (247, 64, 94) #r
+    NOTE_BLUE = (26, 153, 217) #b
 
 # PLAYER
 PLAYER_WIDTH = NOTE_WIDTH*(8/10)
 PLAYER_HEIGHT = NOTE_HEIGHT*(8/10)
 PLAYER_Y_COORD = SCREEN_HEIGHT - (SCREEN_HEIGHT/7)
-PLAYER_1_COLOR = (255, 0, 0)
-PLAYER_2_COLOR = (0, 0, 255)
+PLAYER_1_COLOR = Color.RED
+PLAYER_2_COLOR = Color.BLUE
 
 # note COLORS
 # we want only r and b column colors now
 COLOR_1 = (247, 64, 94) #r
 COLOR_2 = (26, 153, 217) #b
+
+
+if __name__ == "__main__":
+    
+    print(Color.WHITE)
+
