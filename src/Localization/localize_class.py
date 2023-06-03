@@ -21,6 +21,9 @@ https://www.geeksforgeeks.org/multiple-color-detection-in-real-time-using-python
 import cv2
 from local_utils import *
 
+TEAM1_CHANNEL = "ktanna/local"
+TEAM2_CHANNEL = "ktanna/local2"
+
 class localize:
     """
     Members:
@@ -40,7 +43,7 @@ class localize:
         - detect(self)
             detect color information
     """
-    def __init__(self, players=None, camera=None, verbose = None):
+    def __init__(self, players=None, camera=None, verbose = None, Team=1):
         if players == None or players == 1:
             self.players = 1 # default single player
         elif players == 2: 
@@ -58,6 +61,10 @@ class localize:
             self.verbose = False
         elif verbose == True:
             self.verbose = True
+        if Team == 2:
+            self.channel = TEAM2_CHANNEL
+        else:
+            self.channel = TEAM1_CHANNEL
 
     def calibrate(self, recalibrate=None): 
         if self.calibrated:
@@ -128,6 +135,6 @@ class localize:
         if not self.calibrated:
             self.calibrate()
         if self.verbose == True:
-            detect_position(self.colors, self.camera, True)
+            detect_position(self.colors, self.camera, True, self.channel)
         else:
-            detect_position(self.colors, self.camera)
+            detect_position(self.colors, self.camera, False, self.channel)

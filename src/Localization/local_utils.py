@@ -28,18 +28,20 @@ import paho.mqtt.client as mqtt
 # 0. define callbacks - functions that run when events happen.
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
-    client.subscribe("ktanna/local", qos=1)
-    print("Connection returned result: " + str(rc))
+    #client.subscribe("ktanna/local", qos=1)
+    #print("Connection returned result: " + str(rc))
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
     # client.subscribe("ece180d/test")
     # The callback of the client when it disconnects.
+    return
 
 def on_disconnect(client, userdata, rc):
-    if rc != 0:
-        print('Unexpected Disconnect')
-    else:
-        print('Expected Disconnect')
+    # if rc != 0:
+    #     print('Unexpected Disconnect')
+    # else:
+    #     print('Expected Disconnect')
+    return
 
 
 def find_histogram(clt):
@@ -89,7 +91,7 @@ def in_border_range(tol, x, x2, y, y2, w, h): # find if in the border range
     return False
 
 # TWO PLAYER
-def detect_position(colors, camera, verbose = False): # gives position of one color
+def detect_position(colors, camera, verbose = False, channel="ktanna/local"): # gives position of one color
     cap = cv2.VideoCapture(camera) # start webcam capture (0 for onboard camera, 1 for USB camera)
     # Perform thresholding
     c1_lower, c1_upper = threshold(colors['c1'], 5, 100, 100) # red
@@ -105,7 +107,7 @@ def detect_position(colors, camera, verbose = False): # gives position of one co
     client.on_disconnect = on_disconnect
     client.connect_async('mqtt.eclipseprojects.io')
     client.loop_start()
-    client.publish("ktanna/local", 1, qos =1)
+    client.publish(channel, 1, qos =1)
 
     start = True # done calibrating
     last_rx = 0 # last red absolute position
@@ -221,7 +223,7 @@ def detect_position(colors, camera, verbose = False): # gives position of one co
             last_bx = bx
 
         mqtt_send = ','+ str(last_rp) + ',' + str(last_rx) + ',' + str(last_bp) + ',' + str(last_bx) + ','
-        client.publish("ktanna/local", mqtt_send, qos=1) # publish on MQTT
+        client.publish(channel, mqtt_send, qos=1) # publish on MQTT
         # commented out showing frame
         
         if verbose:
