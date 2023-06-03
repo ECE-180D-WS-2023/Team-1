@@ -1,5 +1,5 @@
 import pygame
-from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, HIGHLIGHT_COLOR
+from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER
 '''
 This file outlines the graphics utilities for the game
 References:
