@@ -312,6 +312,8 @@ class Menu():
             team2_status.draw()
             play_button.draw()
 
+            song_text = 'a'
+
             for song in songs:
                 song.draw()
             
@@ -321,7 +323,7 @@ class Menu():
                 lobby.draw()
             
             # for testing:
-            multi = True
+            #multi = True
     
             for ev in pygame.event.get(): 
                 
@@ -527,7 +529,8 @@ class Menu():
                                 lobby_button.enabled = False
                                 create_lobby_button.enabled = False
                                 remote_client.publish("ECE180/remote", "T2_READY", qos=1)
-                                lobbies_buttons[0].text = lobby_button.text
+                                song_text = lobby_button.text
+                                lobbies_buttons[0] = lobby_button
                                 lobbies_buttons[0].enabled = True
                                 team1 = False
                                 break
@@ -748,7 +751,7 @@ class Menu():
                         #if team1:
                         if team1 and play_button.check_click():
                             print("team 1 launching")
-                            song_text = lobbies_buttons[0].text
+                            #song_text = lobbies_buttons[0].text
                             remote_client.publish("ECE180/remote", "T1_READY", qos=1)
                             return [multi, player_num, song_text, tutorial, team1]
                         elif team1 and mqtt_team2_ready:
@@ -764,7 +767,7 @@ class Menu():
                         if not team1 and mqtt_team1_ready:
                         # draw "waiting for both teams to press start"
                             print("team 2 launching")
-                            song_text = lobbies_buttons[0].text
+                            #song_text = lobbies_buttons[0].text
                             return [multi, player_num, song_text, tutorial, team1]
                             # draw play button
                         if back_button.check_click() or return_click:
