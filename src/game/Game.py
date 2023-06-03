@@ -96,6 +96,7 @@ class Game():
         self.ACTION_2 = pygame.USEREVENT + 3 # for p2
         self.pause_button = pygame.image.load("sprites/pause_g38.png").convert_alpha()
         self.play_button = pygame.image.load("sprites/play_g38.png").convert_alpha()
+        self.record_icon = pygame.image.load("sprites/rec_button_50.png").convert_alpha()
 
     def tutorial(self, num_players=2): #tutorial mode of the game (Slow bpm to spawn notes)
         globals.NUM_PLAYERS = num_players
@@ -496,6 +497,11 @@ class Game():
 
             # draw progress bar
             progress_bar.draw(screen, outline_color=pygame.Color(128, 128, 128, 100), inner_color=PROG_COLOR, remote_play=remote_play)
+            
+            if (remote_play):
+                if (self.active_team != self.my_team):
+                    draw_rect_alpha(screen, (169, 169, 169, 175), (0,0,SCREEN_WIDTH,SCREEN_HEIGHT))
+                    screen.blit(self.record_icon, (SCREEN_WIDTH-SCREEN_WIDTH/10, SCREEN_HEIGHT-SCREEN_HEIGHT/10))
             # Update the display
             pygame.display.flip()
 
