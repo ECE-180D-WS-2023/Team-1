@@ -59,8 +59,8 @@ LINE_COLUMN_3 = (SCREEN_WIDTH*2)/4
 LINE_COLUMN_4 = (SCREEN_WIDTH*3)/4
 
 class Color():
-    WHITE = (0, 0, 0)
-    BLACK = (255, 255, 255)
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
     RED = (255, 0, 0)
     BLUE = (0, 0, 255)
     
