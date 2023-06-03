@@ -48,7 +48,7 @@ class Button:
         # could change size or add it to parameters later
         if not self.enabled:
             return
-        font = pygame.font.Font('freesansbold.ttf', 20)
+        font = pygame.font.Font('fonts/JMHTypewriter.ttf', 20)
         button_text = font.render(self.text, True, 'black')
         button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (self.x_size, self.y_size))
         if self.check_hover():
@@ -65,7 +65,7 @@ class Button:
     def draw_toggle(self):
         if not self.enabled:
             return
-        font = pygame.font.Font('freesansbold.ttf', 20)
+        font = pygame.font.Font('fonts/JMHTypewriter.ttf', 20)
         option0_text = font.render(self.text[0], True, 'black')
         option1_text = font.render(self.text[1], True, 'black')
         option0_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (145, 40))
@@ -189,7 +189,7 @@ class Menu():
 
         res = (800,600) # screen resolution
         screen = pygame.display.set_mode(res) # opens up a window 
-        smallfont = pygame.font.SysFont('Ariel',35) # defining a font 
+        smallfont = pygame.font.Font('fonts/JMHTypewriter.ttf', 35)
 
         menu_screen = True # start on menu screen
         settings_screen = False
