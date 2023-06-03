@@ -190,7 +190,7 @@ class Menu():
         res = (800,600) # screen resolution
         screen = pygame.display.set_mode(res) # opens up a window 
         smallfont = pygame.font.Font('fonts/JMHTypewriter.ttf', 35)
-
+        bg = pygame.image.load("sprites/background.png").convert_alpha()
         menu_screen = True # start on menu screen
         settings_screen = False
         tutorial_screen = False
@@ -278,7 +278,8 @@ class Menu():
 
             #print("Settings click status: ", settings_click)
 
-            screen.fill((242,152,152)) 
+            #screen.fill((242,152,152)) 
+            screen.blit(bg, (0,0,800,600))
 
             tbd_text = smallfont.render("TBA...", True, 'black')
 
