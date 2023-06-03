@@ -244,7 +244,7 @@ class ButtonListener():
 if __name__ == "__main__":
     import config
 
-    DEBUG_MIC = False
+    DEBUG_MIC = True
     special_words = config.SPECIAL_WORDS
 
     spub = SpeechPublisher("ECE180/Team1/speech")

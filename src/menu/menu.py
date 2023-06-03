@@ -10,8 +10,11 @@ import re
 
 #TODO (spring quarter) 5/11
 # menu should display "multiplayer" option
-# upon clicking multiplayer --> enters screen with list of open lobbies (which have song title and # players associated with each lobby) and "create lobby" button at the bottom
-# if they click create lobby, just instantly to new screen “select # players and song” – this can have like similar layout to settings and song selection merge the two or something
+# upon clicking multiplayer --> enters screen with list of open lobbies 
+# (which have song title and # players associated with each lobby) and "create lobby" button at the bottom
+# if they click create lobby, just instantly to new screen 
+# “select # players and song” – this can have like similar layout to settings and 
+# song selection merge the two or something
 # Then create lobby button at the bottom
     # once “create new lobby” selected send information to the server about this created 
 	# lobby
@@ -272,6 +275,7 @@ class Menu():
             mqtt_team2_ready = mqtt_lib.server_mqtt.MQTT_TEAM2_READY
             mqtt_team1_ready = mqtt_lib.server_mqtt.MQTT_TEAM1_READY
             mqtt_remote_received = mqtt_lib.server_mqtt.MQTT_RECEIVED
+            create_click = mqtt_lib.menu_mqtt.CREATE_CLICK
             #print("mqtt_lobbies_list: " + mqtt_lobbies_list)
 
             tutorial = False
@@ -323,10 +327,13 @@ class Menu():
                     
                 #checks if a mouse is clicked or message was received
                 if ev.type == pygame.MOUSEBUTTONDOWN or ev.type == MESSAGE:
+                    #time.sleep(0.5)
                     if menu_screen:
                         start_click = mqtt_lib.menu_mqtt.START_CLICK # ga
                         settings_click = mqtt_lib.menu_mqtt.SETTINGS_CLICK # sc
-                        tutorial_click = mqtt_lib.menu_mqtt.TUTORIAL_CLICK # tc                        #if the mouse is clicked on the button the game is terminated 
+                        tutorial_click = mqtt_lib.menu_mqtt.TUTORIAL_CLICK # tc  
+                        play_click = mqtt_lib.menu_mqtt.PLAY_CLICK
+                        multi_click = mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK
                         if start_button.check_click() or start_click:
                             #TODO send any flags to game here
                             mqtt_lib.menu_mqtt.START_CLICK = False
@@ -340,6 +347,7 @@ class Menu():
                             for song in songs:
                                 song.enabled = True
                             song_back_button.enabled = True
+                            time.sleep(0.1)
                             break
                             #return [multi, player_num]
                         elif quit_button.check_click() or quit_click:
@@ -380,7 +388,8 @@ class Menu():
                             mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK= False
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
                             break
-                        elif remote_button.check_click():
+                        elif remote_button.check_click() or multi_click:
+                            mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK = False
                             lobby_screen = True
                             menu_screen = False
                             #toggle buttons
@@ -430,6 +439,7 @@ class Menu():
                             tutorial_button.enabled = True
                             quit_button.enabled = True
                             remote_button.enabled = True
+                            time.sleep(0.10)
                             break
                         if player_button.check_toggle_click():
                             player_button.toggle = not player_button.toggle
@@ -517,8 +527,9 @@ class Menu():
                                 lobbies_buttons[0].enabled = True
                                 team1 = False
                                 break
-                        if back_button.check_click():
-                            # print("back to da menu")
+                        if back_button.check_click() or return_click:
+                            print("back to da menu")
+                            mqtt_lib.menu_mqtt.RETURN_CLICK = False
                             menu_screen = True
                             lobby_screen = False
                             # toggle buttons
@@ -528,14 +539,16 @@ class Menu():
                             quit_button.enabled = True
                             remote_button.enabled = True
                             back_button.enabled = False
-                            remote_button.enabled = True
-                            team1_status.enabled = True
-                            team2_status.enabled = True
+                            #team1_status.enabled = True
+                            #team2_status.enabled = True
                             create_lobby_button.enabled = False
+                            time.sleep(0.10)
                             for lobby in lobbies_buttons:
                                 lobby.enabled = False
                             break
-                        if create_lobby_button.check_click():
+                        if create_lobby_button.check_click() or create_click:
+                            print("CREATE LOBBY TIME")
+                            mqtt_lib.menu_mqtt.CREATE_CLICK = False
                             open_lobby_screen = True
                             #song_screen = True
                             #print("clicked create lobby screen")
@@ -545,6 +558,7 @@ class Menu():
                             song_back_button.enabled = True
                             create_lobby_button.enabled = False
                             team1 = True
+                            time.sleep(0.25)
                             for song in songs:
                                 song.enabled = True
                             break
@@ -561,6 +575,7 @@ class Menu():
                     if open_lobby_screen:
                         # KATIE TODO if multi = false, go back to menu (smth is wrong)
                         #print("on open lobby screen")
+                        create_click = mqtt_lib.menu_mqtt.CREATE_CLICK
                         song_a = mqtt_lib.menu_mqtt.SONG_A
                         song_b = mqtt_lib.menu_mqtt.SONG_B
                         song_c = mqtt_lib.menu_mqtt.SONG_C
@@ -586,7 +601,7 @@ class Menu():
                                 song.enabled = False
                             song_back_button.enabled = False
                             break
-                        #KATIE TODO 
+                        #KATIE TODO add voice recog
                         elif song1_button.check_click() or song_a:
                             mqtt_lib.menu_mqtt.SONG_A = False
                             # launch lobby into waiting room
@@ -746,7 +761,9 @@ class Menu():
                             print("team 2 launching")
                             return [multi, player_num, song_text, tutorial, team1]
                             # draw play button
-                        if back_button.check_click():
+                        if back_button.check_click() or return_click:
+                            # print("back to da menu")
+                            mqtt_lib.menu_mqtt.RETURN_CLICK = False
                             menu_screen = True
                             back_button.text = "Return"
                             menu_screen = True
@@ -761,7 +778,11 @@ class Menu():
                             tutorial_button.enabled = True
                             quit_button.enabled = True
                             lobbies_buttons[0].enabled = False
+                            quit_click = False
+                            time.sleep(0.25)
                             break
+                    # jonathan TODO: add score screen here (i.e. if score_screen:)
+                    
                                                     
             if message_received:
                 pygame.event.post(pygame.event.Event(MESSAGE))

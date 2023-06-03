@@ -13,6 +13,8 @@ SPECIAL_WORDS = {
     "pause" : ["pies", "applause", "cause", "because", "pass", "paws", "pas"],
     "continue" : [],
     "player" : ["later", "claire"],
+    "create" : [],
+    "play" : [],
     "enter": ["under", "after"],
     "one" : ["won"],
     "two" : ["to", "too", "do", "you"],
@@ -27,7 +29,7 @@ SPECIAL_WORDS = {
     "quit" : [],
     "return" : ["returned", "prefered"],
     "single" : [],
-    "multi" : ["marty", "mostly"],
+    "multi" : ["marty", "mostly", "multiplayer"],
     "settings" : ["setting"],
     "tutorial" : ["oil", "vittorio"]
 }

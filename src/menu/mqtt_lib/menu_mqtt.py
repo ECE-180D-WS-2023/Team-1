@@ -4,11 +4,14 @@ START_CLICK = False # key = ga
 SETTINGS_CLICK = False # key = sc
 TUTORIAL_CLICK = False # key = tc
 QUIT_CLICK = False # key = qc
-SINGLE_TEAM_CLICK = False # key = st
+#SINGLE_TEAM_CLICK = False # key = st
 MULTI_TEAM_CLICK = False # key = mt
 ONE_PLAYER_CLICK = False # key = 1p
 TWO_PLAYER_CLICK = False # key = 2p
 RETURN_CLICK = False # key = rq
+PLAY_CLICK = False
+CREATE_CLICK = False
+
 MESSAGE_RECEIVED = False
 SONG_A = False
 SONG_B = False
@@ -17,7 +20,7 @@ SONG_D = False
 SONG_E = False
 SONG_F = False
 
-SUBSCRIPTION = "ECE180/Team1/speech/p1"
+SUBSCRIPTION = "ECE180/Team1/speech"
 
 def menu_mqtt_on_message(client, userdata, message):
     # may need global variables
@@ -31,6 +34,8 @@ def menu_mqtt_on_message(client, userdata, message):
     global ONE_PLAYER_CLICK # 1p
     global TWO_PLAYER_CLICK # 2p
     global RETURN_CLICK # rq
+    global PLAY_CLICK 
+    global CREATE_CLICK
     global MESSAGE_RECEIVED
     global SONG_A
     global SONG_B
@@ -68,6 +73,12 @@ def menu_mqtt_on_message(client, userdata, message):
     elif re.search("return", msg_str):
         print("Received back!")
         RETURN_CLICK = True
+    elif re.search("create", msg_str):
+        print("Received create!")
+        CREATE_CLICK = True
+    elif re.search("play", msg_str):
+        print("Received play!")
+        PLAY_CLICK = True
     elif re.search("a", msg_str):
         print("Received A!")
         SONG_A = True
@@ -86,7 +97,7 @@ def menu_mqtt_on_message(client, userdata, message):
     elif re.search("f", msg_str):
         print("Received F!")
         SONG_F = True
-
+    
     
         
 
