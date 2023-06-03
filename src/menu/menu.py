@@ -421,7 +421,7 @@ class Menu():
                             for lobby in lobbies:
                                 print(lobby)
                                 lobbies_buttons[i].enabled = True
-                                player_num = lobby[1]
+                                player_num = int(lobby[1])
                                 lobby_text = song_dict[lobby[0]] + ", #Players = " + lobby[1]
                                 lobbies_buttons[i].text = lobby_text
                                 i += 1
@@ -577,7 +577,7 @@ class Menu():
                             for lobby in lobbies:
                                 lobbies_buttons[i].enabled = True
                                 player_num = int(lobby[1])
-                                lobby_text = song_dict[lobby[0]] + ", #Players = " + lobby[1]
+                                lobby_text = lobby[0] + ": " +  song_dict[lobby[0]] + ", #Players = " + lobby[1]
                                 lobbies_buttons[i].text = lobby_text
                                 i += 1
                             break
