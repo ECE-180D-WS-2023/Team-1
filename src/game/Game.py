@@ -265,6 +265,10 @@ class Game():
         self.active_team = 'team1'
         self.active_listeners = self.listeners[self.active_team]
 
+        # if remote play, just instantly start game
+        if (remote_play):
+            self.start_game = True
+
         # Seed random number generator with seed
         random.seed(song_title)
 
