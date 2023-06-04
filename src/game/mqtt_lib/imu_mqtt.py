@@ -90,6 +90,10 @@ class IMUListener():
         elif player_num == self.p2.number:
             self.p2.received_action = val
 
+    def debug_publish(self, player_num: int, action: str):
+        message = "p"+str(player_num)+","+action
+        self.client.publish(self.topic, message, qos=1)
+
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
         print("Connection returned result: " + str(rc))

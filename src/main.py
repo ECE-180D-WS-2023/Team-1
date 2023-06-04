@@ -21,7 +21,7 @@ while run:
     num_players = info[1]
     song_title = info[2]
     tutorial = info[3]
-    isTeam1 = info[4]
+    my_team_starts = info[4]
     teamID = info[5]
 
     mygame = Game()
@@ -30,4 +30,4 @@ while run:
         mymenu.start()
     else:
         logging.info("GAME: Beginning the main game loop")
-        mygame.start(num_players=num_players, song_title=song_title, remote_play=remote_play, team_1=isTeam1, teamID=teamID)
+        mygame.start(num_players=num_players, song_title=song_title, remote_play=remote_play, my_team_starts=my_team_starts, teamID=teamID)

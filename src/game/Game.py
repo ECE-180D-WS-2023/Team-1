@@ -21,10 +21,8 @@ from pygame.locals import (
     K_p,
     K_s,
     K_b, # for mimicking button press
-    K_1,
-    K_2,
-    K_3,
-    K_4,
+    K_1, K_2, K_3, K_4,
+    K_5, K_6, K_7, K_8,
     KEYDOWN,
     QUIT,
 )
@@ -252,7 +250,7 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING self.ACTION_2
-    def start(self, num_players=2, song_title="A: ", remote_play=False, team_1=True, teamID=1):
+    def start(self, num_players=2, song_title="A: ", remote_play=False, my_team_starts=True, teamID=1):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
@@ -265,21 +263,19 @@ class Game():
             self.my_team = 'team2'
             other_team = 'team1'
         
-        # team_1 means whether or not im starting
+        # my_team_starts means whether or not im starting
         # if im starting, active team should be my team, else not my team
+        #logging.info(f"Starting with {num_players}P teamID:{teamID} my_team:{self.my_team} my_team_is_starting:{my_team_starts} other_team_is:{other_team}")
         print("teamID: ", teamID)
         print("my team: ", self.my_team)
-        print("my team is starting: ", team_1)
+        print("my team is starting: ", my_team_starts)
         print("other team is: ", other_team)
 
-        if (team_1):
+        if (my_team_starts):
             self.active_team = self.my_team
         else:
             self.active_team = other_team
-        # if team_1 == True:
-        #     self.active_team = 'team1'
-        # else:
-        #     self.active_team = 'team1'
+
         self.active_listeners = self.listeners[self.active_team]
 
         # if remote play, just instantly start game
@@ -348,7 +344,7 @@ class Game():
                     self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
-                    print("active-team: ", self.active_team)
+                    #print("active-team: ", self.active_team)
                     # if 2 players and with 40% maybe probability, spawn both notes, 
                     # maybe this value can increase with game for difficulty
                     double_note_spawn = (num_players == 2) and (random.randint(1, 100)/100.0 < probability_double_note)
@@ -653,30 +649,27 @@ class Game():
             self.active_listeners['button_listener'].debug_button_set(val= not self.active_listeners['button_listener'].button_high)
         elif key_stroke == K_1 or key_stroke == K_2 or key_stroke == K_3 or key_stroke == K_4:
             if (key_stroke == K_1):
-                self.listeners['team1']['localization_listener'].debug_set_location(player_num=1, val=1)
-                self.listeners['team1']['localization_listener'].debug_set_coords(player_num=1, val=560)
+                self.listeners['team1']['localization_listener'].debug_publish(1,560,1,560)
             elif (key_stroke == K_2):
-                self.listeners['team1']['localization_listener'].debug_set_location(player_num=1, val=2)
-                self.listeners['team1']['localization_listener'].debug_set_coords(player_num=1, val=400)
+                self.listeners['team1']['localization_listener'].debug_publish(2,400,2,400)
             elif (key_stroke == K_3):
-                self.listeners['team1']['localization_listener'].debug_set_location(player_num=1, val=3)
-                self.listeners['team1']['localization_listener'].debug_set_coords(player_num=1, val=240)
+                self.listeners['team1']['localization_listener'].debug_publish(3,240,3,240)
             elif (key_stroke == K_4):
-                self.listeners['team1']['localization_listener'].debug_set_location(player_num=1, val=4)
-                self.listeners['team1']['localization_listener'].debug_set_coords(player_num=1, val=80)
+                self.listeners['team1']['localization_listener'].debug_publish(4,80,4,80)
+        elif key_stroke == K_5 or key_stroke == K_6 or key_stroke == K_7 or key_stroke == K_8:
+            if (key_stroke == K_5):
+                self.listeners['team2']['localization_listener'].debug_publish(1,560,1,560)
+            elif (key_stroke == K_6):
+                self.listeners['team2']['localization_listener'].debug_publish(2,400,2,400)
+            elif (key_stroke == K_7):
+                self.listeners['team2']['localization_listener'].debug_publish(3,240,3,240)
+            elif (key_stroke == K_8):
+                self.listeners['team2']['localization_listener'].debug_publish(4,80,4,80)
         else:
             # calculate which note is the lowest and then process key press accordingly based
             # on that note's letter
-            if (self.red_notes.sprites()):
-                lowest_note = get_lowest_note(self.red_notes)
-                if (lowest_note):
-                    action_input_result = lowest_note.process_action_location(pygame.key.name(key_stroke), self.active_listeners['localization_listener'].p1.location, 1)
-                    self.__calc_points(action_input_result)
-                else:
-                    action_input_result = "No Notes Yet!"
-            else:
-                action_input_result = "No Notes Yet!"
-            globals.action_input_result_text.update(text=action_input_result)
+
+            self.active_listeners['imu_listener'].debug_publish(player_num=1, action=pygame.key.name(key_stroke))
         
     # process action events
         # player_action_num == which player did the action

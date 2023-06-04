@@ -95,6 +95,10 @@ class LocalizationListener():
         elif player_num == self.p2.number:
             self.p2.coords = val
 
+    def debug_publish(self, p1_loc, p1_coord, p2_loc, p2_coord):
+        message = ", " + str(p1_loc) + ", " + str(p1_coord) + ", "  + str(p2_loc) + ", "  + str(p2_coord)
+        self.client.publish(self.topic, message, qos=1)
+
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
         print("Connection returned result: " + str(rc))
@@ -119,7 +123,6 @@ class LocalizationListener():
         else:
             print("invalid localization message: ", msg_split)
     
-
 if __name__ == "__main__":
     local = LocalizationListener('ktanna/local')
 
