@@ -8,6 +8,8 @@ QUIT_CLICK = False # key = qc
 MULTI_TEAM_CLICK = False # key = mt
 ONE_PLAYER_CLICK = False # key = 1p
 TWO_PLAYER_CLICK = False # key = 2p
+TEAM_A_CLICK = False
+TEAM_B_CLICK = False
 RETURN_CLICK = False # key = rq
 PLAY_CLICK = False
 CREATE_CLICK = False

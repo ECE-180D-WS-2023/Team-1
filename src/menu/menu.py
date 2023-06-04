@@ -215,6 +215,9 @@ class Menu():
         player_button = Button(player_text, 250, 320, False, screen)
         back_button = Button('Return', 250, 370, False, screen)
 
+        team_id_text = ['Team A', 'Team B']
+        team_id_button = Button(team_id_text, 250, 270, False, screen)
+
         # team one buttons
         # upon clicking create lobby button, we go to song selection screen
         create_lobby_button = Button('Create Lobby', 250, 320, False, screen)
@@ -260,6 +263,7 @@ class Menu():
             # also will add song name or smth idk how yet
         multi = False
         player_num = 1
+        team_id = 1
 
         MESSAGE = pygame.USEREVENT + 1
         MESSAGE_REMOTE = pygame.USEREVENT + 2
@@ -308,6 +312,7 @@ class Menu():
             # remote_button.draw_toggle()
             player_button.draw_toggle()
             back_button.draw()
+            team_id_button.draw_toggle()
             
             create_lobby_button.draw()
             team1_status.draw()
@@ -389,11 +394,14 @@ class Menu():
                             # remote_button.enabled = True
                             player_button.enabled = True
                             back_button.enabled = True
+                            team_id_button.enabled = True
                             remote_button.enabled = False
                             mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK = False
                             mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK = False
                             mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK= False
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
+                            mqtt_lib.menu_mqtt.TEAM_A_CLICK= False
+                            mqtt_lib.menu_mqtt.TEAM_B_CLICK= False
                             break
                         elif remote_button.check_click() or multi_click:
                             mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK = False
@@ -428,18 +436,16 @@ class Menu():
                             break
                         
                     if settings_screen:
-                        #single_team_click = mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK # st
-                        #multi_team_click = mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK # mt
+                        team_a_click = mqtt_lib.menu_mqtt.TEAM_A_CLICK
+                        team_b_click = mqtt_lib.menu_mqtt.TEAM_B_CLICK
                         one_player_click = mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK # 1p
                         two_player_click = mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK # 2p
                         if back_button.check_click() or return_click: # TODO ADD FLAG
                             mqtt_lib.menu_mqtt.RETURN_CLICK = False
-                            #print("back to da menu")
                             menu_screen = True
                             settings_screen = False
-                            # toggle buttons
-                            # remote_button.enabled = False
                             player_button.enabled = False
+                            team_id_button.enabled = False
                             back_button.enabled = False
                             start_button.enabled = True
                             settings_button.enabled = True
@@ -454,6 +460,13 @@ class Menu():
                                 player_num = 2
                             elif player_num == 2:
                                 player_num = 1
+                        if team_id_button.check_toggle_click():
+                            team_id_button.toggle = not team_id_button.toggle
+                            if team_id == 1:
+                                team_id = 2
+                            elif team_id == 2:
+                                team_id = 1
+                            print("team id: ", team_id)
                         elif one_player_click:
                             mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK= False
                             player_button.toggle = not player_button.toggle
