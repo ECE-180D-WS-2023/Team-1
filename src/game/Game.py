@@ -653,8 +653,7 @@ class Game():
             self.running = False
         elif key_stroke == K_p:
             #self.pause = not self.pause
-            self.active_listeners['speech_listener'].debug_set_received(True)
-            self.active_listeners['speech_listener'].debug_set_msg("pause")
+            self.active_listeners['speech_listener'].debug_publish(msg="pause")
         elif key_stroke == K_s:
             self.start_game = True
         elif key_stroke == K_b:

@@ -55,6 +55,8 @@ class SpeechListener():
         self.received = val
     def debug_set_msg(self, msg: str):
         self.keyword = msg
+    def debug_publish(self, msg):
+        self.client.publish(self.topic, msg, qos=1)
 
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
