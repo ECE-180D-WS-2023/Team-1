@@ -15,6 +15,7 @@ from .Player import Player
 from .Text import Text
 from . import globals
 from .Graphic_Utils import *
+from .Activity import Activity
 
 from pygame.locals import (
     K_q,
@@ -54,7 +55,6 @@ class Game():
         self.red_notes = pygame.sprite.Group()
         self.blue_notes = pygame.sprite.Group()
         self.fading_notes = pygame.sprite.Group()
-
         # mqtt listeners
         self.listeners = {
             'team1': {
@@ -304,10 +304,12 @@ class Game():
 
         # instantiate sprite groups
         players = pygame.sprite.Group()
+        activities = pygame.sprite.Group()
         players.add(Player(1))
+        activities.add(Activity(1))
         if(num_players == 2):
             players.add(Player(2))
-
+            activities.add(Activity(2))
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
 
@@ -377,9 +379,15 @@ class Game():
                 # if we receive some action from imu
                 elif event.type == self.ACTION_1:
                     self.__process_action_event(1)
+                    for activity in activities:
+                        if activity.play_num == 1:
+                            activity.toggle()
                 # this should never be true in 1p bcus action_2 should never be raised
                 elif event.type == self.ACTION_2:
                     self.__process_action_event(2)
+                    for activity in activities:
+                        if activity.play_num == 2:
+                                activity.toggle()
 
             # handle voice recognition stuff
             if self.active_listeners['speech_listener'].received:
@@ -436,7 +444,8 @@ class Game():
                     player.update_player_pos(player_num = 1, coords = self.active_listeners['localization_listener'].p1.coords)
                 elif (player.player_num == 2):
                     player.update_player_pos(player_num = 2, coords = self.active_listeners['localization_listener'].p2.coords)
-
+            for activity in activities:
+                activity.update()
             # check if there are any notes that need fading
             for note in self.notes:
                 if note.fade:
@@ -465,6 +474,9 @@ class Game():
                 screen.blit(note.surf, note.rect)
             for fading_note in self.fading_notes:
                 screen.blit(fading_note.surf, fading_note.rect)
+            for activity in activities:
+                screen.blit(activity.surf, activity.rect)
+                # activity.toggle(False)
             
             # text for gesture results
             screen.blit(self.result_font.render(globals.action_input_result_text.text, True, Color.BLACK), globals.action_input_result_text.rect)

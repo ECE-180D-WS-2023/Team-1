@@ -377,6 +377,7 @@ class Menu():
                             quit_button.enabled = False
                             back_button.enabled = True
                             tutorial = True
+                            team1 = True
                             return [multi, player_num, song1_button.text, tutorial, team1, TEAM_ID]
                             #break
                         elif settings_button.check_click() or settings_click:
@@ -519,21 +520,27 @@ class Menu():
                         #KATIE TODO add if multiplayer mode, can't go back to menu?
                         elif song1_button.check_click() or song_a:
                             mqtt_lib.menu_mqtt.SONG_A = False
+                            team1 = True
                             return [multi, player_num, song1_button.text, tutorial, team1, TEAM_ID]
                         elif song2_button.check_click() or song_b:
                             mqtt_lib.menu_mqtt.SONG_B = False
+                            team1 = True
                             return [multi, player_num, song2_button.text, tutorial, team1, TEAM_ID]
                         elif song3_button.check_click() or song_c:
                             mqtt_lib.menu_mqtt.SONG_C = False
+                            team1 = True
                             return [multi, player_num, song3_button.text, tutorial, team1, TEAM_ID]
                         elif song4_button.check_click() or song_d:
                             mqtt_lib.menu_mqtt.SONG_D = False
+                            team1 = True
                             return [multi, player_num, song4_button.text, tutorial, team1, TEAM_ID]
                         elif song5_button.check_click() or song_e:
                             mqtt_lib.menu_mqtt.SONG_E = False
+                            team1 = True
                             return [multi, player_num, song5_button.text, tutorial, team1, TEAM_ID]
                         elif song6_button.check_click() or song_f:
                             mqtt_lib.menu_mqtt.SONG_F = False
+                            team1 = True
                             return [multi, player_num, song6_button.text, tutorial, team1, TEAM_ID]
                     if lobby_screen:
                         for lobby_button in lobbies_buttons:
