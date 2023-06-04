@@ -112,12 +112,16 @@ class IMUListener():
         if "p1" in msg_str or "p2" in msg_str:
             player, action = msg_str.split(',')
             player = (int)(player[1:])
-            if player == 1:
-                self.p1.action = Action(action)
-                self.p1.received_action = True
-            elif player == 2:
-                self.p2.action = Action(action)
-                self.p2.received_action = True
+            try:
+                if player == 1:
+                    self.p1.action = Action(action)
+                    self.p1.received_action = True
+                elif player == 2:
+                    self.p2.action = Action(action)
+                    self.p2.received_action = True
+            except ValueError:
+                # ignore unwanted actions triggered by incorrect keyboard presses
+                pass
             
 
 if __name__ == "__main__":
