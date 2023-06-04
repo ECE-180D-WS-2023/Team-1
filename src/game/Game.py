@@ -269,9 +269,6 @@ class Game():
         if (remote_play):
             self.start_game = True
 
-        # Seed random number generator with seed
-        random.seed(song_title)
-
         # note double spawn probability
         probability_double_note = 0.3
 
@@ -619,6 +616,8 @@ class Game():
             self.bpm = 130
             self.song_length_seconds = 233
             self.song_length_per_team = int(self.song_length_seconds/8)
+
+        random.seed(song_title[0])
         pygame.mixer.music.set_volume(0.5)
 
     # helper methods between tutorial and game
