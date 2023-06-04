@@ -5,9 +5,6 @@ import paho.mqtt.client as mqtt
 from menu import mqtt_lib
 import re
 
-
-TEAM_ID = 1
-
 #TODO (spring quarter) 5/11
 # menu should display "multiplayer" option
 # upon clicking multiplayer --> enters screen with list of open lobbies 
@@ -263,7 +260,7 @@ class Menu():
             # also will add song name or smth idk how yet
         multi = False
         player_num = 1
-        team_id = 1
+        TEAM_ID = 1
 
         MESSAGE = pygame.USEREVENT + 1
         MESSAGE_REMOTE = pygame.USEREVENT + 2
@@ -436,8 +433,8 @@ class Menu():
                             break
                         
                     if settings_screen:
-                        team_a_click = mqtt_lib.menu_mqtt.TEAM_A_CLICK
-                        team_b_click = mqtt_lib.menu_mqtt.TEAM_B_CLICK
+                        team_a_click = mqtt_lib.menu_mqtt.SONG_A
+                        team_b_click = mqtt_lib.menu_mqtt.SONG_B
                         one_player_click = mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK # 1p
                         two_player_click = mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK # 2p
                         if back_button.check_click() or return_click: # TODO ADD FLAG
@@ -462,11 +459,10 @@ class Menu():
                                 player_num = 1
                         if team_id_button.check_toggle_click():
                             team_id_button.toggle = not team_id_button.toggle
-                            if team_id == 1:
-                                team_id = 2
-                            elif team_id == 2:
-                                team_id = 1
-                            print("team id: ", team_id)
+                            if TEAM_ID == 1:
+                                TEAM_ID = 2
+                            elif TEAM_ID == 2:
+                                TEAM_ID = 1
                         elif one_player_click:
                             mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK= False
                             player_button.toggle = not player_button.toggle
@@ -475,6 +471,15 @@ class Menu():
                             player_button.toggle = not player_button.toggle
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
                             player_num = 2
+                        elif team_a_click:
+                            team_id_button.toggle = not team_id_button.toggle
+                            mqtt_lib.menu_mqtt.SONG_A= False
+                            TEAM_ID = 1
+                        elif team_b_click:
+                            team_id_button.toggle = not team_id_button.toggle
+                            mqtt_lib.menu_mqtt.SONG_B= False
+                            TEAM_ID = 2
+
                     """if tutorial_screen:
                         if back_button.check_click() or return_click: 
                             mqtt_lib.menu_mqtt.RETURN_CLICK = False
