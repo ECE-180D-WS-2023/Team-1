@@ -252,25 +252,39 @@ class Game():
 
     # FOR 2 PLAYER GAME, THE ONLY IF STATEMENTS ARE FOR
     # INITIALIZING THE SECOND PLAYER AND THE IF STATEMENT PROTECTING self.ACTION_2
-    def start(self, num_players=2, song_title="A: ", remote_play=False, team_1=True):
+    def start(self, num_players=2, song_title="A: ", remote_play=False, team_1=True, teamID=1):
         # setup global vars
         # set num players globally so Notes know to only create 1 color
         globals.NUM_PLAYERS = num_players
 
         # set active listeners based on team
-        if (team_1 == True or remote_play == False):
+        if (teamID == 1 or remote_play == False):
             self.my_team = 'team1'
+            other_team = 'team2'
         else:
             self.my_team = 'team2'
-        self.active_team = 'team1'
+            other_team = 'team1'
+        
+        # team_1 means whether or not im starting
+        # if im starting, active team should be my team, else not my team
+        print("teamID: ", teamID)
+        print("my team: ", self.my_team)
+        print("my team is starting: ", team_1)
+        print("other team is: ", other_team)
+
+        if (team_1):
+            self.active_team = self.my_team
+        else:
+            self.active_team = other_team
+        # if team_1 == True:
+        #     self.active_team = 'team1'
+        # else:
+        #     self.active_team = 'team1'
         self.active_listeners = self.listeners[self.active_team]
 
         # if remote play, just instantly start game
         if (remote_play):
             self.start_game = True
-
-        # Seed random number generator with seed
-        random.seed(song_title)
 
         # note double spawn probability
         probability_double_note = 0.3
@@ -336,6 +350,7 @@ class Game():
                     self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
+                    print("active-team: ", self.active_team)
                     # if 2 players and with 40% maybe probability, spawn both notes, 
                     # maybe this value can increase with game for difficulty
                     double_note_spawn = (num_players == 2) and (random.randint(1, 100)/100.0 < probability_double_note)
@@ -631,6 +646,8 @@ class Game():
             self.bpm = 130
             self.song_length_seconds = 233
             self.song_length_per_team = int(self.song_length_seconds/8)
+
+        random.seed(song_title[0])
         pygame.mixer.music.set_volume(0.5)
 
     # helper methods between tutorial and game
