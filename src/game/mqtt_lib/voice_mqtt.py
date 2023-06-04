@@ -46,7 +46,7 @@ class SpeechListener():
         self.client.loop_start()
         
         # Send the connection success message
-        self.client.publish(self.topic, 1, qos=1)
+        #self.client.publish(self.topic, 1, qos=1)
 
         self.keyword = ""
         self.received = False
@@ -60,7 +60,7 @@ class SpeechListener():
 
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
-        print("Connection returned result: " + str(rc))
+        #print("Connection returned result: " + str(rc))
     
     def _on_disconnect(self, client, userdata, rc):
         if rc != 0:

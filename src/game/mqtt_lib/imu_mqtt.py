@@ -79,7 +79,7 @@ class IMUListener():
         self.client.loop_start()
         
         # Send the connection success message
-        self.client.publish(self.topic, 1, qos=1)
+        #self.client.publish(self.topic, 1, qos=1)
 
         self.p1 = IMU_Player(1)
         self.p2 = IMU_Player(2)
@@ -96,7 +96,7 @@ class IMUListener():
 
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
-        print("Connection returned result: " + str(rc))
+        #print("Connection returned result: " + str(rc))
     
     def _on_disconnect(self, client, userdata, rc):
         if rc != 0:

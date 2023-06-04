@@ -44,7 +44,7 @@ class ButtonListener():
         self.client.on_message = self._on_message
         self.client.connect_async('mqtt.eclipseprojects.io')
         self.client.loop_start()
-        self.client.publish(self.topic, 1, qos=1)
+        #self.client.publish(self.topic, 1, qos=1)
 
         self.button_high = False
         self.end_timer = 0.0
@@ -74,7 +74,7 @@ class ButtonListener():
 
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
-        print("Connection returned result: " + str(rc))
+        #print("Connection returned result: " + str(rc))
     
     def _on_disconnect(self, client, userdata, rc):
         if rc != 0:
