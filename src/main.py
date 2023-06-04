@@ -1,4 +1,5 @@
 import logging
+import argparse
 from game import Game
 from menu import Menu
 #from speech import laptop_speech, config
@@ -10,6 +11,14 @@ logging.basicConfig(filename='game.log', filemode='w',
                     level=logging.DEBUG)
 
 # lots of help from https://realpython.com/pygame-a-primer/#sprite-groups
+
+# Accept argument for the intial team number
+parser = argparse.ArgumentParser()
+parser.add_argument('-t', '--team',
+                    help='The team number of the controller you wish to use',
+                    required=False, default=1, type=int)
+args = parser.parse_args()
+
 
 run = True
 while run:

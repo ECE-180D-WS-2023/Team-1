@@ -1,6 +1,7 @@
 # Team-1: JAAK
 
 ```bash
+pip install -U scikit-learn
 pip install paho-mqtt
 pip install pygame
 pip install vosk 
