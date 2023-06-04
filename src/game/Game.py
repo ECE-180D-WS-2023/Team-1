@@ -334,6 +334,10 @@ class Game():
         prev_pause = False
         prev_start_game = False
 
+        # manually set random states
+        initial_random_state = random.getstate()
+        random_state_index = 0
+
         # Variable to keep the main loop running
         self.running = True
         while self.running:
@@ -346,7 +350,14 @@ class Game():
                     self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
-                    #print("active-team: ", self.active_team)
+                    # before every note spawn, fix random state to guarantee same across games
+                    current_random_state = list(initial_random_state)
+                    current_random_state[1] = list(current_random_state[1])
+                    current_random_state[1][-1] = random_state_index % 624
+                    current_random_state[1] = tuple(current_random_state[1])
+                    random.setstate(tuple(current_random_state))
+                    random_state_index += 3
+
                     # if 2 players and with 40% maybe probability, spawn both notes, 
                     # maybe this value can increase with game for difficulty
                     double_note_spawn = (num_players == 2) and (random.randint(1, 100)/100.0 < probability_double_note)
