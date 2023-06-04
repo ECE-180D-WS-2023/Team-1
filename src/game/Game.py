@@ -690,25 +690,27 @@ class Game():
         else:
             # calculate which note is the lowest and then process key press accordingly based
             # on that note's letter
-
             self.active_listeners['imu_listener'].debug_publish(player_num=1, action=pygame.key.name(key_stroke))
         
     # process action events
         # player_action_num == which player did the action
     def __process_action_event(self, player_action_num):
-        if (self.notes):
-            lowest_note = get_lowest_note(self.notes)
-            if (lowest_note):
-            # process key works for now since it is just diff letters
-                if player_action_num == 1:
-                    action_input_result = lowest_note.process_action_location(self.imu_action_1, self.active_listeners['localization_listener'].p1.location, 1)
-                else:
-                    action_input_result = lowest_note.process_action_location(self.imu_action_2, self.active_listeners['localization_listener'].p2.location, 2)
+        
+        # process key works for now since it is just diff letters
+        if player_action_num == 1:
+            if (self.red_notes):
+                lowest_note = get_lowest_note(self.red_notes)
+                action_input_result = lowest_note.process_action_location(self.imu_action_1, self.active_listeners['localization_listener'].p1.location, 1)
                 self.__calc_points(action_input_result)
             else:
-                action_input_result = "No Notes Yet!"
+                action_input_result = "No Red Notes Yet!"
         else:
-            action_input_result = "No Notes Yet!"
+            if (self.blue_notes):
+                lowest_note = get_lowest_note(self.blue_notes)
+                action_input_result = lowest_note.process_action_location(self.imu_action_2, self.active_listeners['localization_listener'].p2.location, 2)
+                self.__calc_points(action_input_result)
+            else:
+                action_input_result = "No Blue Notes Yet!"
         globals.action_input_result_text.update(text=action_input_result)
 
     def __check_and_process_imu_mqtt_received(self, num_players):
