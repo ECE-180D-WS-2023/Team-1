@@ -30,4 +30,4 @@ while run:
         mymenu.start()
     else:
         logging.info("GAME: Beginning the main game loop")
-        mygame.start(num_players=num_players, song_title=song_title, remote_play=remote_play, team_1=isTeam1)
+        mygame.start(num_players=num_players, song_title=song_title, remote_play=remote_play, team_1=isTeam1, teamID=teamID)
