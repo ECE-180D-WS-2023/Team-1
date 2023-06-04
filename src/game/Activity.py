@@ -27,7 +27,6 @@ class Activity(pygame.sprite.Sprite):
     def toggle(self):
         self.active = self.spike
         self.time = 0
-            #self.shake == True
     
     def update(self):
         self.surf = self.active
