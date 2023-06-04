@@ -22,6 +22,7 @@ while run:
     song_title = info[2]
     tutorial = info[3]
     isTeam1 = info[4]
+    teamID = info[5]
 
     mygame = Game()
     if tutorial:
