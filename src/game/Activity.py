@@ -8,7 +8,7 @@ class Activity(pygame.sprite.Sprite):
         red_light = pygame.image.load("sprites/light_red.png").convert_alpha()
         blue_light = pygame.image.load("sprites/light_blue.png").convert_alpha()
         green_light = pygame.image.load("sprites/light_green.png").convert_alpha()
-        self.cent = (30,50) #TODO Update this
+        self.cent = (30,50) 
         self.base = red_light 
         self.play_num = 1
         if play_num == 2:
