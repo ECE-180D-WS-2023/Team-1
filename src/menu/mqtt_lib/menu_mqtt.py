@@ -4,17 +4,17 @@ from dataclasses import dataclass
 from pprint import pprint
 
 # start, settings, tutorial, quit, single team, multi team, 1 player, 2 player
-START_CLICK = False # key = ga
-SETTINGS_CLICK = False # key = sc
-TUTORIAL_CLICK = False # key = tc
-QUIT_CLICK = False # key = qc
-#SINGLE_TEAM_CLICK = False # key = st
-MULTI_TEAM_CLICK = False # key = mt
-ONE_PLAYER_CLICK = False # key = 1p
-TWO_PLAYER_CLICK = False # key = 2p
+START_CLICK = False  # key = ga
+SETTINGS_CLICK = False  # key = sc
+TUTORIAL_CLICK = False  # key = tc
+QUIT_CLICK = False  # key = qc
+# SINGLE_TEAM_CLICK = False # key = st
+MULTI_TEAM_CLICK = False  # key = mt
+ONE_PLAYER_CLICK = False  # key = 1p
+TWO_PLAYER_CLICK = False  # key = 2p
 TEAM_A_CLICK = False
 TEAM_B_CLICK = False
-RETURN_CLICK = False # key = rq
+RETURN_CLICK = False  # key = rq
 PLAY_CLICK = False
 CREATE_CLICK = False
 
@@ -28,19 +28,20 @@ SONG_F = False
 
 SUBSCRIPTION = "ECE180/Team1/speech"
 
+
 def menu_mqtt_on_message(client, userdata, message):
     # may need global variables
     # parse message and set flags
-    global START_CLICK # ga
-    global SETTINGS_CLICK # sc
-    global TUTORIAL_CLICK # tc
-    global QUIT_CLICK # qc
-    global SINGLE_TEAM_CLICK # st
-    global MULTI_TEAM_CLICK # mt
-    global ONE_PLAYER_CLICK # 1p
-    global TWO_PLAYER_CLICK # 2p
-    global RETURN_CLICK # rq
-    global PLAY_CLICK 
+    global START_CLICK  # ga
+    global SETTINGS_CLICK  # sc
+    global TUTORIAL_CLICK  # tc
+    global QUIT_CLICK  # qc
+    global SINGLE_TEAM_CLICK  # st
+    global MULTI_TEAM_CLICK  # mt
+    global ONE_PLAYER_CLICK  # 1p
+    global TWO_PLAYER_CLICK  # 2p
+    global RETURN_CLICK  # rq
+    global PLAY_CLICK
     global CREATE_CLICK
     global MESSAGE_RECEIVED
     global SONG_A
@@ -103,23 +104,23 @@ def menu_mqtt_on_message(client, userdata, message):
     elif re.search("f", msg_str):
         print("Received F!")
         SONG_F = True
-    
-    
-        
+
 
 def menu_mqtt_on_connect(client, userdata, flags, rc):
     print("Speech connection returned result: " + str(rc))
     client.subscribe(SUBSCRIPTION, qos=1)
 
+
 # The callback of the client when it disconnects.
 def menu_mqtt_on_disconnect(client, userdata, rc):
     if rc != 0:
-        print('Unexpected Disconnect')
+        print("Unexpected Disconnect")
     else:
-        print('Expected Disconnect')
+        print("Expected Disconnect")
+
 
 @dataclass
-class SpeechFlags():
+class SpeechFlags:
     start_c: bool = False
     settings_c: bool = False
     tutorial_c: bool = False
@@ -139,9 +140,9 @@ class SpeechFlags():
     song_e: bool = False
     song_f: bool = False
 
-class MenuSpeechListener():
 
-    def __init__(self, flags: SpeechFlags, topic: str='ECE180/Team1/speech'):
+class MenuSpeechListener:
+    def __init__(self, flags: SpeechFlags, topic: str = "ECE180/Team1/speech"):
         # Initialize topic and SpeechFlags datasctructure
         self.topic = topic
         self.sf = flags
@@ -151,11 +152,11 @@ class MenuSpeechListener():
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
-        self.client.connect_async('mqtt.eclipseprojects.io')
+        self.client.connect_async("mqtt.eclipseprojects.io")
         self.client.loop_start()
-        
+
         # Send the connection success message
-        #self.client.publish(self.topic, 1, qos=1)
+        # self.client.publish(self.topic, 1, qos=1)
 
         self.keyword = ""
         self.received = False
@@ -165,7 +166,6 @@ class MenuSpeechListener():
         self.quit_c = False
         self.multi_c = False
         self.one_c = False
-
 
     def debug_set_received(self, val: bool):
         self.received = val
@@ -178,73 +178,73 @@ class MenuSpeechListener():
 
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
-        #print("Connection returned result: " + str(rc))
-    
+        # print("Connection returned result: " + str(rc))
+
     def _on_disconnect(self, client, userdata, rc):
         if rc != 0:
-            print('Unexpected Disconnect')
+            print("Unexpected Disconnect")
         else:
-            print('Expected Disconnect')
+            print("Expected Disconnect")
 
-    # on message, just update the player_location that the game is using for localization
+    # On message, just update the player_location that the game
+    #   is using for localization
     def _on_message(self, client, userdata, message):
-        msg_str = message.payload.decode() 
+        msg_str = message.payload.decode()
         print(msg_str)
 
         self.keyword = msg_str
         self.received = True
 
-        # TODO Find a nicer way to represent this data to make it more easy to 
+        # TODO Find a nicer way to represent this data to make it more easy to
         #   work with
         match msg_str:
-            case 'start':
+            case "start":
                 self.sf.start_c = True
-            case 'settings':
+            case "settings":
                 self.sf.settings_c = True
-            case 'tutorial':
+            case "tutorial":
                 self.sf.tutorial_c = True
-            case 'quit':
+            case "quit":
                 self.sf.quit_c = True
-            case 'single': 
+            case "single":
                 self.sf.single_team_c = True
-            case 'multi':
+            case "multi":
                 self.sf.multi_team_c = True
-            case 'one':
+            case "one":
                 self.sf.one_player_c = True
-            case 'two':
+            case "two":
                 self.sf.two_player_c = True
-            case 'return':
+            case "return":
                 self.sf.return_c = True
-            case 'play':
+            case "play":
                 self.sf.play_c = True
-            case 'create':
+            case "create":
                 self.sf.create_c = True
-            case 'msg_received':
+            case "msg_received":
                 self.sf.msg_received = True
-            case 'a':
+            case "a":
                 self.sf.song_a = True
-            case 'b':
+            case "b":
                 self.sf.song_b = True
-            case 'c':
+            case "c":
                 self.sf.song_c = True
-            case 'd':
+            case "d":
                 self.sf.song_d = True
-            case 'e':
+            case "e":
                 self.sf.song_e = True
-            case 'f':
+            case "f":
                 self.sf.song_f = True
-            
-            
+
 
 if __name__ == "__main__":
     """
-    To use the new MenuSpeechListener, you just have to create a 
-    SpeechFlags Object in the menu.py and instantiate the 
+    To use the new MenuSpeechListener, you just have to create a
+    SpeechFlags Object in the menu.py and instantiate the
     MenuSpeechListener with your SpeechFlags as an argument
-    
-    MenuSpeechListener will automatically update your speechflags 
+
+    MenuSpeechListener will automatically update your speechflags
     object on receiving a matching mqtt message. You now only need
-    to look at your SpeechFlags object's values to get the data. 
+    to look at your SpeechFlags object's values to get the data.
     Furthermore, you can change the SpeechFlags data to reset the
     listener to receive that data again.
     """
@@ -256,6 +256,6 @@ if __name__ == "__main__":
 
     pprint(my_sf)
 
-    my_sf.song_a = False 
+    my_sf.song_a = False
 
     pprint(msl.sf.song_a)
