@@ -256,7 +256,7 @@ class Game():
         globals.NUM_PLAYERS = num_players
 
         # set active listeners based on team
-        if (teamID == 1 or remote_play == False):
+        if (teamID == 1):
             self.my_team = 'team1'
             other_team = 'team2'
         else:
@@ -271,7 +271,7 @@ class Game():
         print("my team is starting: ", my_team_starts)
         print("other team is: ", other_team)
 
-        if (my_team_starts):
+        if (my_team_starts or remote_play == False):
             self.active_team = self.my_team
         else:
             self.active_team = other_team
