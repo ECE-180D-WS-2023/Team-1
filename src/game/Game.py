@@ -100,7 +100,7 @@ class Game():
         self.play_button = pygame.image.load("sprites/play_g38.png").convert_alpha()
         self.record_icon = pygame.image.load("sprites/rec_button_90.png").convert_alpha()
 
-    def tutorial(self, num_players=2): #tutorial mode of the game (Slow bpm to spawn notes)
+    def tutorial(self, num_players=2, teamID = 1): #tutorial mode of the game (Slow bpm to spawn notes)
         globals.NUM_PLAYERS = num_players
         # set bpm
         self.bpm = 10
@@ -111,14 +111,12 @@ class Game():
 
         # for team ID, you have to teamID as parameter from menu
 
-        # if (teamID == 1):
-        #     self.my_team = 'team1'
-        #     other_team = 'team2'
-        # else:
-        #     self.my_team = 'team2'
-        #     other_team = 'team1'
-        # self.active_team = self.my_team
-        # self.active_listeners = self.listeners[self.active_team]
+        if (teamID == 1):
+            self.my_team = 'team1'
+        else:
+            self.my_team = 'team2'
+        self.active_team = self.my_team
+        self.active_listeners = self.listeners[self.active_team]
 
         # Instantiate sprite groups
         players = pygame.sprite.Group()

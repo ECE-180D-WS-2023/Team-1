@@ -26,7 +26,7 @@ while run:
 
     mygame = Game()
     if tutorial:
-        mygame.tutorial(num_players=num_players)
+        mygame.tutorial(num_players=num_players, teamID= teamID)
         mymenu.start()
     else:
         logging.info("GAME: Beginning the main game loop")
