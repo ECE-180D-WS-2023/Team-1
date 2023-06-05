@@ -602,6 +602,8 @@ class Game():
         while viewing_scoreboard:
             # opponent_score_text should be empty if non remote play
             self.__display_scoreboard(screen, my_score_text, opponent_score_text)
+
+            # if remote play, get the opponent scores and update text accordingly
             if (remote_play):
                 if (teamID == 1):
                     opponent_score = self.opponent_game_results.team_2_score
@@ -610,6 +612,16 @@ class Game():
                 
                 if (self.opponent_game_results.total_scores_receieved == 2):
                     opponent_score_text = "Opponent Points: " + str(opponent_score)
+
+            # if speech arrives and says return or something, quit
+            if self.active_listeners['speech_listener'].received:
+                if self.active_listeners['speech_listener'].keyword == "quit":
+                    viewing_scoreboard = False
+                elif self.active_listeners['speech_listener'].keyword == "return":
+                    viewing_scoreboard = False
+                elif self.active_listeners['speech_listener'].keyword == "exit":
+                    viewing_scoreboard = False
+                self.active_listeners['speech_listener'].debug_set_received(val=False)
 
             # update the display
             pygame.display.flip()
