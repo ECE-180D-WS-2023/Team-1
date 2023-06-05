@@ -790,8 +790,8 @@ class Game():
 
 
     # just draws blank screen with basically two text boxes available centered in the middle of the screen
-    # if only single player, dont need to set lower_text, just set upper_text to globals.points
-    def __display_scoreboard(self, screen, upper_text, lower_text):
+    # if only single player, dont need to set lower_text, just set my_score to globals.points
+    def __display_scoreboard(self, screen, my_score_text, opponent_score_text=""):
         # fill the screen with white
         screen.fill((255, 255, 255))
 
@@ -799,11 +799,11 @@ class Game():
         screen_center = (screen.get_width() // 2, screen.get_height() // 2)
 
         # render the upper text and get its rectangle
-        upper_surface = self.scoreboard_font.render(upper_text, True, (0, 0, 0))
+        upper_surface = self.scoreboard_font.render(my_score_text, True, (0, 0, 0))
         upper_rect = upper_surface.get_rect()
 
         # render the lower text and get its rectangle
-        lower_surface = self.scoreboard_font.render(lower_text, True, (0, 0, 0))
+        lower_surface = self.scoreboard_font.render(opponent_score_text, True, (0, 0, 0))
         lower_rect = lower_surface.get_rect()
 
         # center the text rectangles and move them slightly above and below the screen center
