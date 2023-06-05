@@ -38,6 +38,7 @@ float az;
 float gx;
 float gy;
 float gz;
+String orig_client_id = "t2p1";
 // end motion detection vars
 
 void setup() {
@@ -58,7 +59,7 @@ void setup() {
  client.setServer(mqtt_broker, mqtt_port);
  client.setCallback(callback);
  while (!client.connected()) {
-     String client_id = "esp32-client-";
+     String client_id = orig_client_id;
      client_id += String(WiFi.macAddress());
      Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
      if (client.connect(client_id.c_str())) { //, mqtt_username, mqtt_password)) {
@@ -221,11 +222,6 @@ void loop()
     && ay < max_y + 100 && ay > min_y - 100) {
       trans_m = 'q';
     }
-    // else if (gx > 400000 && gy < 350000 && gz < 350000) {
-    //  Serial.println("r");
-    //   move = 'r';
-    //   trans_m = pubMove(move, trans_m, play_num, last_time);
-    // }
     else if (ax > 400 && az < 0) {
       Serial.println("f");
       move = 'f';
@@ -246,11 +242,7 @@ void loop()
       move = 'u';
       trans_m = pubMove(move, trans_m, play_num, last_time);
     }
-    // if (millis() - last_time > thresh_send) {
-    //   trans_m = 'q';
-    // }
   }
-  //move = 'x';
 	delay(threshold);
 }
 
@@ -262,6 +254,7 @@ void loop()
 // /every t time, reset transmitted_motion = ""
 
 char pubMove(char move, char trans_m, int player, long int &last_time) { //returns transmitted motions
+  checkConnectionStatus();
   if (move != trans_m) {
     if (!((move=='r' && trans_m=='l') || (move=='l'&& trans_m=='r'))) {
       char buf[32];
@@ -272,4 +265,52 @@ char pubMove(char move, char trans_m, int player, long int &last_time) { //retur
     }
   }
   return trans_m;
+}
+
+void checkConnectionStatus() {
+  if (WiFi.status() != WL_CONNECTED) { // check wifi status
+    Serial.println("WiFi disconnected...");
+    digitalWrite(LED_BLUE, HIGH);
+    while (WiFi.status() != WL_CONNECTED) { //reconnect wifi
+        Serial.println("Reonnecting to WiFi..");
+        WiFi.reconnect();
+        delay(500);
+    }
+    Serial.println("WiFi reconnected");
+    client.disconnect(); //reconnect the mqtt port
+    client.setServer(mqtt_broker, mqtt_port);
+    client.setCallback(callback);
+    while (!client.connected()) {
+      String client_id = orig_client_id;
+      client_id += String(WiFi.macAddress());
+      Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+      if (client.connect(client_id.c_str())) { //, mqtt_username, mqtt_password)) {
+          Serial.println("mqtt broker connected");
+      } else {
+          Serial.print("failed with state ");
+          Serial.print(client.state());
+        delay(2000);
+      }
+    }
+    digitalWrite(LED_BLUE, LOW);
+  }
+  if (!client.connected()){
+    digitalWrite(LED_BLUE, HIGH);
+    client.disconnect(); //reconnect the mqtt port
+    client.setServer(mqtt_broker, mqtt_port);
+    client.setCallback(callback);
+    while (!client.connected()) {
+      String client_id = orig_client_id;
+      client_id += String(WiFi.macAddress());
+      Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
+      if (client.connect(client_id.c_str())) { //, mqtt_username, mqtt_password)) {
+          Serial.println("mqtt broker connected");
+      } else {
+          Serial.print("failed with state ");
+          Serial.print(client.state());
+        delay(2000);
+      }
+    }
+    digitalWrite(LED_BLUE, LOW);
+  }
 }
