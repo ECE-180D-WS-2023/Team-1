@@ -168,7 +168,7 @@ class Game():
                     self.__process_keydown(event.key)
                 # Check for QUIT event. If QUIT, then set running to false.
                 elif event.type == QUIT:
-                    break
+                    self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
                     color_idx = notes_list[score][0]
@@ -188,6 +188,26 @@ class Game():
                 elif event.type == self.ACTION_2:
                     self.__process_action_event(2)
             
+            # handle voice recognition stuff
+            if self.active_listeners['speech_listener'].received:
+                self.__interpret_voice_recog(self.active_listeners['speech_listener'].keyword)
+                self.active_listeners['speech_listener'].debug_set_received(val=False)
+            # handling pause -> unpause transition to resume note spawning timer
+                # if we just started to pause, set note spawning timer to 0
+                # if we just resumed the game, set note spawning timer back to normal
+            if self.pause or self.button_pause:
+                if prev_pause == False:
+                    pygame.time.set_timer(SPAWNNOTE, 0)
+                    pygame.mixer.music.pause()
+                prev_pause = True
+            # if BOTH pause and button_pause false
+            else:
+                if prev_pause == True:
+                    start_note_spawn_delay = True
+                    start_note_spawn_timestamp = pygame.time.get_ticks()
+                    pygame.mixer.music.unpause()
+                prev_pause = False
+
             # same with start_game to start the note timer
             if self.start_game:
                 if prev_start_game == False:
