@@ -3,7 +3,7 @@ import paho.mqtt.client as mqtt
 import logging
 import random
 
-from game.mqtt_lib import ButtonListener, LocalizationListener, IMUListener, SpeechListener
+from game.mqtt_lib import ButtonListener, LocalizationListener, IMUListener, SpeechListener, GameResultsMQTT
 
 from .Note import Note, FadingNote, get_lowest_note, SUCCESS, TOO_EARLY, WRONG_KEY, WRONG_LANE
 from .Settings import SCREEN_WIDTH, SCREEN_HEIGHT, HIT_ZONE_LOWER, HIT_ZONE_TEXT, note_update_time
@@ -75,6 +75,9 @@ class Game():
         self.last_switch_time = 0
         self.my_team = 'team1'
 
+        # for getting scoreboard in remote play
+        self.opponent_game_results = GameResultsMQTT()
+
         # store imu actions
         self.imu_action_1 = None
         self.imu_action_2 = None
@@ -88,6 +91,7 @@ class Game():
         self.hitzone_font = pygame.font.Font('fonts/JMHTypewriter.ttf', HITZONE_FONT_SIZE)
         self.paused_font = pygame.font.Font('fonts/JMHTypewriter.ttf', PAUSED_FONT_SIZE)
         self.points_font = pygame.font.Font('fonts/JMHTypewriter.ttf', RESULT_FONT_SIZE)
+        self.scoreboard_font = pygame.font.Font('fonts/JMHTypewriter.ttf', RESULT_FONT_SIZE)
 
         # custom events for receiving imu action
         self.ACTION_1 = pygame.USEREVENT + 2 # for p1
@@ -106,7 +110,7 @@ class Game():
         logging.info(f"Tutorial: Starting {num_players}P tutorial with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
 
         # for team ID, you have to teamID as parameter from menu
-        
+
         # if (teamID == 1):
         #     self.my_team = 'team1'
         #     other_team = 'team2'
@@ -561,7 +565,6 @@ class Game():
             if (self.running == False):
                 pygame.mixer.music.stop()
                 pygame.time.set_timer(SPAWNNOTE, int(0))
-                self.__game_over_cleanup()
             
             # set self.button_pause when button high/low
             if self.active_listeners['button_listener'].button_high == False:
@@ -584,6 +587,42 @@ class Game():
 
                     print("switched! active_team now: ", self.active_team)
             clock.tick(fps)
+
+        # display scoreboard
+        viewing_scoreboard = True
+        my_score = globals.points
+        my_score_text = "Points: " + str(my_score)
+        
+        if remote_play:
+            self.opponent_game_results.publish_my_score(teamID, my_score)
+            opponent_score_text = "Calculating Opponent Score..."
+        else:
+            opponent_score_text = ""
+
+        while viewing_scoreboard:
+            # opponent_score_text should be empty if non remote play
+            self.__display_scoreboard(screen, my_score_text, opponent_score_text)
+            if (remote_play):
+                if (teamID == 1):
+                    opponent_score = self.opponent_game_results.team_2_score
+                else:
+                    opponent_score = self.opponent_game_results.team_1_score
+                
+                if (self.opponent_game_results.total_scores_receieved == 2):
+                    opponent_score_text = "Opponent Points: " + str(opponent_score)
+
+            # update the display
+            pygame.display.flip()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    viewing_scoreboard = False
+                if event.type == KEYDOWN:
+                    if event.key == pygame.K_RETURN or event.key == K_q:
+                        viewing_scoreboard = False
+
+        # set points back to 0 and texts
+        self.__game_over_cleanup()
+        pygame.quit()
 
     def __calc_points(self, action_input_result):
         if (self.my_team == self.active_team):
@@ -736,3 +775,29 @@ class Game():
                 self.imu_action_2 = self.active_listeners['imu_listener'].p2.action
                 print("action received: ", self.imu_action_2)
                 self.active_listeners['imu_listener'].debug_set_received(player_num=2, val=False)
+
+
+    # just draws blank screen with basically two text boxes available centered in the middle of the screen
+    # if only single player, dont need to set lower_text, just set upper_text to globals.points
+    def __display_scoreboard(self, screen, upper_text, lower_text):
+        # fill the screen with white
+        screen.fill((255, 255, 255))
+
+        # calculate the screen center
+        screen_center = (screen.get_width() // 2, screen.get_height() // 2)
+
+        # render the upper text and get its rectangle
+        upper_surface = self.scoreboard_font.render(upper_text, True, (0, 0, 0))
+        upper_rect = upper_surface.get_rect()
+
+        # render the lower text and get its rectangle
+        lower_surface = self.scoreboard_font.render(lower_text, True, (0, 0, 0))
+        lower_rect = lower_surface.get_rect()
+
+        # center the text rectangles and move them slightly above and below the screen center
+        upper_rect.midbottom = (screen_center[0], screen_center[1] - 10)
+        lower_rect.midtop = (screen_center[0], screen_center[1] + 10)
+
+        # blit the text surfaces onto the screen
+        screen.blit(upper_surface, upper_rect)
+        screen.blit(lower_surface, lower_rect)
