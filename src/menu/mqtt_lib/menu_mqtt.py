@@ -158,14 +158,9 @@ class MenuSpeechListener:
         # Send the connection success message
         # self.client.publish(self.topic, 1, qos=1)
 
+        # Initialize object vars
         self.keyword = ""
         self.received = False
-        self.start_c = False
-        self.settings_c = False
-        self.tutorial_c = False
-        self.quit_c = False
-        self.multi_c = False
-        self.one_c = False
 
     def debug_set_received(self, val: bool):
         self.received = val
