@@ -105,6 +105,17 @@ class Game():
 
         logging.info(f"Tutorial: Starting {num_players}P tutorial with: Width:{SCREEN_WIDTH}, Height:{SCREEN_HEIGHT}")
 
+        # for team ID, you have to teamID as parameter from menu
+        
+        # if (teamID == 1):
+        #     self.my_team = 'team1'
+        #     other_team = 'team2'
+        # else:
+        #     self.my_team = 'team2'
+        #     other_team = 'team1'
+        # self.active_team = self.my_team
+        # self.active_listeners = self.listeners[self.active_team]
+
         # Instantiate sprite groups
         players = pygame.sprite.Group()
         players.add(Player(1))
