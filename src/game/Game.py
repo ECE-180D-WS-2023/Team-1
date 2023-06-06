@@ -826,13 +826,13 @@ class Game():
         if (self.active_listeners['imu_listener'].p1.received_action):
             pygame.event.post(pygame.event.Event(self.ACTION_1))
             self.imu_action_1 = self.active_listeners['imu_listener'].p1.action
-            print("action received: ", self.imu_action_1)
+            # print("action received: ", self.imu_action_1)
             self.active_listeners['imu_listener'].debug_set_received(player_num=1, val=False)
         if (num_players == 2):
             if (self.active_listeners['imu_listener'].p2.received_action):
                 pygame.event.post(pygame.event.Event(self.ACTION_2))
                 self.imu_action_2 = self.active_listeners['imu_listener'].p2.action
-                print("action received: ", self.imu_action_2)
+                # print("action received: ", self.imu_action_2)
                 self.active_listeners['imu_listener'].debug_set_received(player_num=2, val=False)
 
 
