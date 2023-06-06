@@ -93,6 +93,9 @@ def in_border_range(tol, x, x2, y, y2, w, h): # find if in the border range
 # TWO PLAYER
 def detect_position(colors, camera, verbose = False, channel="ktanna/local"): # gives position of one color
     cap = cv2.VideoCapture(camera) # start webcam capture (0 for onboard camera, 1 for USB camera)
+    # width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    # height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    # print("width and height: ", width, height)
     # Perform thresholding
     c1_lower, c1_upper = threshold(colors['c1'], 5, 100, 100) # red
     c2_lower, c2_upper = threshold(colors['c2'], 5, 100, 100) # blue
@@ -118,6 +121,7 @@ def detect_position(colors, camera, verbose = False, channel="ktanna/local"): # 
     while (start):
         # Reading the video from the webcam in image frames
         _, frame = cap.read()
+        frame = frame[0:480, 0:640]
 
         # Convert the frame in BGR(RGB color space) to HSV(hue-saturation-value) color space
         hsvFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)

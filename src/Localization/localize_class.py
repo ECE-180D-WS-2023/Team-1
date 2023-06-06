@@ -84,6 +84,8 @@ class localize:
                 break
             # Capture frame-by-frame
             _, frame = cap.read()
+            frame = frame[0:480, 0:640]
+
             flip = cv2.flip(frame,1)
 
             # create square of interest on screen
