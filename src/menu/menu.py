@@ -101,7 +101,7 @@ class Button:
         left_click = pygame.mouse.get_pressed()[0]
         button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (300, 40))
         if left_click and button_rect.collidepoint(mouse_pos) and self.enabled:
-            print("i got clicked: " + self.text)
+            #print("i got clicked: " + self.text)
             return True
         else:
             return False
@@ -286,7 +286,7 @@ class Menu():
         msg = ''
 
         def clear_flags():
-            # set all flags to false KATIE TODO make this a function
+            # set all flags to false
             mqtt_lib.menu_mqtt.QUIT_CLICK = False
             mqtt_lib.menu_mqtt.RETURN_CLICK = False
             mqtt_lib.menu_mqtt.MESSAGE_RECEIVED = False
@@ -296,8 +296,17 @@ class Menu():
             mqtt_lib.menu_mqtt.CREATE_CLICK = False
             mqtt_lib.menu_mqtt.MQTT_CLOSE_LOBBIES = False
 
+        def clear_letters():
+            # set all flags to false
+            mqtt_lib.menu_mqtt.SONG_A = False
+            mqtt_lib.menu_mqtt.SONG_B = False
+            mqtt_lib.menu_mqtt.SONG_C = False
+            mqtt_lib.menu_mqtt.SONG_D = False
+            mqtt_lib.menu_mqtt.SONG_E = False
+            mqtt_lib.menu_mqtt.SONG_F = False
+            
         clear_flags()
-
+        clear_letters()
 
         while True: 
             # global flags
@@ -427,6 +436,7 @@ class Menu():
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
                             mqtt_lib.menu_mqtt.TEAM_A_CLICK= False
                             mqtt_lib.menu_mqtt.TEAM_B_CLICK= False
+                            clear_letters()
                             break
                         elif remote_button.check_click() or multi_click:
                             mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK = False
@@ -443,11 +453,10 @@ class Menu():
                             back_button.x_pos = 250
                             back_button.y_pos = 490
                             multi = True
-                            # KATIE TODO need to ping MQTT here for lobby list
                             remote_client.publish("ECE180/remote", "LLR", qos=1)
-                            ("lobbies before: " + str(lobbies))
+                            #print("lobbies before: " + str(lobbies))
                             lobbies = self.parse_lobbies(mqtt_lobbies_list)
-                            print("lobbies after: " + str(lobbies))
+                            #print("lobbies after: " + str(lobbies))
                             # loop through current lobbies
                             # for each lobby, enable a button in lobby list
                                 # set that button's text to 
@@ -455,7 +464,7 @@ class Menu():
                             # for song in songs:
                             #     song.color = my_pink
                             for lobby in lobbies:
-                                print(lobby)
+                                #print(lobby)
                                 # BEEP
                                 lobby_text = lobby[0] + " - " + song_dict[lobby[0]] + ", #Players = " + lobby[1]
                                 dark_pink = (173, 121, 155)
@@ -586,7 +595,6 @@ class Menu():
                                 song.enabled = False
                             song_back_button.enabled = False
                             break
-                        #KATIE TODO add if multiplayer mode, can't go back to menu?
                         elif song1_button.check_click() or song_a:
                             mqtt_lib.menu_mqtt.SONG_A = False
                             team1 = True
@@ -614,8 +622,8 @@ class Menu():
                     if lobby_screen:
                         mqtt_lobbies_list = mqtt_lib.server_mqtt.MQTT_LOBBIES
                         lobbies = self.parse_lobbies(mqtt_lobbies_list)
+                        # anna TODO add voice recog here pls
                         for lobby_button in lobbies_buttons:
-                            # KATIE TODO add voice recog here somehow
                             if lobby_button.enabled and lobby_button.check_click():
                                 waiting_room_screen = True
                                 lobby_screen = False
@@ -627,9 +635,9 @@ class Menu():
                                 team2_status.enabled = True
                                 i = 0
                                 for button in lobbies_buttons:
-                                    print("disabling lobby button: " + str(i))
+                                    #print("disabling lobby button: " + str(i))
                                     button.enabled = False
-                                    print("open lobby button status: " + str(button.enabled))
+                                    #print("open lobby button status: " + str(button.enabled))
                                     i += 1
 
                                 create_lobby_button.enabled = False
@@ -644,7 +652,7 @@ class Menu():
                                 team1 = False
                                 break
                         if back_button.check_click() or return_click:
-                            print("back to da menu")
+                            #print("back to da menu")
                             mqtt_lib.menu_mqtt.RETURN_CLICK = False
                             menu_screen = True
                             lobby_screen = False
@@ -666,7 +674,7 @@ class Menu():
                             time.sleep(0.20)
                             break
                         if create_lobby_button.check_click() or create_click:
-                            print("CREATE LOBBY TIME")
+                            #print("CREATE LOBBY TIME")
                             mqtt_lib.menu_mqtt.CREATE_CLICK = False
                             open_lobby_screen = True
                             #song_screen = True
@@ -690,13 +698,9 @@ class Menu():
                             time.sleep(0.5)
                             break
                         if mqtt_update_lobbies and not waiting_room_screen:
-                            #KATIE TODO i have created an endless loop
-                            #remote_client.publish("ECE180/remote", "LLR", qos=1)
                             lobbies = self.parse_lobbies(mqtt_lobbies_list)
                             for lobby in lobbies:
-                                print(lobby)
-                                # BEEP
-                                print(lobby)
+                                # print(lobby)
                                 # BEEP
                                 dark_pink = (173, 121, 155)
                                 lobby_text = lobby[0] + " - " + song_dict[lobby[0]] + ", #Players = " + lobby[1]
@@ -764,7 +768,6 @@ class Menu():
                             song_back_button.enabled = False
                             time.sleep(0.25)
                             break
-                        #KATIE TODO add voice recog
                         elif song1_button.check_click() or song_a:
                             mqtt_lib.menu_mqtt.SONG_A = False
                             # launch lobby into waiting room
@@ -925,7 +928,6 @@ class Menu():
                             lobby_display.enabled = False
                             quit_click = False
                             play_button.enabled = False
-                            # KATIE TODO remove lobby from lobby list
                             remove_lobby = "R" + song_text[0].capitalize() + str(player_num)
                             remote_client.publish("ECE180/remote", remove_lobby, qos=1)
                             print("waiting room removing lobby:" + remove_lobby)
@@ -936,7 +938,6 @@ class Menu():
                             print("team 1 launching")
                             #song_text = lobbies_buttons[0].text
                             remote_client.publish("ECE180/remote", "T1_READY", qos=1)
-                            # remove lobby from lobby list KATIE TODO
                             remove_lobby = "R" + song_text[0].capitalize() + str(player_num)
                             remote_client.publish("ECE180/remote", remove_lobby, qos=1)
                             remote_client.publish("ECE180/remote", msg, qos=1)
