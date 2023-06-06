@@ -5,6 +5,9 @@ MQTT_RECEIVED = False # TODO make global bool
 MQTT_LOBBIES = "Z"
 MQTT_TEAM1_READY = False
 MQTT_TEAM2_READY = False
+MQTT_REMOVE_LOBBY =  "R"
+MQTT_CLOSE_LOBBIES = False
+MQTT_UPDATE_LOBBIES = False
 
 def server_on_message(client, userdata, message):
     # may need global variables
@@ -20,14 +23,22 @@ def server_on_message(client, userdata, message):
     global MQTT_LOBBIES
     global MQTT_TEAM1_READY
     global MQTT_TEAM2_READY
+    global MQTT_REMOVE_LOBBY
+    global MQTT_CLOSE_LOBBIES
+    global MQTT_UPDATE_LOBBIES
+    MQTT_RECEIVED = True
     MQTT_MESSAGE = msg_str
     if re.search(r'^Z', msg_str):
         MQTT_LOBBIES = msg_str
+        MQTT_UPDATE_LOBBIES = True
     if re.search(r'T1_READY', msg_str):
         MQTT_TEAM1_READY = True
     if re.search(r'T2_READY', msg_str):
         MQTT_TEAM2_READY = True
-    MQTT_RECEIVED = True
+    if re.search(r'R', msg_str):
+        MQTT_REMOVE_LOBBY = msg_str
+    if re.search(r'^G', msg_str):
+        MQTT_CLOSE_LOBBIES = True
     
 def server_on_connect(client, userdata, flags, rc):
     print("Remote play connection returned result: " + str(rc))

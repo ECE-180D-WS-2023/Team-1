@@ -30,8 +30,10 @@ song_dict = {
     'E': 'All You Need Is Love',
     'F': 'While My Guitar Gently Weeps'}
 
+my_pink = (242, 124, 201)
+
 class Button:
-    def __init__(self, text, x_pos, y_pos, enabled, screen, x_size = 300, y_size=40, toggle = True, song = False, clickable = True):
+    def __init__(self, text, x_pos, y_pos, enabled, screen, x_size = 300, y_size=40, toggle = True, song = False, clickable = True, color = my_pink):
         self.text = text
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -42,6 +44,7 @@ class Button:
         self.toggle = toggle
         self.song = song
         self.clickable = clickable
+        self.color = color
         #self.draw()
 
     def draw(self):
@@ -54,13 +57,13 @@ class Button:
         if self.check_hover():
             pygame.draw.rect(self.screen, 'purple', button_rect, 0, 5)
         else:
-            pygame.draw.rect(self.screen, 'pink', button_rect, 0 , 5)
+            pygame.draw.rect(self.screen, self.color, button_rect, 0 , 5)
         # add outline to button
         pygame.draw.rect(self.screen, 'black', button_rect, 2, 5)
         if self.song:
-            self.screen.blit(button_text, (self.x_pos+35, self.y_pos+10))
+            self.screen.blit(button_text, (self.x_pos+15, self.y_pos+10))
         else:
-            self.screen.blit(button_text, (self.x_pos+(self.x_size/4.5), self.y_pos+(self.y_size/4)))
+            self.screen.blit(button_text, (self.x_pos+(self.x_size/4)+10, self.y_pos+(self.y_size/4)))
     
     def draw_toggle(self):
         if not self.enabled:
@@ -98,6 +101,7 @@ class Button:
         left_click = pygame.mouse.get_pressed()[0]
         button_rect = pygame.rect.Rect((self.x_pos, self.y_pos), (300, 40))
         if left_click and button_rect.collidepoint(mouse_pos) and self.enabled:
+            print("i got clicked: " + self.text)
             return True
         else:
             return False
@@ -155,7 +159,7 @@ class Menu():
         # when LLR global = True, then 
         lobbies = []
         #print("parse lobbies: " + msg)
-        if msg == "" or msg == "Z":
+        if msg == "" or msg == "Z" or msg == "Z,":
             return lobbies
         msg = msg[2:]
         lobby_list = msg.split(',')
@@ -199,13 +203,16 @@ class Menu():
         waiting_room_screen = False
         open_lobby_screen = False
         song_letter = 'A'
+        
+        multi_color = (229, 152, 245)
+        quit_color = (173, 152, 245)
 
         # define buttons
         start_button = Button('Start!', 250, 220, True, screen)
         settings_button = Button('Settings', 250, 270, True, screen)
         tutorial_button = Button('Tutorial', 250, 320, True, screen)
-        quit_button = Button('Quit', 250, 370, True, screen)
-        remote_button = Button('Multiplayer', 250, 440, True, screen)
+        quit_button = Button('Quit', 250, 420, True, screen, color = quit_color)
+        remote_button = Button('Multiplayer', 250, 370, True, screen, color = multi_color)
 
         # remote_button = Button(remote_text, 250, 270, False, screen)
         player_text = ['One Player', 'Two Player']
@@ -217,7 +224,7 @@ class Menu():
 
         # team one buttons
         # upon clicking create lobby button, we go to song selection screen
-        create_lobby_button = Button('Create Lobby', 250, 320, False, screen)
+        create_lobby_button = Button('Create Lobby', 250, 440, False, screen)
         # after selecting a song, team 1 is now ready --> button says "waiting for team two to join"
         # until team 2 joins
         # join existing lobby --> 
@@ -232,7 +239,9 @@ class Menu():
         lobby2_button = Button("Lobby B", 150, 170, False, screen, x_size=500, song=True)
         lobby3_button = Button("Lobby C", 150, 220, False, screen, x_size=500, song=True)
         lobby4_button = Button("Lobby D", 150, 270, False, screen, x_size=500, song=True)
-        lobby_back_button = Button("                Return", 150, 320, False, screen, x_size = 500)
+        lobby5_button = Button("Lobby E", 150, 320, False, screen, x_size=500, song=True)
+        lobby6_button = Button("Lobby F", 150, 370, False, screen, x_size=500, song=True)
+        lobby_display = Button("", 150, 120, False, screen, x_size = 500, song=True, clickable=False)
         
         lobbies = []
         lobbies_buttons = []
@@ -240,15 +249,18 @@ class Menu():
         lobbies_buttons.append(lobby2_button)
         lobbies_buttons.append(lobby3_button)
         lobbies_buttons.append(lobby4_button)
+        lobbies_buttons.append(lobby5_button)
+        lobbies_buttons.append(lobby6_button)
+        
 
         # song buttons
-        song1_button = Button("A: I Gotta Feeling - Black Eyes Peas", 150, 120, False, screen, x_size=500, song=True)
-        song2_button = Button("B: American Teenager - Ethel Cain", 150, 170, False, screen, x_size=500, song=True)
-        song3_button = Button("C: Somebody That I Used To Know - Gotye", 150, 220, False, screen, x_size=500, song=True)
-        song4_button = Button("D: You Belong With Me - Taylor Swift", 150, 270, False, screen, x_size=500, song=True)
-        song5_button = Button("E: All You Need Is Love - The Beatles", 150, 320, False, screen, x_size=500, song = True)
-        song6_button = Button("F: While My Guitar Gently Weeps - The Beatles", 150, 370, False, screen, x_size=500, song = True)
-        song_back_button = Button("                Return", 150, 420, False, screen, x_size = 500)
+        song1_button = Button("A: I Gotta Feeling - Black Eyes Peas", 150, 120, False, screen, x_size=550, song=True)
+        song2_button = Button("B: American Teenager - Ethel Cain", 150, 170, False, screen, x_size=550, song=True)
+        song3_button = Button("C: Somebody That I Used To Know - Gotye", 150, 220, False, screen, x_size=550, song=True)
+        song4_button = Button("D: You Belong With Me - Taylor Swift", 150, 270, False, screen, x_size=550, song=True)
+        song5_button = Button("E: All You Need Is Love - The Beatles", 150, 320, False, screen, x_size=550, song = True)
+        song6_button = Button("F: While My Guitar Gently Weeps - The Beatles", 150, 370, False, screen, x_size=550, song = True)
+        song_back_button = Button("          Return", 150, 420, False, screen, x_size = 550)
         songs = []
         songs.append(song1_button)
         songs.append(song2_button)
@@ -271,6 +283,21 @@ class Menu():
         title_rect.center = (400, 600-7*600/8)
 
         song_text = 'a' 
+        msg = ''
+
+        def clear_flags():
+            # set all flags to false KATIE TODO make this a function
+            mqtt_lib.menu_mqtt.QUIT_CLICK = False
+            mqtt_lib.menu_mqtt.RETURN_CLICK = False
+            mqtt_lib.menu_mqtt.MESSAGE_RECEIVED = False
+            mqtt_lib.server_mqtt.MQTT_TEAM2_READY = False
+            mqtt_lib.server_mqtt.MQTT_TEAM1_READY = False
+            mqtt_lib.server_mqtt.MQTT_RECEIVED = False
+            mqtt_lib.menu_mqtt.CREATE_CLICK = False
+            mqtt_lib.menu_mqtt.MQTT_CLOSE_LOBBIES = False
+
+        clear_flags()
+
 
         while True: 
             # global flags
@@ -282,6 +309,7 @@ class Menu():
             mqtt_team1_ready = mqtt_lib.server_mqtt.MQTT_TEAM1_READY
             mqtt_remote_received = mqtt_lib.server_mqtt.MQTT_RECEIVED
             create_click = mqtt_lib.menu_mqtt.CREATE_CLICK
+            mqtt_update_lobbies = mqtt_lib.server_mqtt.MQTT_UPDATE_LOBBIES
             #print("mqtt_lobbies_list: " + mqtt_lobbies_list)
 
             tutorial = False
@@ -310,6 +338,7 @@ class Menu():
             player_button.draw_toggle()
             back_button.draw()
             team_id_button.draw_toggle()
+            lobby_display.draw()
             
             create_lobby_button.draw()
             team1_status.draw()
@@ -341,7 +370,7 @@ class Menu():
                         start_click = mqtt_lib.menu_mqtt.START_CLICK # ga
                         settings_click = mqtt_lib.menu_mqtt.SETTINGS_CLICK # sc
                         tutorial_click = mqtt_lib.menu_mqtt.TUTORIAL_CLICK # tc  
-                        play_click = mqtt_lib.menu_mqtt.PLAY_CLICK
+                        #play_click = mqtt_lib.menu_mqtt.PLAY_CLICK
                         multi_click = mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK
                         if start_button.check_click() or start_click:
                             #TODO send any flags to game here
@@ -394,8 +423,6 @@ class Menu():
                             back_button.enabled = True
                             team_id_button.enabled = True
                             remote_button.enabled = False
-                            mqtt_lib.menu_mqtt.MULTI_TEAM_CLICK = False
-                            mqtt_lib.menu_mqtt.SINGLE_TEAM_CLICK = False
                             mqtt_lib.menu_mqtt.ONE_PLAYER_CLICK= False
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
                             mqtt_lib.menu_mqtt.TEAM_A_CLICK= False
@@ -413,6 +440,8 @@ class Menu():
                             remote_button.enabled = False
                             create_lobby_button.enabled = True
                             back_button.enabled = True
+                            back_button.x_pos = 250
+                            back_button.y_pos = 490
                             multi = True
                             # KATIE TODO need to ping MQTT here for lobby list
                             remote_client.publish("ECE180/remote", "LLR", qos=1)
@@ -423,14 +452,45 @@ class Menu():
                             # for each lobby, enable a button in lobby list
                                 # set that button's text to 
                                 # song name + # of players from lobby[0] and lobby[1]
-                            i = 0
+                            # for song in songs:
+                            #     song.color = my_pink
                             for lobby in lobbies:
                                 print(lobby)
-                                lobbies_buttons[i].enabled = True
+                                # BEEP
+                                lobby_text = lobby[0] + " - " + song_dict[lobby[0]] + ", #Players = " + lobby[1]
+                                dark_pink = (173, 121, 155)
+                                if lobby[0] == 'A':
+                                    lobbies_buttons[0].enabled = True
+                                    lobbies_buttons[0].text = lobby_text
+                                    song1_button.color = dark_pink
+                                    song1_button.clickable = False
+                                if lobby[0] == 'B':
+                                    lobbies_buttons[1].enabled = True
+                                    lobbies_buttons[1].text = lobby_text
+                                    song2_button.color = dark_pink
+                                    song2_button.clickable = False
+                                if lobby[0] == 'C':
+                                    lobbies_buttons[2].enabled = True
+                                    lobbies_buttons[2].text = lobby_text
+                                    song3_button.color = dark_pink
+                                    song3_button.clickable = False
+                                if lobby[0] == 'D':
+                                    lobbies_buttons[3].enabled = True
+                                    lobbies_buttons[3].text = lobby_text
+                                    song4_button.color = dark_pink
+                                    song4_button.clickable = False
+                                if lobby[0] == 'E':
+                                    lobbies_buttons[4].enabled = True
+                                    lobbies_buttons[4].text = lobby_text
+                                    song5_button.color = dark_pink
+                                    song5_button.clickable = False
+                                if lobby[0] == 'F':
+                                    lobbies_buttons[5].enabled = True
+                                    lobbies_buttons[5].text = lobby_text
+                                    song6_button.color = dark_pink
+                                    song6_button.clickable = False
                                 player_num = int(lobby[1])
-                                lobby_text = song_dict[lobby[0]] + ", #Players = " + lobby[1]
-                                lobbies_buttons[i].text = lobby_text
-                                i += 1
+                                # BEEP
                             break
                         
                     if settings_screen:
@@ -502,6 +562,14 @@ class Menu():
                         song_e = mqtt_lib.menu_mqtt.SONG_E
                         song_f = mqtt_lib.menu_mqtt.SONG_F
                         tutorial = False
+                        if not multi:
+                            for song in songs:
+                                song.color = my_pink
+                                song.clickable = True
+                        elif multi:
+                            for song in songs:
+                                if not song.clickable:
+                                    song.color = dark_pink
                         if song_back_button.check_click() or return_click: 
                             if multi:
                                 multi = False
@@ -513,6 +581,7 @@ class Menu():
                             settings_button.enabled = True
                             tutorial_button.enabled = True
                             quit_button.enabled = True
+                            remote_button.enabled = True
                             for song in songs:
                                 song.enabled = False
                             song_back_button.enabled = False
@@ -543,7 +612,10 @@ class Menu():
                             team1 = True
                             return [multi, player_num, song6_button.text, tutorial, team1, TEAM_ID]
                     if lobby_screen:
+                        mqtt_lobbies_list = mqtt_lib.server_mqtt.MQTT_LOBBIES
+                        lobbies = self.parse_lobbies(mqtt_lobbies_list)
                         for lobby_button in lobbies_buttons:
+                            # KATIE TODO add voice recog here somehow
                             if lobby_button.enabled and lobby_button.check_click():
                                 waiting_room_screen = True
                                 lobby_screen = False
@@ -552,13 +624,22 @@ class Menu():
                                 team2_status.text = "T2 Ready"
                                 team1_status.enabled = True
                                 team2_status.enabled = True
-                                lobby_button.enabled = False
+                                i = 0
+                                for button in lobbies_buttons:
+                                    print("disabling lobby button: " + str(i))
+                                    button.enabled = False
+                                    print("open lobby button status: " + str(button.enabled))
+                                    i += 1
+
                                 create_lobby_button.enabled = False
                                 remote_client.publish("ECE180/remote", "T2_READY", qos=1)
                                 song_text = lobby_button.text
-                                print("song for me: " + song_text)
-                                lobbies_buttons[0] = lobby_button
-                                lobbies_buttons[0].enabled = True
+                                # print("song for me: " + song_text)
+                                # lobbies_buttons[0] = lobby_button
+                                # lobbies_buttons[0].enabled = True
+                                # display 
+                                lobby_display.text = lobby_button.text
+                                lobby_display.enabled = True
                                 team1 = False
                                 break
                         if back_button.check_click() or return_click:
@@ -573,12 +654,15 @@ class Menu():
                             quit_button.enabled = True
                             remote_button.enabled = True
                             back_button.enabled = False
-                            #team1_status.enabled = True
-                            #team2_status.enabled = True
+                            team1_status.enabled = False
+                            team2_status.enabled = False
                             create_lobby_button.enabled = False
-                            time.sleep(0.10)
+                            lobby_display.enabled = False
+                            i = 0
                             for lobby in lobbies_buttons:
-                                lobby.enabled = False
+                                lobbies_buttons[i].enabled = False
+                                i += 1
+                            time.sleep(0.20)
                             break
                         if create_lobby_button.check_click() or create_click:
                             print("CREATE LOBBY TIME")
@@ -592,19 +676,62 @@ class Menu():
                             song_back_button.enabled = True
                             create_lobby_button.enabled = False
                             team1 = True
-                            time.sleep(0.25)
                             for song in songs:
                                 song.enabled = True
-                            break
-                        if mqtt_remote_received:
-                            lobbies = self.parse_lobbies(mqtt_lobbies_list)
+                                # BEEP
+                                #print("song click status: " + str(song.clickable))
+                                if not song.clickable:
+                                    song.color = dark_pink
                             i = 0
-                            for lobby in lobbies:
-                                lobbies_buttons[i].enabled = True
-                                player_num = int(lobby[1])
-                                lobby_text = lobby[0] + ": " +  song_dict[lobby[0]] + ", #Players = " + lobby[1]
-                                lobbies_buttons[i].text = lobby_text
+                            for lobby in lobbies_buttons:
+                                lobbies_buttons[i].enabled = False
                                 i += 1
+                            time.sleep(0.5)
+                            break
+                        if mqtt_update_lobbies and not waiting_room_screen:
+                            #KATIE TODO i have created an endless loop
+                            #remote_client.publish("ECE180/remote", "LLR", qos=1)
+                            lobbies = self.parse_lobbies(mqtt_lobbies_list)
+                            for lobby in lobbies:
+                                print(lobby)
+                                # BEEP
+                                print(lobby)
+                                # BEEP
+                                dark_pink = (173, 121, 155)
+                                lobby_text = lobby[0] + " - " + song_dict[lobby[0]] + ", #Players = " + lobby[1]
+                                if lobby[0] == 'A':
+                                    lobbies_buttons[0].enabled = True
+                                    lobbies_buttons[0].text = lobby_text
+                                    song1_button.color = dark_pink
+                                    song1_button.clickable = False
+                                if lobby[0] == 'B':
+                                    lobbies_buttons[1].enabled = True
+                                    lobbies_buttons[1].text = lobby_text
+                                    song2_button.color = dark_pink
+                                    song2_button.clickable = False
+                                if lobby[0] == 'C':
+                                    lobbies_buttons[2].enabled = True
+                                    lobbies_buttons[2].text = lobby_text
+                                    song3_button.color = dark_pink
+                                    song3_button.clickable = False
+                                if lobby[0] == 'D':
+                                    lobbies_buttons[3].enabled = True
+                                    lobbies_buttons[3].text = lobby_text
+                                    song4_button.color = dark_pink
+                                    song4_button.clickable = False
+                                if lobby[0] == 'E':
+                                    lobbies_buttons[4].enabled = True
+                                    lobbies_buttons[4].text = lobby_text
+                                    song5_button.color = dark_pink
+                                    song5_button.clickable = False
+                                if lobby[0] == 'F':
+                                    lobbies_buttons[5].enabled = True
+                                    lobbies_buttons[5].text = lobby_text
+                                    song6_button.color = dark_pink
+                                    song6_button.clickable = False
+                                player_num = int(lobby[1])
+                                # BEEP
+                            mqtt_lib.server_mqtt.MQTT_RECEIVED = False
                             break
                     if open_lobby_screen:
                         # KATIE TODO if multi = false, go back to menu (smth is wrong)
@@ -634,6 +761,7 @@ class Menu():
                             for song in songs:
                                 song.enabled = False
                             song_back_button.enabled = False
+                            time.sleep(0.25)
                             break
                         #KATIE TODO add voice recog
                         elif song1_button.check_click() or song_a:
@@ -648,11 +776,11 @@ class Menu():
                             team2_status.enabled = True
                             back_button.text = "Return to main menu"
                             back_button.enabled = True
-                            lobbies_buttons[0].enabled = True
                             lobby_text = song_dict['A'] + ", #Players = " + str(player_num)
-                            lobbies_buttons[0].text = lobby_text
-                            lobbies_buttons[0].clickable = False
+                            lobby_display.text = lobby_text
+                            lobby_display.enabled = True
                             song_text = 'A'
+                            #TODO fix this ???
                             # publish to MQTT TODO
                             msg = "A" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
@@ -670,10 +798,9 @@ class Menu():
                             team2_status.enabled = True
                             back_button.text = "Return to main menu"
                             back_button.enabled = True
-                            lobbies_buttons[0].enabled = True
                             lobby_text = song_dict['B'] + ", #Players = " + str(player_num)
-                            lobbies_buttons[0].text = lobby_text
-                            lobbies_buttons[0].clickable = False
+                            lobby_display.text = lobby_text
+                            lobby_display.enabled = True
                             song_text = 'B'
                             # publish to MQTT TODO
                             msg = "B" + str(player_num)
@@ -693,11 +820,10 @@ class Menu():
                             team2_status.enabled = True
                             back_button.text = "Return to main menu"
                             back_button.enabled = True
-                            lobbies_buttons[0].enabled = True
                             song_text = 'C'
                             lobby_text = song_dict['C'] + ", #Players = " + str(player_num)
-                            lobbies_buttons[0].text = lobby_text
-                            lobbies_buttons[0].clickable = False
+                            lobby_display.text = lobby_text
+                            lobby_display.enabled = True
                             # publish to MQTT TODO
                             msg = "C" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
@@ -716,11 +842,10 @@ class Menu():
                             team2_status.enabled = True
                             back_button.text = "Return to main menu"
                             back_button.enabled = True
-                            lobbies_buttons[0].enabled = True
                             lobby_text = song_dict['D'] + ", #Players = " + str(player_num)
-                            lobbies_buttons[0].text = lobby_text
-                            lobbies_buttons[0].clickable = False
                             song_text = 'D'
+                            lobby_display.text = lobby_text
+                            lobby_display.enabled = True
                             # publish to MQTT TODO
                             msg = "D" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
@@ -739,11 +864,10 @@ class Menu():
                             team2_status.enabled = True
                             back_button.text = "Return to main menu"
                             back_button.enabled = True
-                            lobbies_buttons[0].enabled = True
                             lobby_text = song_dict['E'] + ", #Players = " + str(player_num)
-                            lobbies_buttons[0].text = lobby_text
-                            lobbies_buttons[0].clickable = False
                             song_text = 'E'
+                            lobby_display.text = lobby_text
+                            lobby_display.enabled = True
                             # publish to MQTT TODO
                             msg = "E" + str(player_num)
                             remote_client.publish("ECE180/remote", msg, qos=1)
@@ -762,10 +886,9 @@ class Menu():
                             team2_status.enabled = True
                             back_button.text = "Return to main menu"
                             back_button.enabled = True
-                            lobbies_buttons[0].enabled = True
                             lobby_text = song_dict['F'] + ", #Players = " + str(player_num)
-                            lobbies_buttons[0].text = lobby_text
-                            lobbies_buttons[0].clickable = False
+                            lobby_display.text = lobby_text
+                            lobby_display.enabled = True
                             song_text = 'F'
                             # publish to MQTT TODO
                             msg = "F" + str(player_num)
@@ -774,15 +897,43 @@ class Menu():
                             break
                             #return [multi, player_num, song6_button.text, tutorial]
                     if waiting_room_screen:
-                        # if team 1:
+                        if back_button.check_click() or return_click:
+                            # print("back to da menu")
+                            mqtt_lib.menu_mqtt.RETURN_CLICK = False
+                            menu_screen = True
+                            back_button.text = "Return"
+                            waiting_room_screen = False
+                            for lobby_button in lobbies_buttons:
+                                lobby_button.enabled = False
+                            # toggle buttons
+                            back_button.enabled = False
+                            team1_status.enabled = False
+                            team2_status.enabled = False
+                            remote_button.enabled = True
+                            start_button.enabled = True
+                            settings_button.enabled = True
+                            tutorial_button.enabled = True
+                            quit_button.enabled = True
+                            lobby_display.enabled = False
+                            quit_click = False
+                            play_button.enabled = False
+                            # KATIE TODO remove lobby from lobby list
+                            remove_lobby = "R" + song_text[0].capitalize() + str(player_num)
+                            remote_client.publish("ECE180/remote", remove_lobby, qos=1)
+                            print("waiting room removing lobby:" + remove_lobby)
+                            time.sleep(0.15)
+                            break
                         #if team1:
                         if team1 and play_button.check_click():
                             print("team 1 launching")
                             #song_text = lobbies_buttons[0].text
                             remote_client.publish("ECE180/remote", "T1_READY", qos=1)
+                            # remove lobby from lobby list KATIE TODO
+                            remove_lobby = "R" + song_text[0].capitalize() + str(player_num)
+                            remote_client.publish("ECE180/remote", remove_lobby, qos=1)
+                            remote_client.publish("ECE180/remote", msg, qos=1)
                             return [multi, player_num, song_text, tutorial, team1, TEAM_ID]
                         elif team1 and mqtt_team2_ready:
-                            #print("yuh yuh yuh")
                             team2_status.text = "T2 Ready"
                             play_button.enabled = True
                             break
@@ -797,26 +948,6 @@ class Menu():
                             #song_text = lobbies_buttons[0].text
                             return [multi, player_num, song_text, tutorial, team1, TEAM_ID]
                             # draw play button
-                        if back_button.check_click() or return_click:
-                            # print("back to da menu")
-                            mqtt_lib.menu_mqtt.RETURN_CLICK = False
-                            menu_screen = True
-                            back_button.text = "Return"
-                            menu_screen = True
-                            waiting_room_screen = False
-                            # toggle buttons
-                            back_button.enabled = False
-                            team1_status.enabled = False
-                            team2_status.enabled = False
-                            remote_button.enabled = True
-                            start_button.enabled = True
-                            settings_button.enabled = True
-                            tutorial_button.enabled = True
-                            quit_button.enabled = True
-                            lobbies_buttons[0].enabled = False
-                            quit_click = False
-                            time.sleep(0.25)
-                            break
                     # jonathan TODO: add score screen here (i.e. if score_screen:)
                     
                                                     
@@ -826,5 +957,6 @@ class Menu():
             if mqtt_remote_received:
                 pygame.event.post(pygame.event.Event(MESSAGE))
                 mqtt_remote_received = False
+                #mqtt_lib.server_mqtt.MQTT_RECEIVED = False
             # updates the frames of the game 
             pygame.display.update() 
