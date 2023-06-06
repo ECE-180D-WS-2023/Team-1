@@ -167,6 +167,33 @@ class Menu():
         for item in lobby_list:
             lobbies.append((item[0], item[1]))
         return lobbies
+    
+    def lobby_speech_check(self): # check speech for joining a lobby
+        song_a = mqtt_lib.menu_mqtt.SONG_A
+        song_b = mqtt_lib.menu_mqtt.SONG_B
+        song_c = mqtt_lib.menu_mqtt.SONG_C
+        song_d = mqtt_lib.menu_mqtt.SONG_D
+        song_e = mqtt_lib.menu_mqtt.SONG_E
+        song_f = mqtt_lib.menu_mqtt.SONG_F
+        if song_a:
+            mqtt_lib.menu_mqtt.SONG_A = False
+            return 'A'
+        elif song_b:
+            mqtt_lib.menu_mqtt.SONG_B = False
+            return 'B'
+        elif song_c:
+            mqtt_lib.menu_mqtt.SONG_C = False
+            return 'C'
+        elif song_d:
+            mqtt_lib.menu_mqtt.SONG_D = False
+            return 'D'
+        elif song_e:
+            mqtt_lib.menu_mqtt.SONG_E = False
+            return 'E'
+        elif song_f:
+            mqtt_lib.menu_mqtt.SONG_F = False
+            return 'F'
+        return ''
 
     def start(self):
         # initializing the constructor 
@@ -624,7 +651,11 @@ class Menu():
                         lobbies = self.parse_lobbies(mqtt_lobbies_list)
                         # anna TODO add voice recog here pls
                         for lobby_button in lobbies_buttons:
-                            if lobby_button.enabled and lobby_button.check_click():
+                            lobby = self.lobby_speech_check() # returns lobby activated by speech
+                            lobby_speech = False
+                            if lobby == lobby_button.text[0]:
+                                lobby_speech = True
+                            if lobby_button.enabled and (lobby_button.check_click() or lobby_speech):
                                 waiting_room_screen = True
                                 lobby_screen = False
                                 #print("lobby button opened!")
