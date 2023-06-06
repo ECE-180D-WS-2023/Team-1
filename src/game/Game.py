@@ -91,7 +91,7 @@ class Game():
         self.hitzone_font = pygame.font.Font('fonts/JMHTypewriter.ttf', HITZONE_FONT_SIZE)
         self.paused_font = pygame.font.Font('fonts/JMHTypewriter.ttf', PAUSED_FONT_SIZE)
         self.points_font = pygame.font.Font('fonts/JMHTypewriter.ttf', RESULT_FONT_SIZE)
-        self.scoreboard_font = pygame.font.Font('fonts/JMHTypewriter.ttf', RESULT_FONT_SIZE)
+        self.scoreboard_font = pygame.font.Font('fonts/JMHTypewriter.ttf', 40)
 
         # custom events for receiving imu action
         self.ACTION_1 = pygame.USEREVENT + 2 # for p1
@@ -99,6 +99,9 @@ class Game():
         self.pause_button = pygame.image.load("sprites/pause_g38.png").convert_alpha()
         self.play_button = pygame.image.load("sprites/play_g38.png").convert_alpha()
         self.record_icon = pygame.image.load("sprites/rec_button_90.png").convert_alpha()
+
+        # background for the score board
+        self.bg = pygame.image.load("sprites/background.png").convert_alpha()
 
     def tutorial(self, num_players=2, teamID = 1): #tutorial mode of the game (Slow bpm to spawn notes)
         globals.NUM_PLAYERS = num_players
@@ -120,9 +123,12 @@ class Game():
 
         # Instantiate sprite groups
         players = pygame.sprite.Group()
+        activities = pygame.sprite.Group()
         players.add(Player(1))
+        activities.add(Activity(1))
         if(num_players == 2):
             players.add(Player(2))
+            activities.add(Activity(2))
 
         # probably will eventually include other sprites like powerups or chars
         all_sprites = pygame.sprite.Group()
@@ -142,6 +148,10 @@ class Game():
         note_spawn_speed_ms = ((1/self.bpm)*60)*1000
 
         last_note_update = pygame.time.get_ticks()
+
+        # stores previous pause state to know whether we resumed or not to continue note generation
+        prev_pause = False
+        prev_start_game = False
 
         if num_players == 1:
             notes_list = [[1,1,'u'], [1,2,'l'], [1,3,'f'], [1,4,'r']] # TO_DO: create lists for player note patterns for tutorial
@@ -168,7 +178,7 @@ class Game():
                     self.__process_keydown(event.key)
                 # Check for QUIT event. If QUIT, then set running to false.
                 elif event.type == QUIT:
-                    break
+                    self.running = False
                 # spawn note event
                 elif event.type == SPAWNNOTE:
                     color_idx = notes_list[score][0]
@@ -184,10 +194,34 @@ class Game():
                 # if we receive some action from imu
                 elif event.type == self.ACTION_1:
                     self.__process_action_event(1)
+                    for activity in activities:
+                        if activity.play_num == 1:
+                            activity.toggle()
                 # this should never be true in 1p bcus action_2 should never be raised
                 elif event.type == self.ACTION_2:
                     self.__process_action_event(2)
+                    for activity in activities:
+                        if activity.play_num == 2:
+                                activity.toggle()
             
+            # handle voice recognition stuff
+            if self.active_listeners['speech_listener'].received:
+                self.__interpret_voice_recog(self.active_listeners['speech_listener'].keyword)
+                self.active_listeners['speech_listener'].debug_set_received(val=False)
+            # handling pause -> unpause transition to resume note spawning timer
+                # if we just started to pause, set note spawning timer to 0
+                # if we just resumed the game, set note spawning timer back to normal
+            if self.pause or self.button_pause:
+                if prev_pause == False:
+                    pygame.time.set_timer(SPAWNNOTE, 0)
+                prev_pause = True
+            # if BOTH pause and button_pause false
+            else:
+                if prev_pause == True:
+                    start_note_spawn_delay = True
+                    start_note_spawn_timestamp = pygame.time.get_ticks()
+                prev_pause = False
+
             # same with start_game to start the note timer
             if self.start_game:
                 if prev_start_game == False:
@@ -215,6 +249,16 @@ class Game():
                     player.update_player_pos(player_num = 1, coords = self.active_listeners['localization_listener'].p1.coords)
                 elif (player.player_num == 2):
                     player.update_player_pos(player_num = 2, coords = self.active_listeners['localization_listener'].p2.coords)
+            for activity in activities:
+                activity.update()
+
+            for note in self.notes:
+                if note.fade:
+                    fading_note = FadingNote(note)
+                    self.fading_notes.add(fading_note)
+                    note.fade = False
+            # update fading notes animation
+            self.fading_notes.update()
 
             # Fill the screen with background color
             screen.fill(Color.BACKGROUND)
@@ -231,11 +275,16 @@ class Game():
             pygame.draw.line(screen, Color.RED, (0, HIT_ZONE_LOWER), (SCREEN_WIDTH, HIT_ZONE_LOWER))
 
             # draw all sprites
+            # update player location
             for player in players:
                 screen.blit(player.surf, player.rect)
                 draw_rect_alpha(screen, player.highlight_color, player.highlight_rec)
             for note in self.notes:
                 screen.blit(note.surf, note.rect)
+            for fading_note in self.fading_notes:
+                screen.blit(fading_note.surf, fading_note.rect)
+            for activity in activities:
+                screen.blit(activity.surf, activity.rect)
 
             # text for gesture results
             screen.blit(self.result_font.render(globals.action_input_result_text.text, True, Color.BLACK), globals.action_input_result_text.rect)
@@ -790,9 +839,13 @@ class Game():
     # just draws blank screen with basically two text boxes available centered in the middle of the screen
     # if only single player, dont need to set lower_text, just set my_score to globals.points
     def __display_scoreboard(self, screen, my_score_text, opponent_score_text=""):
+        title_font = pygame.font.Font('fonts/JMHTypewriter.ttf', 70)
+        title_text = title_font.render("Game Over!", True, (0,0,0))
+        title_rect = title_text.get_rect()
+        title_rect.center = (400, 600-7*600/8)
         # fill the screen with white
-        screen.fill((255, 255, 255))
-
+        screen.blit(self.bg, (0,0,800,600))
+        screen.blit(title_text, title_rect)
         # calculate the screen center
         screen_center = (screen.get_width() // 2, screen.get_height() // 2)
 
@@ -811,3 +864,21 @@ class Game():
         # blit the text surfaces onto the screen
         screen.blit(upper_surface, upper_rect)
         screen.blit(lower_surface, lower_rect)
+        result = "Exit to play again!"
+        if (opponent_score_text != ""):
+            result = ""
+            my_point_split = my_score_text.split(": ")
+            my_points = int(my_point_split[1])
+            opponent_point_split = opponent_score_text.split(": ")
+            opponent_points = int(opponent_point_split[1])
+            if (my_points < opponent_points):
+                result = "You lose :("
+            elif (my_points == opponent_points):
+                result = "You tie :)"
+            else:
+                result = "You win :)"
+        result_font = pygame.font.Font('fonts/JMHTypewriter.ttf', 48)
+        result_text = result_font.render(result, True, (0,0,0))
+        result_rect = result_text.get_rect()
+        result_rect.center = (400, 600-2*600/8)
+        screen.blit(result_text, result_rect)
