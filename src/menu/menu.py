@@ -63,7 +63,7 @@ class Button:
         if self.song:
             self.screen.blit(button_text, (self.x_pos+15, self.y_pos+10))
         else:
-            self.screen.blit(button_text, (self.x_pos+(self.x_size/4)+10, self.y_pos+(self.y_size/4)))
+            self.screen.blit(button_text, (self.x_pos+(self.x_size/4.2), self.y_pos+(self.y_size/4)))
     
     def draw_toggle(self):
         if not self.enabled:
@@ -229,7 +229,7 @@ class Menu():
         # until team 2 joins
         # join existing lobby --> 
         team1_status = Button('T1 Ready', 150, 300, False, screen, x_size = 200, y_size = 40, clickable = False)
-        team2_status = Button('Waiting for T2...', 500, 300, False, screen, x_size = 200, y_size = 40, clickable = False)
+        team2_status = Button('Waiting for T2...', 500, 300, False, screen, x_size = 200, y_size = 40, clickable = False, song = True)
 
         play_button = Button('Play', 400, 300, False, screen, x_size = 80, y_size = 40)
         # join_open_lobby = Button('Join Open Lobby', 250, 270, False, screen)
@@ -620,7 +620,8 @@ class Menu():
                                 waiting_room_screen = True
                                 lobby_screen = False
                                 #print("lobby button opened!")
-                                back_button.text = "Return to main menu"
+                                back_button.song = True
+                                back_button.text = "   Return to main menu"
                                 team2_status.text = "T2 Ready"
                                 team1_status.enabled = True
                                 team2_status.enabled = True
@@ -774,7 +775,8 @@ class Menu():
                             song_back_button.enabled = False
                             team1_status.enabled = True
                             team2_status.enabled = True
-                            back_button.text = "Return to main menu"
+                            back_button.song = True
+                            back_button.text = "   Return to main menu"
                             back_button.enabled = True
                             lobby_text = song_dict['A'] + ", #Players = " + str(player_num)
                             lobby_display.text = lobby_text
@@ -796,7 +798,8 @@ class Menu():
                             song_back_button.enabled = False
                             team1_status.enabled = True
                             team2_status.enabled = True
-                            back_button.text = "Return to main menu"
+                            back_button.song = True
+                            back_button.text =  "   Return to main menu"
                             back_button.enabled = True
                             lobby_text = song_dict['B'] + ", #Players = " + str(player_num)
                             lobby_display.text = lobby_text
@@ -818,7 +821,8 @@ class Menu():
                             song_back_button.enabled = False
                             team1_status.enabled = True
                             team2_status.enabled = True
-                            back_button.text = "Return to main menu"
+                            back_button.song = True
+                            back_button.text = "   Return to main menu"
                             back_button.enabled = True
                             song_text = 'C'
                             lobby_text = song_dict['C'] + ", #Players = " + str(player_num)
@@ -840,7 +844,8 @@ class Menu():
                             song_back_button.enabled = False
                             team1_status.enabled = True
                             team2_status.enabled = True
-                            back_button.text = "Return to main menu"
+                            back_button.song = True
+                            back_button.text = "   Return to main menu"
                             back_button.enabled = True
                             lobby_text = song_dict['D'] + ", #Players = " + str(player_num)
                             song_text = 'D'
@@ -862,7 +867,8 @@ class Menu():
                             song_back_button.enabled = False
                             team1_status.enabled = True
                             team2_status.enabled = True
-                            back_button.text = "Return to main menu"
+                            back_button.song = True
+                            back_button.text = "   Return to main menu"
                             back_button.enabled = True
                             lobby_text = song_dict['E'] + ", #Players = " + str(player_num)
                             song_text = 'E'
@@ -884,7 +890,8 @@ class Menu():
                             song_back_button.enabled = False
                             team1_status.enabled = True
                             team2_status.enabled = True
-                            back_button.text = "Return to main menu"
+                            back_button.song = True
+                            back_button.text = "   Return to main menu"
                             back_button.enabled = True
                             lobby_text = song_dict['F'] + ", #Players = " + str(player_num)
                             lobby_display.text = lobby_text
@@ -902,6 +909,7 @@ class Menu():
                             mqtt_lib.menu_mqtt.RETURN_CLICK = False
                             menu_screen = True
                             back_button.text = "Return"
+                            back_button.song = False
                             waiting_room_screen = False
                             for lobby_button in lobbies_buttons:
                                 lobby_button.enabled = False
