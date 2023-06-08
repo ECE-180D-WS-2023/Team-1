@@ -118,6 +118,7 @@ def detect_position(colors, camera, verbose = False, channel="ktanna/local"): # 
     last_rp = 0 # last red position (1 through 4)
     last_bx = 0 # last blue absolute position
     last_bp = 0 # last blue position (1 through 4)
+    last_mqtt = ''
     # Start reading in orders
     while (start):
         # Reading the video from the webcam in image frames
@@ -228,9 +229,12 @@ def detect_position(colors, camera, verbose = False, channel="ktanna/local"): # 
             last_bx = bx
 
         mqtt_send = ','+ str(last_rp) + ',' + str(last_rx) + ',' + str(last_bp) + ',' + str(last_bx) + ','
-        client.publish(channel, mqtt_send, qos=1) # publish on MQTT
+        if mqtt_send != last_mqtt: # only if new info send
+            client.publish(channel, mqtt_send, qos=1) # publish on MQTT
+        last_mqtt = ''
+        last_mqtt = mqtt_send
         start = time.time()
-        while time.time() < start + 0.006: # adding delay
+        while time.time() < start + 0.010: # adding delay of 10 ms
             pass
         # commented out showing frame
         
