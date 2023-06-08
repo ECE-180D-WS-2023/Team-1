@@ -2,8 +2,8 @@ import time
 #import keyboard
 import pygame
 import paho.mqtt.client as mqtt
-# from menu import mqtt_lib
-import mqtt_lib
+from menu import mqtt_lib
+# import mqtt_lib
 # from menu.mqtt_lib import SpeechFlags, MenuSpeechListener
 import re
 
