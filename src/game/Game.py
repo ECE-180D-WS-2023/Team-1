@@ -809,15 +809,21 @@ class Game():
         if player_action_num == 1:
             if (self.red_notes):
                 lowest_note = get_lowest_note(self.red_notes)
-                action_input_result = lowest_note.process_action_location(self.imu_action_1, self.active_listeners['localization_listener'].p1.location, 1)
-                self.__calc_points(action_input_result)
+                if not (lowest_note is None):
+                    action_input_result = lowest_note.process_action_location(self.imu_action_1, self.active_listeners['localization_listener'].p1.location, 1)
+                    self.__calc_points(action_input_result)
+                else:
+                    action_input_result = "Wrong Motion!"
             else:
                 action_input_result = "No Red Notes Yet!"
         else:
             if (self.blue_notes):
                 lowest_note = get_lowest_note(self.blue_notes)
-                action_input_result = lowest_note.process_action_location(self.imu_action_2, self.active_listeners['localization_listener'].p2.location, 2)
-                self.__calc_points(action_input_result)
+                if not (lowest_note is None):
+                    action_input_result = lowest_note.process_action_location(self.imu_action_2, self.active_listeners['localization_listener'].p2.location, 2)
+                    self.__calc_points(action_input_result)
+                else:
+                    action_input_result = "Wrong Motion!"
             else:
                 action_input_result = "No Blue Notes Yet!"
         globals.action_input_result_text.update(text=action_input_result)

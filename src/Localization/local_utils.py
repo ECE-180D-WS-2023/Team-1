@@ -24,6 +24,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 import paho.mqtt.client as mqtt
+import time
 
 # 0. define callbacks - functions that run when events happen.
 # The callback for when the client receives a CONNACK response from the server.
@@ -228,6 +229,9 @@ def detect_position(colors, camera, verbose = False, channel="ktanna/local"): # 
 
         mqtt_send = ','+ str(last_rp) + ',' + str(last_rx) + ',' + str(last_bp) + ',' + str(last_bx) + ','
         client.publish(channel, mqtt_send, qos=1) # publish on MQTT
+        start = time.time()
+        while time.time() < start + 0.006: # adding delay
+            pass
         # commented out showing frame
         
         if verbose:
