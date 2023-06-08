@@ -143,10 +143,10 @@ class Button:
 class Menu():
     def __init__(self):
         self.t1_flags = mqtt_lib.SpeechFlags()
-        self.t1_listener = mqtt_lib.MenuSpeechListener(t1_flags, "EECE180/Team1/speech")
+        self.t1_listener = mqtt_lib.MenuSpeechListener(self.t1_flags, "EECE180/Team1/speech")
 
         self.t2_flags = mqtt_lib.SpeechFlags()
-        self.t2_listener = mqtt_lib.MenuSpeechListener(t2_flags, "EECE180/Team2/speech")
+        self.t2_listener = mqtt_lib.MenuSpeechListener(self.t2_flags, "EECE180/Team2/speech")
 
         self.team = 1 
         self.speech_flags = self.t1_flags

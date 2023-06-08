@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+import paho.mqtt.client as mqtt
 
 # start, settings, tutorial, quit, single team, multi team, 1 player, 2 player
 START_CLICK = False # key = ga
