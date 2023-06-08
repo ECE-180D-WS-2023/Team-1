@@ -30,8 +30,12 @@ while (True):
     #client.publish("ECE180/remote", "LLR", qos=1)
     # publish new lobby
     client.publish("ECE180/remote", "B1", qos=1)
-    # request lobby list
+    client.publish("ECE180/remote", "C1", qos=1)
     client.publish("ECE180/remote", "A1", qos=1)
+    client.publish("ECE180/remote", "E1", qos=1)
+    client.publish("ECE180/remote", "F1", qos=1)    
+    # request lobby list
+    #client.publish("ECE180/remote", "A1", qos=1)
     # client.publish("ECE180/remote", "C1", qos=1)
     # client.publish("ECE180/remote", "E1", qos=1)
     # client.publish("ECE180/remote", "F1", qos=1)

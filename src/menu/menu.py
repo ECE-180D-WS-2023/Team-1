@@ -177,20 +177,21 @@ class Menu():
         song_f = mqtt_lib.menu_mqtt.SONG_F
         if song_a:
             mqtt_lib.menu_mqtt.SONG_A = False
+            print("SOnG A!!!!! ")
             return 'A'
-        elif song_b:
+        if song_b:
             mqtt_lib.menu_mqtt.SONG_B = False
             return 'B'
-        elif song_c:
+        if song_c:
             mqtt_lib.menu_mqtt.SONG_C = False
             return 'C'
-        elif song_d:
+        if song_d:
             mqtt_lib.menu_mqtt.SONG_D = False
             return 'D'
-        elif song_e:
+        if song_e:
             mqtt_lib.menu_mqtt.SONG_E = False
             return 'E'
-        elif song_f:
+        if song_f:
             mqtt_lib.menu_mqtt.SONG_F = False
             return 'F'
         return ''
@@ -483,6 +484,7 @@ class Menu():
                             remote_client.publish("ECE180/remote", "LLR", qos=1)
                             #print("lobbies before: " + str(lobbies))
                             lobbies = self.parse_lobbies(mqtt_lobbies_list)
+                            clear_letters()
                             #print("lobbies after: " + str(lobbies))
                             # loop through current lobbies
                             # for each lobby, enable a button in lobby list
@@ -648,10 +650,37 @@ class Menu():
                             return [multi, player_num, song6_button.text, tutorial, team1, TEAM_ID]
                     if lobby_screen:
                         mqtt_lobbies_list = mqtt_lib.server_mqtt.MQTT_LOBBIES
+                        song_a = mqtt_lib.menu_mqtt.SONG_A
+                        song_b = mqtt_lib.menu_mqtt.SONG_B
+                        song_c = mqtt_lib.menu_mqtt.SONG_C
+                        song_d = mqtt_lib.menu_mqtt.SONG_D
+                        song_e = mqtt_lib.menu_mqtt.SONG_E
+                        song_f = mqtt_lib.menu_mqtt.SONG_F
                         lobbies = self.parse_lobbies(mqtt_lobbies_list)
                         # anna TODO add voice recog here pls
                         for lobby_button in lobbies_buttons:
-                            lobby = self.lobby_speech_check() # returns lobby activated by speech
+                            lobby = ''
+                            if song_a:
+                                mqtt_lib.menu_mqtt.SONG_A = False
+                                print("SOnG A!!!!! ")
+                                lobby = 'A'
+                            if song_b:
+                                mqtt_lib.menu_mqtt.SONG_B = False
+                                print("song b!!")
+                                lobby =  'B'
+                            if song_c:
+                                mqtt_lib.menu_mqtt.SONG_C = False
+                                lobby = 'C'
+                            if song_d:
+                                mqtt_lib.menu_mqtt.SONG_D = False
+                                lobby = 'D'
+                            if song_e:
+                                mqtt_lib.menu_mqtt.SONG_E = False
+                                lobby = 'E'
+                            if song_f:
+                                mqtt_lib.menu_mqtt.SONG_F = False
+                                lobby = 'F'
+                            # aaaa
                             lobby_speech = False
                             if lobby == lobby_button.text[0]:
                                 lobby_speech = True
