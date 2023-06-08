@@ -807,7 +807,7 @@ class Game():
         
         # process key works for now since it is just diff letters
         if player_action_num == 1:
-            if (self.red_notes):
+            if (self.red_notes.sprites()):
                 lowest_note = get_lowest_note(self.red_notes)
                 if not (lowest_note is None):
                     action_input_result = lowest_note.process_action_location(self.imu_action_1, self.active_listeners['localization_listener'].p1.location, 1)
@@ -817,7 +817,7 @@ class Game():
             else:
                 action_input_result = "No Red Notes Yet!"
         else:
-            if (self.blue_notes):
+            if (self.blue_notes.sprites()):
                 lowest_note = get_lowest_note(self.blue_notes)
                 if not (lowest_note is None):
                     action_input_result = lowest_note.process_action_location(self.imu_action_2, self.active_listeners['localization_listener'].p2.location, 2)
