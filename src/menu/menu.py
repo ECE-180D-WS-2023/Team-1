@@ -2,7 +2,9 @@ import time
 #import keyboard
 import pygame
 import paho.mqtt.client as mqtt
-from menu import mqtt_lib
+# from menu import mqtt_lib
+import mqtt_lib
+# from menu.mqtt_lib import SpeechFlags, MenuSpeechListener
 import re
 
 #TODO (spring quarter) 5/11
@@ -140,7 +142,26 @@ class Button:
 
 class Menu():
     def __init__(self):
-        pass
+        self.t1_flags = mqtt_lib.SpeechFlags()
+        self.t1_listener = mqtt_lib.MenuSpeechListener(t1_flags, "EECE180/Team1/speech")
+
+        self.t2_flags = mqtt_lib.SpeechFlags()
+        self.t2_listener = mqtt_lib.MenuSpeechListener(t2_flags, "EECE180/Team2/speech")
+
+        self.team = 1 
+        self.speech_flags = self.t1_flags
+    
+    def update_team_num(self, team_num):
+        if team_num == 1:
+            self.speech_flags = self.t1_flags
+        elif team_num == 2: 
+            self.speech_flags = self.t2_flags
+        else:
+            # Something happened incorrectly!!!
+            print("ERROR: Incorrect team_num")
+            return
+
+        self.team = team_num
 
     def draw_text(self, screen, text, font, text_col, x, y):
         img = font.render(text, True, text_col)
