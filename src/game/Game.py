@@ -871,7 +871,7 @@ class Game():
         screen.blit(upper_surface, upper_rect)
         screen.blit(lower_surface, lower_rect)
         result = "Exit to play again!"
-        if (opponent_score_text != ""):
+        if (opponent_score_text != "" and opponent_score_text != "Calculating Opponent Score..."):
             result = ""
             my_point_split = my_score_text.split(": ")
             my_points = int(my_point_split[1])
