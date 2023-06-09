@@ -17,7 +17,8 @@ client.on_message = mqtt_lib.server_on_message
 client.connect_async('mqtt.eclipseprojects.io')
 client.loop_start()
 #client.publish(mqtt_lib.REMOTE_SUBSCRIPTION, 1, qos=1)
-
+PUBLISH = "ECE180/Team2/speech"
+PUB2 = "ECE180/remote"
 #lobbies = "ZA1,B2"
 lobbies = ""
 while (True):
@@ -25,15 +26,19 @@ while (True):
     # client.publish("ECE180/remote", "it's me!!", qos=1)
     # client.publish("ECE180/remote", "T2_READY", qos=1)
     # publish new lobby
-    client.publish("ECE180/remote", "D1", qos=1)
+    client.publish(PUBLISH, "two", qos=1)
+    client.publish(PUBLISH, "return", qos=1)
+    client.publish(PUBLISH, "start", qos=1)
+    client.publish(PUBLISH, "a", qos=1)
+    print("published speech")
     # request lobby list
     #client.publish("ECE180/remote", "LLR", qos=1)
     # publish new lobby
-    client.publish("ECE180/remote", "B1", qos=1)
-    client.publish("ECE180/remote", "C1", qos=1)
-    client.publish("ECE180/remote", "A1", qos=1)
-    client.publish("ECE180/remote", "E1", qos=1)
-    client.publish("ECE180/remote", "F1", qos=1)    
+    # client.publish("ECE180/remote", "B1", qos=1)
+    # client.publish("ECE180/remote", "C1", qos=1)
+    # client.publish("ECE180/remote", "A1", qos=1)
+    # client.publish("ECE180/remote", "E1", qos=1)
+    # client.publish("ECE180/remote", "F1", qos=1)    
     # request lobby list
     #client.publish("ECE180/remote", "A1", qos=1)
     # client.publish("ECE180/remote", "C1", qos=1)

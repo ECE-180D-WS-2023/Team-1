@@ -119,31 +119,31 @@ def menu_mqtt_on_disconnect(client, userdata, rc):
 
 @dataclass
 class SpeechFlags:
-    start_c: bool = False
-    settings_c: bool = False
-    tutorial_c: bool = False
-    quit_c: bool = False
-    single_team_c: bool = False
-    multi_team_c: bool = False
-    one_player_c: bool = False
-    two_player_c: bool = False
-    return_c: bool = False
-    play_c: bool = False
-    create_c: bool = False
-    msg_received: bool = False
-    song_a: bool = False
-    song_b: bool = False
-    song_c: bool = False
-    song_d: bool = False
-    song_e: bool = False
-    song_f: bool = False
+    START_CLICK: bool = False
+    SETTINGS_CLICK: bool = False
+    TUTORIAL_CLICK: bool = False
+    QUIT_CLICK: bool = False
+    SINGLE_TEAM_CLICK: bool = False
+    MULTI_TEAM_CLICK: bool = False
+    ONE_PLAYER_CLICK: bool = False
+    TWO_PLAYER_CLICK: bool = False
+    RETURN_CLICK: bool = False
+    PLAY_CLICK: bool = False
+    CREATE_CLICK: bool = False
+    MESSAGE_RECEIVED: bool = False
+    SONG_A: bool = False
+    SONG_B: bool = False
+    SONG_C: bool = False
+    SONG_D: bool = False
+    SONG_E: bool = False
+    SONG_F: bool = False
 
 
 class MenuSpeechListener:
-    def __init__(self, flags: SpeechFlags, topic: str = "ECE180/Team1/speech"):
+    def __init__(self, topic: str = "ECE180/Team1/speech"):
         # Initialize topic and SpeechFlags datasctructure
         self.topic = topic
-        self.sf = flags
+        self.sf = SpeechFlags()
 
         # initialize MQTT values
         self.client = mqtt.Client()
@@ -152,6 +152,7 @@ class MenuSpeechListener:
         self.client.on_message = self._on_message
         self.client.connect_async("mqtt.eclipseprojects.io")
         self.client.loop_start()
+        print("Initializing speech listener")
 
         # Send the connection success message
         # self.client.publish(self.topic, 1, qos=1)
@@ -184,49 +185,46 @@ class MenuSpeechListener:
     def _on_message(self, client, userdata, message):
         msg_str = message.payload.decode()
         print(msg_str)
-
         self.keyword = msg_str
         self.received = True
-
+        self.sf.MESSAGE_RECEIVED = True
         # TODO Find a nicer way to represent this data to make it more easy to
         #   work with
-        match msg_str:
-            case "start":
-                self.sf.start_c = True
-            case "settings":
-                self.sf.settings_c = True
-            case "tutorial":
-                self.sf.tutorial_c = True
-            case "quit":
-                self.sf.quit_c = True
-            case "single":
-                self.sf.single_team_c = True
-            case "multi":
-                self.sf.multi_team_c = True
-            case "one":
-                self.sf.one_player_c = True
-            case "two":
-                self.sf.two_player_c = True
-            case "return":
-                self.sf.return_c = True
-            case "play":
-                self.sf.play_c = True
-            case "create":
-                self.sf.create_c = True
-            case "msg_received":
-                self.sf.msg_received = True
-            case "a":
-                self.sf.song_a = True
-            case "b":
-                self.sf.song_b = True
-            case "c":
-                self.sf.song_c = True
-            case "d":
-                self.sf.song_d = True
-            case "e":
-                self.sf.song_e = True
-            case "f":
-                self.sf.song_f = True
+        if re.search("start", msg_str):
+            self.sf.START_CLICK = True
+        elif re.search("settings", msg_str):
+            self.sf.SETTINGS_CLICK = True
+            print("settings click" + str(self.sf.SETTINGS_CLICK))
+        elif re.search("tutorial", msg_str):
+            self.sf.TUTORIAL_CLICK = True
+        elif re.search("quit", msg_str):
+            self.sf.QUIT_CLICK = True
+        elif re.search("single", msg_str):
+            self.sf.SINGLE_TEAM_CLICK = True
+        elif re.search("multi", msg_str):
+            self.sf.MULTI_TEAM_CLICK = True
+        elif re.search("one", msg_str):
+            self.sf.ONE_PLAYER_CLICK = True
+        elif re.search("two", msg_str):
+            self.sf.TWO_PLAYER_CLICK = True
+        elif re.search("return", msg_str):
+            self.sf.RETURN_CLICK = True
+        elif re.search("play", msg_str):
+            self.sf.PLAY_CLICK = True
+        elif re.search("create", msg_str):
+            self.sf.CREATE_CLICK = True
+        elif re.search("a", msg_str):
+            self.sf.SONG_A = True
+        elif re.search("b", msg_str):
+            self.sf.SONG_B = True
+        elif re.search("c", msg_str):
+            self.sf.SONG_C = True
+        elif re.search("d", msg_str):
+            self.sf.SONG_D = True
+        elif re.search("e", msg_str):
+            self.sf.SONG_E = True
+        elif re.search("f", msg_str):
+            self.sf.SONG_F = True
 
 
 if __name__ == "__main__":

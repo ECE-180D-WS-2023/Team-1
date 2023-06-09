@@ -124,16 +124,16 @@ class Button:
 
 class Menu():
     def __init__(self):
-        self.t1_flags = mqtt_lib.SpeechFlags()
-        self.t1_listener = mqtt_lib.MenuSpeechListener(self.t1_flags, "EECE180/Team1/speech")
-
-        self.t2_flags = mqtt_lib.SpeechFlags()
-        self.t2_listener = mqtt_lib.MenuSpeechListener(self.t2_flags, "EECE180/Team2/speech")
+        self.t1_listener = mqtt_lib.MenuSpeechListener( "ECE180/Team1/speech")
+        self.t1_flags = self.t1_listener.sf
+        self.t2_listener = mqtt_lib.MenuSpeechListener("ECE180/Team2/speech")
+        self.t2_flags = self.t2_listener.sf
 
         self.team = 1 
         self.speech_flags = self.t1_flags
     
     def update_team_num(self, team_num):
+        print("updating team")
         if team_num == 1:
             self.speech_flags = self.t1_flags
         elif team_num == 2: 
@@ -351,6 +351,7 @@ class Menu():
                 #checks if a mouse is clicked or message was received
                 if ev.type == pygame.MOUSEBUTTONDOWN or ev.type == MESSAGE:
                     if menu_screen:
+                        #print(self.speech_flags)
                         start_click = self.speech_flags.START_CLICK # ga
                         settings_click = self.speech_flags.SETTINGS_CLICK # sc
                         tutorial_click = self.speech_flags.TUTORIAL_CLICK # tc  
@@ -496,8 +497,10 @@ class Menu():
                         if team_id_button.check_toggle_click():
                             team_id_button.toggle = not team_id_button.toggle
                             if TEAM_ID == 1:
+                                self.update_team_num(2)
                                 TEAM_ID = 2
                             elif TEAM_ID == 2:
+                                self.update_team_num(1)
                                 TEAM_ID = 1
                         elif one_player_click:
                             self.speech_flags.ONE_PLAYER_CLICK= False
