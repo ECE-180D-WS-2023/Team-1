@@ -592,10 +592,12 @@ class Menu():
                             mqtt_lib.menu_mqtt.TWO_PLAYER_CLICK= False
                             player_num = 2
                         elif team_a_click:
+                            self.update_team_num(1)
                             team_id_button.toggle = not team_id_button.toggle
                             mqtt_lib.menu_mqtt.SONG_A= False
                             TEAM_ID = 1
                         elif team_b_click:
+                            self.update_team_num(2)
                             team_id_button.toggle = not team_id_button.toggle
                             mqtt_lib.menu_mqtt.SONG_B= False
                             TEAM_ID = 2
