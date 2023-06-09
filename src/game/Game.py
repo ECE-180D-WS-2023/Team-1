@@ -859,17 +859,11 @@ class Game():
         upper_surface = self.scoreboard_font.render(my_score_text, True, (0, 0, 0))
         upper_rect = upper_surface.get_rect()
 
-        # render the lower text and get its rectangle
-        lower_surface = self.scoreboard_font.render(opponent_score_text, True, (0, 0, 0))
-        lower_rect = lower_surface.get_rect()
-
         # center the text rectangles and move them slightly above and below the screen center
         upper_rect.midbottom = (screen_center[0], screen_center[1] - 10)
-        lower_rect.midtop = (screen_center[0], screen_center[1] + 10)
 
         # blit the text surfaces onto the screen
         screen.blit(upper_surface, upper_rect)
-        screen.blit(lower_surface, lower_rect)
         result = "Exit to play again!"
         if (opponent_score_text != "" and opponent_score_text != "Calculating Opponent Score..."):
             result = ""
@@ -877,6 +871,12 @@ class Game():
             my_points = int(my_point_split[1])
             opponent_point_split = opponent_score_text.split(": ")
             opponent_points = int(opponent_point_split[1])
+            # render the lower text and get its rectangle
+            lower_surface = self.scoreboard_font.render(opponent_score_text, True, (0, 0, 0))
+            lower_rect = lower_surface.get_rect()
+            lower_rect.midtop = (screen_center[0], screen_center[1] + 10)
+            screen.blit(lower_surface, lower_rect)
+
             if (my_points < opponent_points):
                 result = "You lose :("
             elif (my_points == opponent_points):
