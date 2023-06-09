@@ -175,14 +175,6 @@ class Menu():
         #team1 bool
         team1 = False
 
-        #initializing mqtt client for voice recognition
-        menu_mqtt_client = mqtt.Client()
-        menu_mqtt_client.on_connect = self.speech_flags_on_connect
-        menu_mqtt_client.on_disconnect = self.speech_flags_on_disconnect
-        menu_mqtt_client.on_message = self.speech_flags_on_message
-        menu_mqtt_client.connect_async('mqtt.eclipseprojects.io')
-        menu_mqtt_client.loop_start()
-
         remote_client = mqtt.Client() 
         remote_client.on_connect = mqtt_lib.server_on_connect
         remote_client.on_disconnect = mqtt_lib.server_on_disconnect

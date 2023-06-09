@@ -171,7 +171,7 @@ class MenuSpeechListener:
 
     def _on_connect(self, client, userdata, flags, rc):
         client.subscribe(self.topic, qos=1)
-        # print("Connection returned result: " + str(rc))
+        print("Speech Connection returned result: " + str(rc))
 
     def _on_disconnect(self, client, userdata, rc):
         if rc != 0:
@@ -247,9 +247,9 @@ if __name__ == "__main__":
     msl = MenuSpeechListener(flags=my_sf)
     msl.sf.song_a = True
 
-    pprint(my_sf)
+    print(my_sf)
 
     my_sf.song_a = False
 
-    pprint(msl.sf.song_a)
+    print(msl.sf.song_a)
 
